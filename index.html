@@ -78,9 +78,9 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品</a><a href="#get-started">使用方式</a><a href="#requirements">系統需求</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptia/releases">下載 ↓</a><span class="tag">ZH-TW</span></div></header>
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品</a><a href="#get-started">使用方式</a><a href="#requirements">系統需求</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptiaLab/releases">下載 ↓</a><span class="tag">ZH-TW</span></div></header>
 <main>
-<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>kaptiaLab · Your AI Companion</span></div><h1>kaptiaLab<br>讓 AI 成為你的思考夥伴</h1><p class="lead">以 kaptiaLab 為核心的本機 AI 工作空間。下載 Windows 啟動器，了解專案進度，逐步建立屬於自己的模型與開發工具。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptia/releases/latest/download/Kaptia-Setup.exe" id="download">下載</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 版本與安裝狀態請以 GitHub Releases 公告為準。</p></section>
+<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>kaptiaLab · Your AI Companion</span></div><h1>kaptiaLab<br>讓 AI 成為你的思考夥伴</h1><p class="lead">以 kaptiaLab 為核心的本機 AI 工作空間。下載 Windows 啟動器，了解專案進度，逐步建立屬於自己的模型與開發工具。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptiaLab/releases/latest/download/Kaptia-Setup.exe" id="download">下載</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 版本與安裝狀態請以 GitHub Releases 公告為準。</p></section>
 <section id="release-announcements" aria-labelledby="release-title">
 <div class="eyebrow">RELEASE NOTES</div><h2 id="release-title">版本發布公告</h2>
 <p class="copy">公告直接讀取 kaptiaLab 專案的 GitHub Releases，顯示正式發布的版本、日期、更新說明及可用下載。若無法連線，仍可開啟 Releases 頁面查看。</p>
@@ -114,7 +114,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 </div>
 </section>
 </main>
-<footer class="footer"><span>© <span class="notranslate" translate="no">kaptiaLab</span> · Windows local assistant</span><span><a href="https://github.com/argusocean-wq/kaptiaLab-site">Source code</a> · <a href="https://github.com/argusocean-wq/kaptia/releases">Releases</a></span></footer>
+<footer class="footer"><span>© <span class="notranslate" translate="no">kaptiaLab</span> · Windows local assistant</span><span><a href="https://github.com/argusocean-wq/kaptiaLab-site">Source code</a> · <a href="https://github.com/argusocean-wq/kaptiaLab/releases">Releases</a></span></footer>
 </div>
 <script>
 (() => {
@@ -277,8 +277,8 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 (() => {
   const list = document.getElementById("releaseList");
   if (!list) return;
-  const releasesUrl = "https://api.github.com/repos/argusocean-wq/kaptia/releases?per_page=5";
-  const releasesPage = "https://github.com/argusocean-wq/kaptia/releases";
+  const releasesUrl = "https://api.github.com/repos/argusocean-wq/kaptiaLab/releases?per_page=5";
+  const releasesPage = "https://github.com/argusocean-wq/kaptiaLab/releases";
 
   function node(tag, className, text) {
     const el = document.createElement(tag);
@@ -287,7 +287,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
     return el;
   }
   function addLink(parent, label, url) {
-    if (typeof url !== "string" || !url.startsWith("https://github.com/argusocean-wq/kaptia/releases/")) return;
+    if (typeof url !== "string" || !url.startsWith("https://github.com/argusocean-wq/kaptiaLab/releases/")) return;
     const a = node("a", "", label);
     a.href = url;
     a.target = "_blank";
