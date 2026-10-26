@@ -1,0 +1,48 @@
+name: Mirror public installer release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-installer-release
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download latest public installer assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          release_json="$(gh api repos/argusocean-wq/kaptiaLab/releases/latest)"
+          tag="$(jq -r '.tag_name' <<< "$release_json")"
+          title="$(jq -r '.name' <<< "$release_json")"
+          notes="$(jq -r '.body // ""' <<< "$release_json")"
+          mkdir -p release-assets
+          gh release download "$tag" \
+            --repo argusocean-wq/kaptiaLab \
+            --pattern "Kaptia-Setup.exe" \
+            --pattern "Kaptia-Setup.exe.sha256" \
+            --dir release-assets
+          test -s release-assets/Kaptia-Setup.exe
+          test -s release-assets/Kaptia-Setup.exe.sha256
+          sha256sum --check release-assets/Kaptia-Setup.exe.sha256
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" release-assets/Kaptia-Setup.exe release-assets/Kaptia-Setup.exe.sha256 \
+              --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$tag" \
+              release-assets/Kaptia-Setup.exe \
+              release-assets/Kaptia-Setup.exe.sha256 \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$title" \
+              --notes "$notes"
+          fi
+
+          echo "Mirrored release $tag to $GITHUB_REPOSITORY"
