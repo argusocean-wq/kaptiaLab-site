@@ -1,0 +1,78 @@
+name: Deploy Kaptia Pages
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "index.html"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - "tests/test_pages_frontend.py"
+      - "scripts/test_published_site.py"
+      - "scripts/check_published_site.py"
+      - ".nojekyll"
+      - ".github/workflows/pages.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - "tests/test_pages_frontend.py"
+      - ".nojekyll"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  # PR validation must not cancel a real production deployment from main.
+  group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate landing page and JavaScript failure boundaries
+        run: python -m unittest tests.test_pages_frontend scripts.test_published_site
+
+  deploy:
+    needs: validate
+    if: github.event_name != 'pull_request'
+    environment:
+      name: github-pages
+      url: https://argusocean-wq.github.io/kaptiaLab-site/
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Stage only public frontend files
+        run: |
+          mkdir -p _site
+          cp index.html manifest.webmanifest sw.js .nojekyll _site/
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify the published site and critical assets
+        env:
+          PAGE_URL: https://argusocean-wq.github.io/kaptiaLab-site/
+        run: python scripts/check_published_site.py "$PAGE_URL"
