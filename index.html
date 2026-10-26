@@ -287,7 +287,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
     return el;
   }
   function addLink(parent, label, url) {
-    if (typeof url !== "string" || !url.startsWith("https://github.com/argusocean-wq/kaptiaLab-site/releases/")) return;
+    if (typeof url !== "string" || !(url === releasesPage || url.startsWith(releasesPage + "/"))) return;
     const a = node("a", "", label);
     a.href = url;
     a.target = "_blank";
