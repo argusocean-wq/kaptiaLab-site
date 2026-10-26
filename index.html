@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="kaptiaLab Windows 本機 AI 助理。下載桌面啟動器，在自己的電腦下載模型並本機執行。">
+<title>kaptiaLab — 本機 AI 助理</title>
+<style>
+:root{color-scheme:light;--bg:#fff;--panel:#fff;--line:#e9e9ef;--muted:#686875;--fg:#111116;--blue:#111116;--purple:#777780;--pink:#bcbcc4}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#fff;color:var(--fg);font:16px/1.65 Inter,"Segoe UI","Noto Sans TC",system-ui,sans-serif;overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 50% 52%,rgba(255,255,255,.1),#fff 66%)}a{color:inherit}.wrap{width:min(1240px,calc(100% - 48px));margin:auto}.top{height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f1f3;gap:20px}.brand{display:flex;align-items:center;gap:9px;font-size:16px;letter-spacing:-.04em;font-weight:750}.brand-mark,.hero-mark{display:inline-grid;place-items:center;font-weight:900;color:#111116}.brand-mark{font-size:27px;line-height:1}.nav{display:flex;align-items:center;gap:28px;color:#33333a;font-size:14px}.nav a{text-decoration:none}.nav a:hover{color:#6559d8}.top-actions{display:flex;align-items:center;gap:10px}.tag{font-size:12px;color:#777;border:1px solid #e8e8ed;border-radius:99px;padding:6px 11px}.hero{position:relative;text-align:center;padding:clamp(78px,15vh,150px) 0 108px;isolation:isolate;overflow:hidden}.hero:before{content:"";position:absolute;z-index:-2;inset:0;background:radial-gradient(ellipse at 50% 75%,#f4f4f6 0%,rgba(255,255,255,0) 57%),linear-gradient(165deg,#fff 0%,#fff 58%,#fafafa 100%);pointer-events:none}.interactive-bg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.9}.hero-mark{font-size:26px;line-height:1;margin-bottom:27px}.hero-brand{font-size:clamp(18px,2vw,23px);font-weight:650;letter-spacing:-.05em;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px}.hero>*:not(.interactive-bg){position:relative;z-index:1}.hero-brand .hero-mark{margin:0;font-size:30px}h1{font-size:clamp(40px,7.1vw,92px);letter-spacing:-.075em;line-height:1.12;margin:0 auto;font-weight:720;max-width:1150px}.lead{color:#5e5e67;max-width:690px;margin:24px auto 31px;font-size:clamp(16px,1.7vw,19px)}.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border-radius:999px;text-decoration:none;font-weight:650;border:1px solid #111116;background:#111116;color:#fff;transition:transform .18s,box-shadow .18s}.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px #11111618}.btn.secondary{background:#fff;color:#222;border-color:#e0e0e7}.note{font-size:12px;color:#777;margin-top:15px}.eyebrow{font-size:11px;letter-spacing:.2em;color:#777;text-transform:uppercase}section{padding:54px 0;border-top:1px solid #ededf1}h2{font-size:clamp(26px,4vw,38px);letter-spacing:-.045em;font-weight:680;margin:8px 0 22px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{border:1px solid #e9e9ef;background:#fff;border-radius:20px;padding:22px;box-shadow:0 6px 28px #17172705}.num{color:#8a8a95;font-size:12px;letter-spacing:.12em}.card h3{font-size:16px;margin:12px 0 7px}.card p,.copy{font-size:14px;color:#666671;margin:0}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.release-list{display:grid;grid-template-columns:1fr;gap:12px}.release-card{border:1px solid #e7e7ee;background:linear-gradient(135deg,#fff,#fafaff);border-radius:18px;padding:20px}.release-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}.release-title{font-size:17px;font-weight:650;margin:0}.release-meta{color:#777;font-size:12px;margin-top:4px}.release-badge{font-size:11px;border:1px solid #e1e1e8;color:#555;padding:3px 8px;border-radius:99px}.release-notes{font-size:14px;color:#62626c;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 0;max-height:180px;overflow:auto}.release-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:13px}.release-links a{color:#3434a2;text-underline-offset:4px}.release-status{font-size:14px;color:#777;margin:0}.release-footnote{font-size:12px;color:#888;margin-top:14px}.step{border-top:1px solid #dedee6;padding-top:16px}.step strong{display:block;margin:8px 0}.requirements{display:grid;grid-template-columns:1fr 1fr;gap:12px}.req{padding:18px;border-radius:16px;background:#fff;border:1px solid #e8e8ef}.req strong{display:block;margin-bottom:5px}.footer{padding:30px 0 45px;color:#888;font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #eee}.footer a{color:#555}#release-announcements{scroll-margin-top:24px}
+@media(max-width:800px){.nav{display:none}.hero{padding-top:76px}.hero:before{width:140vw;height:110vw}.grid,.steps,.requirements{grid-template-columns:1fr}.top{height:64px}.wrap{width:min(100% - 28px,1240px)}h1{letter-spacing:-.065em}}
+
+/* Vue-inspired information architecture, expressed only in grayscale. */
+:root{color-scheme:light;--bg:#fff;--panel:#fafafa;--line:#e5e5e5;--muted:#737373;--fg:#171717;--blue:#171717;--purple:#525252;--pink:#a3a3a3}
+body{background:#fff;color:#171717;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",system-ui,sans-serif;letter-spacing:-.012em}
+body:before{background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,.025),transparent 58%)}
+.top{height:76px;border-bottom:1px solid #e5e5e5}
+.brand{font-size:17px;letter-spacing:-.055em}
+.brand-mark,.hero-mark{color:#171717}
+.nav{gap:30px;color:#525252}
+.nav a{transition:color .18s ease}
+.nav a:hover{color:#000;text-decoration:underline;text-underline-offset:5px}
+.tag{color:#525252;border-color:#d4d4d4;background:#fafafa}
+.hero{text-align:left;max-width:none;padding:clamp(78px,12vh,132px) 0 88px}
+.hero:before{background:radial-gradient(ellipse at 72% 55%,#f5f5f5 0%,rgba(255,255,255,0) 58%),linear-gradient(140deg,#fff 0%,#fff 60%,#fafafa 100%)}
+.hero-brand{justify-content:flex-start;margin-bottom:24px;font-size:14px;letter-spacing:.02em;color:#525252}
+.hero-brand .hero-mark{font-size:24px;width:38px;height:38px;border:1px solid #d4d4d4;border-radius:12px;background:linear-gradient(145deg,#fff,#f0f0f0)}
+h1{max-width:920px;margin:0;font-size:clamp(44px,7vw,84px);line-height:1.02;letter-spacing:-.075em;font-weight:740}
+.lead{max-width:660px;margin:26px 0 30px;color:#525252;font-size:clamp(16px,1.6vw,19px);line-height:1.8}
+.actions{justify-content:flex-start}
+.btn{border-radius:10px;background:#171717;border-color:#171717;color:#fff;min-height:48px;box-shadow:none}
+.btn:hover{background:#404040;border-color:#404040;box-shadow:0 8px 24px #00000012}
+.btn.secondary{background:#fff;color:#171717;border-color:#d4d4d4}
+.btn.secondary:hover{background:#f5f5f5;border-color:#a3a3a3}
+.note{color:#737373}
+.eyebrow{color:#737373;letter-spacing:.16em;font-weight:650}
+section{padding:64px 0;border-top:1px solid #e5e5e5}
+h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
+.grid{gap:16px}
+.card{border:1px solid #e5e5e5;background:linear-gradient(180deg,#fff,#fcfcfc);border-radius:14px;padding:24px;box-shadow:none;transition:border-color .2s ease,transform .2s ease,background .2s ease}
+.card:hover{transform:translateY(-3px);border-color:#a3a3a3;background:#fff}
+.num{color:#737373;font-size:11px;letter-spacing:.1em}
+.card h3{font-size:17px;letter-spacing:-.025em}
+.card p,.copy{color:#666;font-size:14px;line-height:1.85}
+.steps{gap:20px}
+.step{border-top:1px solid #d4d4d4;padding-top:18px}
+.release-card{border:1px solid #e5e5e5;background:#fff;border-radius:14px;box-shadow:none}
+.release-badge{border-color:#d4d4d4;color:#525252;background:#fafafa}
+.release-links a{color:#404040}
+.release-links a:hover{color:#000}
+.req{border:1px solid #e5e5e5;border-radius:14px;background:#fff}
+.footer{border-top-color:#e5e5e5;color:#737373}
+.footer a{color:#404040}
+@media(max-width:800px){.hero{text-align:left;padding-top:72px}.hero-brand{justify-content:flex-start}.hero:before{width:auto;height:auto}.grid,.steps,.requirements{grid-template-columns:1fr}.nav{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* Interactive pointer field: subtle monochrome spotlight, touch ripples and clear focus states. */
+.hero{--pointer-x:50%;--pointer-y:45%;cursor:crosshair}
+.hero:before{transition:background-position .12s linear,filter .18s ease}
+.hero.pointer-active:before{
+ background:
+ radial-gradient(ellipse 340px 270px at var(--pointer-x) var(--pointer-y),rgba(0,0,0,.075),transparent 72%),
+ radial-gradient(ellipse at 72% 55%,#f5f5f5 0%,rgba(255,255,255,0) 58%),
+ linear-gradient(140deg,#fff 0%,#fff 60%,#fafafa 100%);
+}
+.pointer-ripple{position:absolute;z-index:0;pointer-events:none;width:12px;height:12px;border:1px solid rgba(20,20,20,.28);border-radius:50%;transform:translate(-50%,-50%);animation:pointer-ripple .8s ease-out forwards}
+@keyframes pointer-ripple{to{width:210px;height:210px;opacity:0;border-width:1px}}
+.hero .interactive-bg{opacity:.72;transition:opacity .2s}
+.hero:focus-within .interactive-bg{opacity:1}
+@media(hover:none){.hero{cursor:default}.hero.pointer-active:before{background:radial-gradient(ellipse 240px 180px at var(--pointer-x) var(--pointer-y),rgba(0,0,0,.06),transparent 72%),linear-gradient(140deg,#fff 0%,#fff 60%,#fafafa 100%)}}
+@media(prefers-reduced-motion:reduce){.pointer-ripple{animation:none;display:none}.hero:before,.hero .interactive-bg{transition:none}}
+
+
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品</a><a href="#get-started">使用方式</a><a href="#requirements">系統需求</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptia/releases">下載 ↓</a><span class="tag">ZH-TW</span></div></header>
+<main>
+<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>kaptiaLab · Your AI Companion</span></div><h1>kaptiaLab<br>讓 AI 成為你的思考夥伴</h1><p class="lead">以 kaptiaLab 為核心的本機 AI 工作空間。下載 Windows 啟動器，了解專案進度，逐步建立屬於自己的模型與開發工具。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptia/releases/latest/download/Kaptia-Setup.exe" id="download">下載</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 版本與安裝狀態請以 GitHub Releases 公告為準。</p></section>
+<section id="release-announcements" aria-labelledby="release-title">
+<div class="eyebrow">RELEASE NOTES</div><h2 id="release-title">版本發布公告</h2>
+<p class="copy">公告直接讀取 kaptiaLab 專案的 GitHub Releases，顯示正式發布的版本、日期、更新說明及可用下載。若無法連線，仍可開啟 Releases 頁面查看。</p>
+<div class="release-list" id="releaseList" aria-live="polite"><article class="release-card"><p class="release-status">正在讀取 GitHub Releases 最新公告…</p></article></div>
+<p class="release-footnote">版本公告由 GitHub Releases 提供；頁面顯示公告不代表該版本已在所有 Windows 裝置完成實機驗證。</p>
+</section>
+<section id="overview">
+<div class="eyebrow">OVERVIEW</div><h2>網站介紹</h2>
+<div class="grid">
+<article class="card"><div class="num">01 / WEBSITE</div><h3>產品介紹</h3><p>瀏覽器只顯示功能、需求與安裝說明，不在 Edge 網頁內載入大型模型或提供聊天工作台。</p></article>
+<article class="card"><div class="num">02 / INSTALLER</div><h3>下載桌面啟動器</h3><p>按下載取得 Windows 執行檔。啟動器負責準備本機執行環境、訓練 <span class="notranslate" translate="no">kaptiaLab</span> 起步模型，並在偵測到 VS Code 時安裝編輯器整合。</p></article>
+<article class="card"><div class="num">03 / LOCAL</div><h3>在電腦上執行</h3><p>安裝程式會以隨機初始化權重訓練 <span class="notranslate" translate="no">kaptiaLab</span> 起步模型；若已安裝 VS Code，也會加入「問問 <span class="notranslate" translate="no">kaptiaLab</span>」右鍵命令。起步模型仍屬實驗階段，程式碼解釋可能不可靠。</p></article>
+</div>
+</section>
+
+<section id="get-started">
+<div class="eyebrow">GET STARTED</div><h2>從下載到本機對話</h2>
+<div class="steps">
+<div class="step"><div class="num">STEP 01</div><strong>下載 .exe</strong><p class="copy">從 GitHub Releases 取得 Windows 啟動器。請只執行你信任且已核對來源的版本。</p></div>
+<div class="step"><div class="num">STEP 02</div><strong>安裝依賴與起步訓練</strong><p class="copy">首次啟動需要網路、磁碟空間與等待時間。本機模型權重會保存於本機供後續載入。</p></div>
+<div class="step"><div class="num">STEP 03</div><strong>啟動本機模型</strong><p class="copy">完成設定後，從桌面啟動 <span class="notranslate" translate="no">kaptiaLab</span>。之後是否能完全離線，取決於模型與必要依賴是否已完整下載。</p></div>
+</div>
+</section>
+<section id="requirements">
+<div class="eyebrow">SYSTEM REQUIREMENTS</div><h2>開始前請確認</h2>
+<div class="requirements">
+<div class="req"><strong>作業系統</strong><p class="copy">Windows 10 或 Windows 11（64 位元）。目前此安裝流程不是 iPhone/iPad 安裝程式。</p></div>
+<div class="req"><strong>網路與儲存空間</strong><p class="copy">首次設定需下載 Python 套件並執行起步訓練。請預留足夠磁碟空間；訓練速度取決於 CPU/GPU。</p></div>
+<div class="req"><strong>硬體</strong><p class="copy">可使用 CPU 執行但可能較慢；相容的 NVIDIA GPU 可改善部分工作負載的速度與記憶體配置。</p></div>
+<div class="req"><strong>隱私與限制</strong><p class="copy">本機推論不等於所有安裝步驟都離線。下載來源、模型授權、遙測與外部連線狀態應以實際發布版本說明為準。</p></div>
+</div>
+</section>
+</main>
+<footer class="footer"><span>© <span class="notranslate" translate="no">kaptiaLab</span> · Windows local assistant</span><span><a href="https://github.com/argusocean-wq/kaptiaLab-site">Source code</a> · <a href="https://github.com/argusocean-wq/kaptia/releases">Releases</a></span></footer>
+</div>
+<script>
+(() => {
+  const canvas = document.getElementById("interactiveBackground");
+  const hero = canvas && canvas.closest(".hero");
+  if (!canvas || !hero) return;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    canvas.hidden = true;
+    return;
+  }
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let width = 0, height = 0, raf = 0, resizeRaf = 0, lastFrame = 0;
+  const pointer = { x: -1000, y: -1000, active: false };
+  let particles = [];
+
+  function scheduleDraw() {
+    if (!reduceMotion && !document.hidden && raf === 0) {
+      raf = requestAnimationFrame(draw);
+    }
+  }
+
+  function resize() {
+    const rect = hero.getBoundingClientRect();
+    const nextWidth = Math.max(1, Math.round(rect.width));
+    const nextHeight = Math.max(1, Math.round(rect.height));
+    if (nextWidth === width && nextHeight === height && particles.length) return;
+    width = nextWidth;
+    height = nextHeight;
+
+    // Keep the backing canvas modest on high-DPI phones to avoid excessive raster memory.
+    const dpr = Math.min(window.devicePixelRatio || 1, width < 640 ? 1.25 : 1.75);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Cap pairwise particle work; the previous 110-particle field checked 5,995 pairs/frame.
+    const count = width < 640 ? 28 : Math.min(64, Math.max(36, Math.floor(width / 20)));
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - .5) * .18,
+      vy: (Math.random() - .5) * .18,
+      r: Math.random() * 1.5 + .45,
+      a: Math.random() * .32 + .10
+    }));
+    lastFrame = 0;
+    if (reduceMotion) draw(0);
+    else scheduleDraw();
+  }
+
+  function queueResize() {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = 0;
+      resize();
+    });
+  }
+
+  function draw(timestamp = 0) {
+    raf = 0;
+    if (!ctx || document.hidden) return;
+    // Limit animation to 24 FPS; the effect is decorative and should not compete with the page.
+    if (!reduceMotion && timestamp && timestamp - lastFrame < 1000 / 24) {
+      scheduleDraw();
+      return;
+    }
+    lastFrame = timestamp || 0;
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.lineWidth = .7;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      for (let x = -20; x <= width + 20; x += 16) {
+        const wave = height * (.70 + i * .035)
+          + Math.sin(x * .004 + i * .7) * 22
+          + Math.sin(x * .009 - i) * 8;
+        if (x === -20) ctx.moveTo(x, wave);
+        else ctx.lineTo(x, wave);
+      }
+      ctx.strokeStyle = "rgba(20,20,25," + (0.035 + i * .009) + ")";
+      ctx.stroke();
+    }
+
+    const lineGap = 32;
+    const lineGapSq = lineGap * lineGap;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      if (!reduceMotion) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = width;
+        if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        if (p.y > height) p.y = 0;
+        if (pointer.active) {
+          const dx = p.x - pointer.x, dy = p.y - pointer.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 115 * 115 && distSq > 0) {
+            const dist = Math.sqrt(distSq);
+            p.x += dx / dist * .65;
+            p.y += dy / dist * .65;
+          }
+        }
+      }
+
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(15,15,20," + p.a + ")";
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq < lineGapSq) {
+          const dist = Math.sqrt(distSq);
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = "rgba(20,20,25," + ((1 - dist / lineGap) * .075) + ")";
+          ctx.stroke();
+        }
+      }
+    }
+
+    if (!reduceMotion) scheduleDraw();
+  }
+
+  hero.addEventListener("pointermove", event => {
+    if (event.pointerType === "touch") return;
+    const rect = hero.getBoundingClientRect();
+    pointer.x = event.clientX - rect.left;
+    pointer.y = event.clientY - rect.top;
+    pointer.active = true;
+  }, { passive: true });
+  hero.addEventListener("pointerleave", () => { pointer.active = false; }, { passive: true });
+  window.addEventListener("resize", queueResize, { passive: true });
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(queueResize);
+    observer.observe(hero);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    } else if (reduceMotion) {
+      draw(0);
+    } else {
+      scheduleDraw();
+    }
+  });
+
+  resize();
+})();
+</script>
+<script>
+(() => {
+  const list = document.getElementById("releaseList");
+  if (!list) return;
+  const releasesUrl = "https://api.github.com/repos/argusocean-wq/kaptia/releases?per_page=5";
+  const releasesPage = "https://github.com/argusocean-wq/kaptia/releases";
+
+  function node(tag, className, text) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text !== undefined) el.textContent = text;
+    return el;
+  }
+  function addLink(parent, label, url) {
+    if (typeof url !== "string" || !url.startsWith("https://github.com/argusocean-wq/kaptia/releases/")) return;
+    const a = node("a", "", label);
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    parent.appendChild(a);
+  }
+  function formatDate(value) {
+    if (!value) return "發布日期未提供";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "發布日期未提供";
+    return new Intl.DateTimeFormat("zh-TW", {
+      timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(date);
+  }
+  function renderRelease(release) {
+    const card = node("article", "release-card");
+    const head = node("div", "release-head");
+    const info = node("div");
+    const title = node("h3", "release-title", String(release.name || release.tag_name || "kaptiaLab 版本").slice(0, 200));
+    title.classList.add("notranslate");
+    title.setAttribute("translate", "no");
+    info.appendChild(title);
+    const version = node("div", "release-meta", String(release.tag_name || "版本標籤未提供").slice(0, 100) + " · " + formatDate(release.published_at));
+    version.classList.add("notranslate");
+    version.setAttribute("translate", "no");
+    info.appendChild(version);
+    head.appendChild(info);
+    head.appendChild(node("span", "release-badge", release.prerelease ? "預覽版" : "正式發布"));
+    card.appendChild(head);
+
+    const notesText = typeof release.body === "string" && release.body.trim()
+      ? release.body.trim().slice(0, 4000) : "此版本尚未提供更新說明。";
+    card.appendChild(node("p", "release-notes", notesText));
+
+    const links = node("div", "release-links");
+    addLink(links, "查看完整發布公告 ↗", release.html_url);
+    const asset = Array.isArray(release.assets)
+      ? release.assets.find(item => item && item.name === "Kaptia-Setup.exe") : null;
+    if (asset) addLink(links, "下載此版本安裝程式 ↓", asset.browser_download_url);
+    card.appendChild(links);
+    return card;
+  }
+
+  async function loadReleases() {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(releasesUrl, {
+        headers: { "Accept": "application/vnd.github+json" },
+        cache: "no-store",
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error("GitHub API HTTP " + response.status);
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error("GitHub API response was not a release list");
+      const published = data.filter(item => item && !item.draft && item.published_at).slice(0, 5);
+      const fragment = document.createDocumentFragment();
+      if (!published.length) {
+        const card = node("article", "release-card");
+        card.appendChild(node("p", "release-status", "目前沒有可顯示的已發布版本。"));
+        fragment.appendChild(card);
+      } else {
+        published.forEach(release => fragment.appendChild(renderRelease(release)));
+      }
+      list.replaceChildren(fragment);
+    } catch (error) {
+      list.replaceChildren();
+      const card = node("article", "release-card");
+      card.appendChild(node("p", "release-status",
+        controller.signal.aborted
+          ? "版本公告載入逾時。請直接開啟 GitHub Releases 查看最新版本。"
+          : "暫時無法載入版本公告。請直接開啟 GitHub Releases 查看最新版本。"));
+      const links = node("div", "release-links");
+      addLink(links, "開啟所有版本公告 ↗", releasesPage);
+      card.appendChild(links);
+      list.appendChild(card);
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+  loadReleases();
+})();
+</script>
+
+
+<script>
+/* Interactive pointer handlers */
+(() => {
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let lastRipple = 0;
+  const setPointer = (clientX, clientY) => {
+    const rect = hero.getBoundingClientRect();
+    hero.style.setProperty("--pointer-x", Math.max(0, Math.min(rect.width, clientX - rect.left)) + "px");
+    hero.style.setProperty("--pointer-y", Math.max(0, Math.min(rect.height, clientY - rect.top)) + "px");
+    hero.classList.add("pointer-active");
+  };
+  hero.addEventListener("pointermove", event => {
+    if (event.pointerType === "touch") return;
+    setPointer(event.clientX, event.clientY);
+  }, {passive:true});
+  hero.addEventListener("pointerleave", () => hero.classList.remove("pointer-active"), {passive:true});
+  hero.addEventListener("pointerdown", event => {
+    setPointer(event.clientX, event.clientY);
+    if (reduceMotion || event.button > 0) return;
+    const now = performance.now();
+    if (now - lastRipple < 100) return;
+    lastRipple = now;
+    const rect = hero.getBoundingClientRect();
+    const ripple = document.createElement("span");
+    ripple.className = "pointer-ripple";
+    ripple.setAttribute("aria-hidden", "true");
+    ripple.style.left = (event.clientX - rect.left) + "px";
+    ripple.style.top = (event.clientY - rect.top) + "px";
+    hero.appendChild(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove(), {once:true});
+  }, {passive:true});
+  hero.addEventListener("pointerup", event => {
+    if (event.pointerType === "touch") {
+      setPointer(event.clientX, event.clientY);
+      window.setTimeout(() => hero.classList.remove("pointer-active"), 900);
+    }
+  }, {passive:true});
+})();
+</script>
+
+<script>
+(() => {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).catch(() => {
+      // Offline caching is optional; registration failure must never block page use.
+    });
+  }, { once: true });
+})();
+</script>
+</body></html>
