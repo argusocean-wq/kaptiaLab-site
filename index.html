@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ffffff">
-<meta name="description" content="kaptiaLab Windows 本機 AI 助理。下載桌面啟動器，在自己的電腦下載模型並本機執行。">
-<title>kaptiaLab — 本機 AI 助理</title>
+<meta name="description" content="kaptiaLab 是以個人 AI 模型研製為核心的本機工作平台，聚焦語料、訓練實驗、運算資源與模型評測。">
+<title>kaptiaLab — Personal AI Foundry</title>
 <style>
 :root{color-scheme:light;--bg:#fff;--panel:#fff;--line:#e9e9ef;--muted:#686875;--fg:#111116;--blue:#111116;--purple:#777780;--pink:#bcbcc4}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#fff;color:var(--fg);font:16px/1.65 Inter,"Segoe UI","Noto Sans TC",system-ui,sans-serif;overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 50% 52%,rgba(255,255,255,.1),#fff 66%)}a{color:inherit}.wrap{width:min(1240px,calc(100% - 48px));margin:auto}.top{height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f1f3;gap:20px}.brand{display:flex;align-items:center;gap:9px;font-size:16px;letter-spacing:-.04em;font-weight:750}.brand-mark,.hero-mark{display:inline-grid;place-items:center;font-weight:900;color:#111116}.brand-mark{font-size:27px;line-height:1}.nav{display:flex;align-items:center;gap:28px;color:#33333a;font-size:14px}.nav a{text-decoration:none}.nav a:hover{color:#6559d8}.top-actions{display:flex;align-items:center;gap:10px}.tag{font-size:12px;color:#777;border:1px solid #e8e8ed;border-radius:99px;padding:6px 11px}.hero{position:relative;text-align:center;padding:clamp(78px,15vh,150px) 0 108px;isolation:isolate;overflow:hidden}.hero:before{content:"";position:absolute;z-index:-2;inset:0;background:radial-gradient(ellipse at 50% 75%,#f4f4f6 0%,rgba(255,255,255,0) 57%),linear-gradient(165deg,#fff 0%,#fff 58%,#fafafa 100%);pointer-events:none}.interactive-bg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;opacity:.9}.hero-mark{font-size:26px;line-height:1;margin-bottom:27px}.hero-brand{font-size:clamp(18px,2vw,23px);font-weight:650;letter-spacing:-.05em;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:28px}.hero>*:not(.interactive-bg){position:relative;z-index:1}.hero-brand .hero-mark{margin:0;font-size:30px}h1{font-size:clamp(40px,7.1vw,92px);letter-spacing:-.075em;line-height:1.12;margin:0 auto;font-weight:720;max-width:1150px}.lead{color:#5e5e67;max-width:690px;margin:24px auto 31px;font-size:clamp(16px,1.7vw,19px)}.actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border-radius:999px;text-decoration:none;font-weight:650;border:1px solid #111116;background:#111116;color:#fff;transition:transform .18s,box-shadow .18s}.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px #11111618}.btn.secondary{background:#fff;color:#222;border-color:#e0e0e7}.note{font-size:12px;color:#777;margin-top:15px}.eyebrow{font-size:11px;letter-spacing:.2em;color:#777;text-transform:uppercase}section{padding:54px 0;border-top:1px solid #ededf1}h2{font-size:clamp(26px,4vw,38px);letter-spacing:-.045em;font-weight:680;margin:8px 0 22px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.card{border:1px solid #e9e9ef;background:#fff;border-radius:20px;padding:22px;box-shadow:0 6px 28px #17172705}.num{color:#8a8a95;font-size:12px;letter-spacing:.12em}.card h3{font-size:16px;margin:12px 0 7px}.card p,.copy{font-size:14px;color:#666671;margin:0}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.release-list{display:grid;grid-template-columns:1fr;gap:12px}.release-card{border:1px solid #e7e7ee;background:linear-gradient(135deg,#fff,#fafaff);border-radius:18px;padding:20px}.release-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}.release-title{font-size:17px;font-weight:650;margin:0}.release-meta{color:#777;font-size:12px;margin-top:4px}.release-badge{font-size:11px;border:1px solid #e1e1e8;color:#555;padding:3px 8px;border-radius:99px}.release-notes{font-size:14px;color:#62626c;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 0;max-height:180px;overflow:auto}.release-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:13px}.release-links a{color:#3434a2;text-underline-offset:4px}.release-status{font-size:14px;color:#777;margin:0}.release-footnote{font-size:12px;color:#888;margin-top:14px}.step{border-top:1px solid #dedee6;padding-top:16px}.step strong{display:block;margin:8px 0}.requirements{display:grid;grid-template-columns:1fr 1fr;gap:12px}.req{padding:18px;border-radius:16px;background:#fff;border:1px solid #e8e8ef}.req strong{display:block;margin-bottom:5px}.footer{padding:30px 0 45px;color:#888;font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #eee}.footer a{color:#555}#release-announcements{scroll-margin-top:24px}
@@ -78,30 +78,30 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品</a><a href="#get-started">使用方式</a><a href="#requirements">系統需求</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptiaLab-site/releases">下載 ↓</a><span class="tag">ZH-TW</span></div></header>
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">研製流程</a><a href="#get-started">開始使用</a><a href="#requirements">系統需求</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptiaLab-site/releases">下載 ↓</a><span class="tag">ZH-TW</span></div></header>
 <main>
-<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>kaptiaLab · Your AI Companion</span></div><h1>kaptiaLab<br>讓 AI 成為你的思考夥伴</h1><p class="lead">以 kaptiaLab 為核心的本機 AI 工作空間。下載 Windows 啟動器，了解專案進度，逐步建立屬於自己的模型與開發工具。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptiaLab-site/releases" id="download">查看下載版本</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 版本與安裝狀態請以 GitHub Releases 公告為準。</p></section>
+<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>kaptiaLab · Personal AI Foundry</span></div><h1>不只是使用 AI，<br>而是研製自己的 AI</h1><p class="lead">kaptiaLab 是個人 AI 研製平台，將語料整理、模型訓練、運算資源配置與能力評測視為同一條工作流程。以可追蹤的實驗逐步改善模型，而不是再做一個以聊天或寫程式為中心的代理工具。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptiaLab-site/releases" id="download">查看下載版本</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 實際可用功能與安裝狀態請以 GitHub Releases 公告為準。</p></section>
 <section id="release-announcements" aria-labelledby="release-title">
 <div class="eyebrow">RELEASE NOTES</div><h2 id="release-title">版本發布公告</h2>
-<p class="copy">公告直接讀取 kaptiaLab 專案的 GitHub Releases，顯示正式發布的版本、日期、更新說明及可用下載。若無法連線，仍可開啟 Releases 頁面查看。</p>
+<p class="copy">此區直接讀取公開 GitHub Releases，顯示已發布版本、日期、更新說明與可用資產。沒有發布資產時，不會將下載按鈕視為已可安裝。</p>
 <div class="release-list" id="releaseList" aria-live="polite"><article class="release-card"><p class="release-status">正在讀取 GitHub Releases 最新公告…</p></article></div>
 <p class="release-footnote">版本公告由 GitHub Releases 提供；頁面顯示公告不代表該版本已在所有 Windows 裝置完成實機驗證。</p>
 </section>
 <section id="overview">
-<div class="eyebrow">OVERVIEW</div><h2>網站介紹</h2>
+<div class="eyebrow">MODEL WORKFLOW</div><h2>圍繞模型研製，而不是聊天視窗</h2>
 <div class="grid">
-<article class="card"><div class="num">01 / WEBSITE</div><h3>產品介紹</h3><p>瀏覽器只顯示功能、需求與安裝說明，不在 Edge 網頁內載入大型模型或提供聊天工作台。</p></article>
-<article class="card"><div class="num">02 / INSTALLER</div><h3>下載桌面啟動器</h3><p>按下載取得 Windows 執行檔。啟動器負責準備本機執行環境、訓練 <span class="notranslate" translate="no">kaptiaLab</span> 起步模型，並在偵測到 VS Code 時安裝編輯器整合。</p></article>
-<article class="card"><div class="num">03 / LOCAL</div><h3>在電腦上執行</h3><p>安裝程式會以隨機初始化權重訓練 <span class="notranslate" translate="no">kaptiaLab</span> 起步模型；若已安裝 VS Code，也會加入「問問 <span class="notranslate" translate="no">kaptiaLab</span>」右鍵命令。起步模型仍屬實驗階段，程式碼解釋可能不可靠。</p></article>
+<article class="card"><div class="num">01 / CORPUS</div><h3>語料品質</h3><p>把資料集視為模型能力的起點。規劃語料格式檢查、重複資料辨識、品質抽查，以及訓練集與驗證集的洩漏檢查；具體功能以實際版本為準。</p></article>
+<article class="card"><div class="num">02 / TRAINING</div><h3>訓練實驗</h3><p>以設定、資料版本、程式版本與訓練紀錄追蹤每次實驗，讓模型改善有跡可循。訓練是否完成，必須由實際日誌與產物確認。</p></article>
+<article class="card"><div class="num">03 / EVALUATION</div><h3>評測與版本比較</h3><p>以固定測試集比較不同模型版本，記錄能力、延遲與資源使用，再依驗收條件決定是否保留新版本。沒有實際測量的結果不會標示為已通過。</p></article>
 </div>
 </section>
 
 <section id="get-started">
-<div class="eyebrow">GET STARTED</div><h2>從下載到本機對話</h2>
+<div class="eyebrow">GET STARTED</div><h2>從環境檢查到可驗證的實驗</h2>
 <div class="steps">
-<div class="step"><div class="num">STEP 01</div><strong>下載 .exe</strong><p class="copy">從 GitHub Releases 取得 Windows 啟動器。請只執行你信任且已核對來源的版本。</p></div>
-<div class="step"><div class="num">STEP 02</div><strong>安裝依賴與起步訓練</strong><p class="copy">首次啟動需要網路、磁碟空間與等待時間。本機模型權重會保存於本機供後續載入。</p></div>
-<div class="step"><div class="num">STEP 03</div><strong>啟動本機模型</strong><p class="copy">完成設定後，從桌面啟動 <span class="notranslate" translate="no">kaptiaLab</span>。之後是否能完全離線，取決於模型與必要依賴是否已完整下載。</p></div>
+<div class="step"><div class="num">STEP 01</div><strong>確認發布版本</strong><p class="copy">從 GitHub Releases 查看版本說明與安裝資產；若尚無安裝檔，請勿將網站上線視為桌面程式已可下載。</p></div>
+<div class="step"><div class="num">STEP 02</div><strong>準備資料與運算環境</strong><p class="copy">確認語料格式、可用磁碟空間、記憶體與 GPU 支援，再依實際提供的訓練流程啟動實驗。</p></div>
+<div class="step"><div class="num">STEP 03</div><strong>保存結果並評測</strong><p class="copy">保留設定、日誌與模型產物，使用固定測試案例比較結果。只有實際執行並驗證的功能，才列為已完成。</p></div>
 </div>
 </section>
 <section id="requirements">
@@ -114,7 +114,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 </div>
 </section>
 </main>
-<footer class="footer"><span>© <span class="notranslate" translate="no">kaptiaLab</span> · Windows local assistant</span><span><a href="https://github.com/argusocean-wq/kaptiaLab-site">Source code</a> · <a href="https://github.com/argusocean-wq/kaptiaLab-site/releases">Releases</a></span></footer>
+<footer class="footer"><span>© <span class="notranslate" translate="no">kaptiaLab</span> · Personal AI Foundry</span><span><a href="https://github.com/argusocean-wq/kaptiaLab-site">Source code</a> · <a href="https://github.com/argusocean-wq/kaptiaLab-site/releases">Releases</a></span></footer>
 </div>
 <script>
 (() => {
