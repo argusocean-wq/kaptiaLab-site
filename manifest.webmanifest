@@ -1,0 +1,11 @@
+{
+  "name": "kaptiaLab",
+  "short_name": "kaptiaLab",
+  "description": "kaptiaLab Windows 本機 AI 助理產品介紹與下載頁",
+  "start_url": "./",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": []
+}
