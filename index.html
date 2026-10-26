@@ -78,9 +78,9 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">研製流程</a><a href="#get-started">開始使用</a><a href="#requirements">系統需求</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptiaLab-site/releases">下載 ↓</a><span class="tag">ZH-TW</span></div></header>
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">研製流程</a><a href="#get-started">開始使用</a><a href="#requirements">系統需求</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptiaLab-site/releases" id="topDownload">公開版本狀態</a><span class="tag">ZH-TW</span></div></header>
 <main>
-<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>kaptiaLab · Personal AI Foundry</span></div><h1>不只是使用 AI，<br>而是研製自己的 AI</h1><p class="lead">kaptiaLab 是個人 AI 研製平台，將語料整理、模型訓練、運算資源配置與能力評測視為同一條工作流程。以可追蹤的實驗逐步改善模型，而不是再做一個以聊天或寫程式為中心的代理工具。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptiaLab-site/releases" id="download">查看下載版本</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 實際可用功能與安裝狀態請以 GitHub Releases 公告為準。</p></section>
+<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>kaptiaLab · Personal AI Foundry</span></div><h1>不只是使用 AI，<br>而是研製自己的 AI</h1><p class="lead">kaptiaLab 是個人 AI 研製平台，將語料整理、模型訓練、運算資源配置與能力評測視為同一條工作流程。以可追蹤的實驗逐步改善模型，而不是再做一個以聊天或寫程式為中心的代理工具。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptiaLab-site/releases" id="download">公開版本狀態</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 公開安裝檔是否可用，會依 GitHub Releases 實際資產動態顯示。</p></section>
 <section id="release-announcements" aria-labelledby="release-title">
 <div class="eyebrow">RELEASE NOTES</div><h2 id="release-title">版本發布公告</h2>
 <p class="copy">此區直接讀取公開 GitHub Releases，顯示已發布版本、日期、更新說明與可用資產。沒有發布資產時，不會將下載按鈕視為已可安裝。</p>
@@ -331,6 +331,30 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
     return card;
   }
 
+  function setDownloadState(assetUrl, tagName, unavailableMessage) {
+    const topButton = document.getElementById("topDownload");
+    const mainButton = document.getElementById("download");
+    const note = document.getElementById("downloadNote");
+    const validAsset = typeof assetUrl === "string" &&
+      assetUrl.startsWith("https://github.com/argusocean-wq/kaptiaLab-site/releases/download/");
+    if (validAsset) {
+      const label = "下載 Windows 安裝程式 ↓";
+      for (const button of [topButton, mainButton]) {
+        if (!button) continue;
+        button.href = assetUrl;
+        button.textContent = label;
+      }
+      if (note) note.textContent = "公開版本 " + String(tagName || "已發布") + " · 請核對發布說明與 SHA-256 校驗檔。";
+      return;
+    }
+    for (const button of [topButton, mainButton]) {
+      if (!button) continue;
+      button.href = releasesPage;
+      button.textContent = unavailableMessage || "公開下載尚未發布";
+    }
+    if (note) note.textContent = unavailableMessage || "目前沒有找到公開的 Kaptia-Setup.exe；此狀態不代表私有核心 Release 已公開。";
+  }
+
   async function loadReleases() {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 8000);
@@ -347,14 +371,24 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
       const fragment = document.createDocumentFragment();
       if (!published.length) {
         const card = node("article", "release-card");
-        card.appendChild(node("p", "release-status", "目前沒有可顯示的已發布版本。"));
+        card.appendChild(node("p", "release-status", "目前沒有可顯示的公開版本，也沒有可下載的公開安裝檔。"));
         fragment.appendChild(card);
+        setDownloadState(null, null, "公開下載尚未發布");
       } else {
         published.forEach(release => fragment.appendChild(renderRelease(release)));
+        const latest = published[0];
+        const asset = Array.isArray(latest.assets)
+          ? latest.assets.find(item => item && item.name === "Kaptia-Setup.exe") : null;
+        setDownloadState(asset && asset.browser_download_url, latest.tag_name,
+          "已有版本公告，但目前沒有公開的 Windows 安裝檔");
       }
       list.replaceChildren(fragment);
     } catch (error) {
       list.replaceChildren();
+      const unavailable = controller.signal.aborted
+        ? "無法確認公開下載狀態（載入逾時）"
+        : "無法確認公開下載狀態";
+      setDownloadState(null, null, unavailable);
       const card = node("article", "release-card");
       card.appendChild(node("p", "release-status",
         controller.signal.aborted
