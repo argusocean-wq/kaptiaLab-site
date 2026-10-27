@@ -240,7 +240,9 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
       ctx.stroke();
     }
 
-    const lineGap = 36;
+    // CSS reference pixels: 5 cm ≈ 5 × 96 / 2.54 = 188.98 CSS px.
+    // Device scaling can change the physical measurement; this is the browser-standard approximation.
+    const lineGap = 5 * 96 / 2.54;
     const lineGapSq = lineGap * lineGap;
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
