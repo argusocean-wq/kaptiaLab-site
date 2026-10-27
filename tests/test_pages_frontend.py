@@ -78,19 +78,20 @@ class PagesFrontendTests(unittest.TestCase):
 
 
     def test_canvas_animation_has_bounded_cost_and_visibility_pause(self) -> None:
-        self.assertIn("Math.min(64", self.html)
-        self.assertIn("width < 640 ? 28", self.html)
-        self.assertIn("1000 / 24", self.html)
+        self.assertIn("Math.min(42", self.html)
+        self.assertIn("width < 640 ? 22", self.html)
+        self.assertIn("1000 / 60", self.html)
         self.assertIn('document.addEventListener("visibilitychange"', self.html)
         self.assertIn("cancelAnimationFrame(raf)", self.html)
         self.assertIn("if (!ctx)", self.html)
 
-    def test_release_request_has_timeout_and_graceful_fallback(self) -> None:
-        self.assertIn("new AbortController()", self.html)
-        self.assertIn("controller.abort(), 8000", self.html)
-        self.assertIn("signal: controller.signal", self.html)
-        self.assertIn("開啟所有版本公告", self.html)
-        self.assertIn("clearTimeout(timeoutId)", self.html)
+    def test_releases_and_installer_stay_on_same_origin(self) -> None:
+        self.assertIn('const releasesUrl = "./releases.json"', self.html)
+        self.assertIn('const downloadUrl = "./downloads/Kaptia-Setup.exe"', self.html)
+        self.assertIn('downloadReady === true', self.html)
+        self.assertNotIn("github.com", self.html.lower())
+        self.assertNotIn("raw.githubusercontent.com", self.html.lower())
+        self.assertIn('download="Kaptia-Setup.exe"', self.html)
 
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
         self.assertIn('navigator.serviceWorker.register("./sw.js"', self.html)
@@ -101,7 +102,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("new AbortController()", self.sw)
         self.assertIn("if (response.status >= 500)", self.sw)
         self.assertIn("A storage/quota failure must not discard a good network response", self.sw)
-        self.assertIn("const CACHE = \"kaptia-pages-v11\"", self.sw)
+        self.assertIn("const CACHE = \"kaptia-pages-v12\"", self.sw)
 
 
 if __name__ == "__main__":

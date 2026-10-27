@@ -47,17 +47,21 @@ class PublishedSiteTests(unittest.TestCase):
 
     def test_valid_published_assets_pass(self):
         base = "https://example.github.io/kaptia/"
-        html = '<title>kaptiaLab</title><div id="releaseList"></div><canvas id="interactiveBackground"></canvas>'
-        sw = 'const CACHE = "kaptia-pages-v11"; const NAVIGATION_TIMEOUT_MS = 8000;'
+        html = '<title>kaptiaLab</title><div id="releaseList"></div><canvas id="interactiveBackground"></canvas><a href="./downloads/Kaptia-Setup.exe">Download</a>'
+        sw = 'const CACHE = "kaptia-pages-v12"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
+        releases = json.dumps({"releases": [{"tag_name": "v9.0.0"}], "downloadReady": True})
+        installer = b"MZ" + (b"0" * 2048)
         responses = [
             FakeResponse(html, base, "text/html"),
             FakeResponse(sw, base + "sw.js", "text/javascript"),
             FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
+            FakeResponse(releases, base + "releases.json", "application/json"),
+            FakeResponse(installer, base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
         ]
         with patch.object(checker, "urlopen", side_effect=responses):
             result = verify_deployed_site(base)
-        self.assertEqual(set(result), {"html", "service_worker", "manifest"})
+        self.assertEqual(set(result), {"html", "service_worker", "manifest", "releases", "installer"})
 
     def test_cross_host_redirect_is_rejected(self):
         base = "https://example.github.io/kaptia/"

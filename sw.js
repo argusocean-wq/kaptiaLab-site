@@ -1,4 +1,4 @@
-const CACHE = "kaptia-pages-v11";
+const CACHE = "kaptia-pages-v12";
 const APP_SHELL = ["./", "./index.html"];
 const OPTIONAL_FILES = ["./manifest.webmanifest"];
 const NAVIGATION_TIMEOUT_MS = 8000;
@@ -64,6 +64,12 @@ self.addEventListener("fetch", event => {
         clearTimeout(timer);
       }
     })());
+    return;
+  }
+
+  // Release metadata must stay fresh, and large installers should never fill the offline cache.
+  if (url.pathname.endsWith("/releases.json") || url.pathname.endsWith("/downloads/Kaptia-Setup.exe")) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
     return;
   }
 

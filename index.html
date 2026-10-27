@@ -74,18 +74,57 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 
 
 
+
+/* Premium spatial hero treatment: restrained chromatic depth, not a static particle wallpaper. */
+.hero{cursor:default}
+.hero:before{
+  background:
+    radial-gradient(ellipse 48% 58% at 78% 42%,rgba(116,132,255,.15),transparent 72%),
+    radial-gradient(ellipse 36% 48% at 64% 76%,rgba(76,205,220,.11),transparent 70%),
+    radial-gradient(ellipse 34% 44% at 94% 82%,rgba(184,132,255,.10),transparent 72%),
+    linear-gradient(140deg,#fff 0%,#fcfcff 54%,#f7fbff 100%);
+  background-size:140% 140%;
+  animation:kaptia-aurora 18s ease-in-out infinite alternate;
+}
+@keyframes kaptia-aurora{
+  0%{background-position:0% 45%}
+  50%{background-position:65% 20%}
+  100%{background-position:100% 70%}
+}
+.hero.pointer-active:before{
+  background:
+    radial-gradient(ellipse 340px 270px at var(--pointer-x) var(--pointer-y),rgba(103,125,255,.10),transparent 72%),
+    radial-gradient(ellipse 48% 58% at 78% 42%,rgba(116,132,255,.15),transparent 72%),
+    radial-gradient(ellipse 36% 48% at 64% 76%,rgba(76,205,220,.11),transparent 70%),
+    radial-gradient(ellipse 34% 44% at 94% 82%,rgba(184,132,255,.10),transparent 72%),
+    linear-gradient(140deg,#fff 0%,#fcfcff 54%,#f7fbff 100%);
+  background-size:140% 140%;
+}
+h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-brand .hero-mark{border-color:#d9def8;background:linear-gradient(145deg,#fff,#eef1ff);color:#515fc5}
+.btn:not(.secondary){background:linear-gradient(105deg,#171923,#343b68);border-color:#343b68}
+.btn:not(.secondary):hover{background:linear-gradient(105deg,#303654,#505db0);border-color:#505db0}
+.hero .interactive-bg{opacity:.58}
+@media(max-width:800px){
+  .hero:before{background-size:180% 180%}
+  h1{background-image:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%)}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero:before{animation:none!important}
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">個人記憶</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本公告</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="https://github.com/argusocean-wq/kaptiaLab-site/releases" id="topDownload">查看公開版本</a><span class="tag">ZH-TW</span></div></header>
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品功能</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本資訊</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="./downloads/Kaptia-Setup.exe" download="Kaptia-Setup.exe" id="topDownload">下載安裝程式</a><span class="tag">ZH-TW</span></div></header>
 <main>
-<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>Kaptia · Personal AI Assistant</span></div><h1>一個會記住脈絡、<br>也會獨立思考的 AI 助手</h1><p class="lead">Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。</p><div class="actions"><a class="btn" href="https://github.com/argusocean-wq/kaptiaLab-site/releases" id="download">公開版本狀態</a><a class="btn secondary" href="https://github.com/argusocean-wq/kaptiaLab-site" target="_blank" rel="noopener">查看專案</a></div><p class="note" id="downloadNote">Windows 10/11 · 官網已更新產品方向；新版本機記憶功能仍須完成建置、測試並發布安裝器。</p></section>
+<section class="hero" style="border:0"><canvas class="interactive-bg" id="interactiveBackground" aria-hidden="true"></canvas><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>Kaptia · Personal AI Assistant</span></div><h1>一個會記住脈絡、<br>也會獨立思考的 AI 助手</h1><p class="lead">Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。</p><div class="actions"><a class="btn" href="./downloads/Kaptia-Setup.exe" download="Kaptia-Setup.exe" id="download">下載 Windows 安裝程式</a><a class="btn secondary" href="#overview">了解產品功能</a></div><p class="note" id="downloadNote">Windows 10/11 · 官網已更新產品方向；新版本機記憶功能仍須完成建置、測試並發布安裝器。</p></section>
 <section id="release-announcements" aria-labelledby="release-title">
 <div class="eyebrow">RELEASE NOTES</div><h2 id="release-title">版本發布公告</h2>
-<p class="copy">此區直接讀取公開 GitHub Releases。請以各版本更新說明為準；網站上的產品方向不代表尚未發布的功能已包含在目前安裝檔。</p>
+<p class="copy">在此查看版本號、發布日期與更新內容。所有版本資訊直接顯示於官網，下載安裝程式不需要離開本網站。</p>
 <div class="release-list" id="releaseList" aria-live="polite"><article class="release-card"><p class="release-status">正在讀取 GitHub Releases 最新公告…</p></article></div>
-<p class="release-footnote">版本公告由 GitHub Releases 提供；頁面顯示公告不代表該版本已在所有 Windows 裝置完成實機驗證。</p>
+<p class="release-footnote">版本資訊與安裝程式由網站部署流程同步；頁面公告不代表該版本已在所有 Windows 裝置完成實機驗證。</p>
 </section>
 <section id="overview">
 <div class="eyebrow">PERSONAL ASSISTANT</div><h2>讓助手逐步理解你，而不是每次從零開始</h2>
@@ -114,7 +153,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 </div>
 </section>
 </main>
-<footer class="footer"><span>© <span class="notranslate" translate="no">Kaptia</span> · Personal AI Assistant</span><span><a href="https://github.com/argusocean-wq/kaptiaLab-site">Source code</a> · <a href="https://github.com/argusocean-wq/kaptiaLab-site/releases">Releases</a></span></footer>
+<footer class="footer"><span>© <span class="notranslate" translate="no">Kaptia</span> · Personal AI Assistant</span><span><a href="#release-announcements">版本資訊</a> · <a href="#get-started">開始使用</a></span></footer>
 </div>
 <script>
 (() => {
@@ -154,7 +193,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Cap pairwise particle work; the previous 110-particle field checked 5,995 pairs/frame.
-    const count = width < 640 ? 28 : Math.min(64, Math.max(36, Math.floor(width / 20)));
+    const count = width < 640 ? 22 : Math.min(42, Math.max(28, Math.floor(width / 30)));
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
@@ -179,8 +218,8 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
   function draw(timestamp = 0) {
     raf = 0;
     if (!ctx || document.hidden) return;
-    // Limit animation to 24 FPS; the effect is decorative and should not compete with the page.
-    if (!reduceMotion && timestamp && timestamp - lastFrame < 1000 / 24) {
+    // Keep animation synced to the display refresh rate; expensive work is reduced below.
+    if (!reduceMotion && timestamp && timestamp - lastFrame < 1000 / 60) {
       scheduleDraw();
       return;
     }
@@ -201,7 +240,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
       ctx.stroke();
     }
 
-    const lineGap = 32;
+    const lineGap = 36;
     const lineGapSq = lineGap * lineGap;
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
@@ -228,19 +267,30 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
 
+      // Batch links into opacity groups instead of one canvas stroke per pair.
+      if (i === 0) draw.linkPaths = [[], [], [], []];
       for (let j = i + 1; j < particles.length; j++) {
         const q = particles[j];
         const dx = p.x - q.x, dy = p.y - q.y;
         const distSq = dx * dx + dy * dy;
         if (distSq < lineGapSq) {
-          const dist = Math.sqrt(distSq);
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(q.x, q.y);
-          ctx.strokeStyle = "rgba(20,20,25," + ((1 - dist / lineGap) * .075) + ")";
-          ctx.stroke();
+          const strength = 1 - Math.sqrt(distSq) / lineGap;
+          const bucket = Math.min(3, Math.floor(strength * 4));
+          draw.linkPaths[bucket].push(p.x, p.y, q.x, q.y);
         }
       }
+    }
+
+    for (let bucket = 0; bucket < 4; bucket++) {
+      const segments = draw.linkPaths && draw.linkPaths[bucket];
+      if (!segments || !segments.length) continue;
+      ctx.beginPath();
+      for (let k = 0; k < segments.length; k += 4) {
+        ctx.moveTo(segments[k], segments[k + 1]);
+        ctx.lineTo(segments[k + 2], segments[k + 3]);
+      }
+      ctx.strokeStyle = "rgba(20,20,25," + ((bucket + 1) * .018) + ")";
+      ctx.stroke();
     }
 
     if (!reduceMotion) scheduleDraw();
@@ -277,22 +327,14 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 (() => {
   const list = document.getElementById("releaseList");
   if (!list) return;
-  const releasesUrl = "https://api.github.com/repos/argusocean-wq/kaptiaLab-site/releases?per_page=5";
-  const releasesPage = "https://github.com/argusocean-wq/kaptiaLab-site/releases";
+  const releasesUrl = "./releases.json";
+  const downloadUrl = "./downloads/Kaptia-Setup.exe";
 
-  function node(tag, className, text) {
+  function node(tag, className, value) {
     const el = document.createElement(tag);
     if (className) el.className = className;
-    if (text !== undefined) el.textContent = text;
+    if (value !== undefined) el.textContent = value;
     return el;
-  }
-  function addLink(parent, label, url) {
-    if (typeof url !== "string" || !(url === releasesPage || url.startsWith(releasesPage + "/"))) return;
-    const a = node("a", "", label);
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    parent.appendChild(a);
   }
   function formatDate(value) {
     if (!value) return "發布日期未提供";
@@ -302,104 +344,70 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
       timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(date);
   }
-  function renderRelease(release) {
+  function renderRelease(release, isLatest) {
     const card = node("article", "release-card");
     const head = node("div", "release-head");
     const info = node("div");
-    const title = node("h3", "release-title", String(release.name || release.tag_name || "kaptiaLab 版本").slice(0, 200));
+    const title = node("h3", "release-title", String(release.name || release.tag_name || "Kaptia 版本").slice(0, 200));
     title.classList.add("notranslate");
     title.setAttribute("translate", "no");
     info.appendChild(title);
-    const version = node("div", "release-meta", String(release.tag_name || "版本標籤未提供").slice(0, 100) + " · " + formatDate(release.published_at));
-    version.classList.add("notranslate");
-    version.setAttribute("translate", "no");
-    info.appendChild(version);
+    const meta = node("div", "release-meta", String(release.tag_name || "版本標籤未提供").slice(0, 100) + " · " + formatDate(release.published_at));
+    meta.classList.add("notranslate");
+    meta.setAttribute("translate", "no");
+    info.appendChild(meta);
     head.appendChild(info);
-    head.appendChild(node("span", "release-badge", release.prerelease ? "預覽版" : "正式發布"));
+    head.appendChild(node("span", "release-badge", isLatest ? "目前版本" : "歷史版本"));
     card.appendChild(head);
-
-    const notesText = typeof release.body === "string" && release.body.trim()
+    const notes = typeof release.body === "string" && release.body.trim()
       ? release.body.trim().slice(0, 4000) : "此版本尚未提供更新說明。";
-    card.appendChild(node("p", "release-notes", notesText));
-
-    const links = node("div", "release-links");
-    addLink(links, "查看完整發布公告 ↗", release.html_url);
-    const asset = Array.isArray(release.assets)
-      ? release.assets.find(item => item && item.name === "Kaptia-Setup.exe") : null;
-    if (asset) addLink(links, "下載此版本安裝程式 ↓", asset.browser_download_url);
-    card.appendChild(links);
+    card.appendChild(node("p", "release-notes", notes));
+    if (isLatest) {
+      const links = node("div", "release-links");
+      const a = node("a", "", "下載目前版本安裝程式 ↓");
+      a.href = downloadUrl;
+      a.setAttribute("download", "Kaptia-Setup.exe");
+      links.appendChild(a);
+      card.appendChild(links);
+    }
     return card;
   }
-
-  function setDownloadState(assetUrl, tagName, unavailableMessage) {
-    const topButton = document.getElementById("topDownload");
-    const mainButton = document.getElementById("download");
-    const note = document.getElementById("downloadNote");
-    const validAsset = typeof assetUrl === "string" &&
-      assetUrl.startsWith("https://github.com/argusocean-wq/kaptiaLab-site/releases/download/");
-    if (validAsset) {
-      const label = "下載 Windows 安裝程式 ↓";
-      for (const button of [topButton, mainButton]) {
-        if (!button) continue;
-        button.href = assetUrl;
-        button.textContent = label;
-      }
-      if (note) note.textContent = "公開版本 " + String(tagName || "已發布") + " · 請核對發布說明與 SHA-256 校驗檔。";
-      return;
-    }
-    for (const button of [topButton, mainButton]) {
+  function setDownloadReady(ready, message) {
+    for (const id of ["topDownload", "download"]) {
+      const button = document.getElementById(id);
       if (!button) continue;
-      button.href = releasesPage;
-      button.textContent = unavailableMessage || "公開下載尚未發布";
+      button.href = ready ? downloadUrl : "#release-announcements";
+      button.textContent = ready
+        ? (id === "topDownload" ? "下載安裝程式" : "下載 Windows 安裝程式")
+        : "目前無法下載";
+      if (ready) button.setAttribute("download", "Kaptia-Setup.exe");
+      else button.removeAttribute("download");
+      button.setAttribute("aria-disabled", ready ? "false" : "true");
     }
-    if (note) note.textContent = unavailableMessage || "目前沒有找到公開的 Kaptia-Setup.exe；此狀態不代表私有核心 Release 已公開。";
+    const note = document.getElementById("downloadNote");
+    if (note) note.textContent = message;
   }
-
   async function loadReleases() {
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
     try {
-      const response = await fetch(releasesUrl, {
-        headers: { "Accept": "application/vnd.github+json" },
-        cache: "no-store",
-        signal: controller.signal
-      });
-      if (!response.ok) throw new Error("GitHub API HTTP " + response.status);
+      const response = await fetch(releasesUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error("Release metadata unavailable");
       const data = await response.json();
-      if (!Array.isArray(data)) throw new Error("GitHub API response was not a release list");
-      const published = data.filter(item => item && !item.draft && item.published_at).slice(0, 5);
+      if (!Array.isArray(data.releases) || data.releases.length === 0) throw new Error("No published versions");
       const fragment = document.createDocumentFragment();
-      if (!published.length) {
-        const card = node("article", "release-card");
-        card.appendChild(node("p", "release-status", "目前沒有可顯示的公開版本，也沒有可下載的公開安裝檔。"));
-        fragment.appendChild(card);
-        setDownloadState(null, null, "公開下載尚未發布");
-      } else {
-        published.forEach(release => fragment.appendChild(renderRelease(release)));
-        const latest = published[0];
-        const asset = Array.isArray(latest.assets)
-          ? latest.assets.find(item => item && item.name === "Kaptia-Setup.exe") : null;
-        setDownloadState(asset && asset.browser_download_url, latest.tag_name,
-          "已有版本公告，但目前沒有公開的 Windows 安裝檔");
-      }
+      data.releases.slice(0, 5).forEach((release, index) => {
+        fragment.appendChild(renderRelease(release, index === 0));
+      });
       list.replaceChildren(fragment);
-    } catch (error) {
+      setDownloadReady(data.downloadReady === true,
+        data.downloadReady === true
+          ? "目前版本 " + String(data.releases[0].tag_name || "") + " · 安裝程式由本網站直接提供。"
+          : "版本資訊可供查看，但目前安裝程式尚未就緒。");
+    } catch (_) {
       list.replaceChildren();
-      const unavailable = controller.signal.aborted
-        ? "無法確認公開下載狀態（載入逾時）"
-        : "無法確認公開下載狀態";
-      setDownloadState(null, null, unavailable);
       const card = node("article", "release-card");
-      card.appendChild(node("p", "release-status",
-        controller.signal.aborted
-          ? "版本公告載入逾時。請直接開啟 GitHub Releases 查看最新版本。"
-          : "暫時無法載入版本公告。請直接開啟 GitHub Releases 查看最新版本。"));
-      const links = node("div", "release-links");
-      addLink(links, "開啟所有版本公告 ↗", releasesPage);
-      card.appendChild(links);
+      card.appendChild(node("p", "release-status", "目前無法載入版本資訊。請稍後重新整理本網站。"));
       list.appendChild(card);
-    } finally {
-      window.clearTimeout(timeoutId);
+      setDownloadReady(false, "目前無法確認安裝程式狀態，請稍後重新整理本網站。");
     }
   }
   loadReleases();

@@ -57,6 +57,8 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
         "html": (base, "text/html"),
         "service_worker": (base + "sw.js", "javascript"),
         "manifest": (base + "manifest.webmanifest", "json"),
+        "releases": (base + "releases.json", "json"),
+        "installer": (base + "downloads/Kaptia-Setup.exe", "binary"),
     }
     last_error: Exception | None = None
     for attempt in range(1, ATTEMPTS + 1):
@@ -74,7 +76,7 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
 
             sw_bytes, sw_type = _fetch(checks["service_worker"][0], host)
             sw_text = sw_bytes.decode("utf-8", errors="replace")
-            if "kaptia-pages-v11" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
+            if "kaptia-pages-v12" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
                 raise RuntimeError("Service Worker 版本或逾時保護標記不符預期")
             if "javascript" not in sw_type.lower() and "ecmascript" not in sw_type.lower() and "text/plain" not in sw_type.lower():
                 raise RuntimeError(f"Service Worker Content-Type 不符合預期：{sw_type}")
@@ -87,6 +89,23 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
             if "json" not in manifest_type.lower() and "manifest" not in manifest_type.lower() and "text/plain" not in manifest_type.lower():
                 raise RuntimeError(f"Manifest Content-Type 不符合預期：{manifest_type}")
             results["manifest"] = "200 + valid JSON/name"
+
+            release_bytes, release_type = _fetch(checks["releases"][0], host)
+            release_data = json.loads(release_bytes.decode("utf-8"))
+            if not isinstance(release_data, dict) or not isinstance(release_data.get("releases"), list):
+                raise RuntimeError("版本資訊 JSON 格式不符預期")
+            if release_data.get("downloadReady") is not True:
+                raise RuntimeError("版本資訊未標記安裝程式可下載")
+            if not release_data["releases"]:
+                raise RuntimeError("版本資訊沒有已發布版本")
+            if "json" not in release_type.lower() and "text/plain" not in release_type.lower():
+                raise RuntimeError(f"版本資訊 Content-Type 不符合預期：{release_type}")
+            results["releases"] = "200 + valid same-origin release metadata"
+
+            installer_bytes, installer_type = _fetch(checks["installer"][0], host)
+            if len(installer_bytes) < 1024 or not installer_bytes.startswith(b"MZ"):
+                raise RuntimeError("官網安裝檔缺失、過小或不是 Windows PE 檔案")
+            results["installer"] = f"200 + Windows PE signature ({len(installer_bytes)} bytes)"
 
             return results
         except (HTTPError, URLError, TimeoutError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
