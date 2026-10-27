@@ -48,7 +48,7 @@ class PublishedSiteTests(unittest.TestCase):
     def test_valid_published_assets_pass(self):
         base = "https://example.github.io/kaptia/"
         html = '<title>kaptiaLab</title><div id="releaseList"></div><canvas id="interactiveBackground"></canvas>'
-        sw = 'const CACHE = "kaptia-pages-v10"; const NAVIGATION_TIMEOUT_MS = 8000;'
+        sw = 'const CACHE = "kaptia-pages-v11"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
         responses = [
             FakeResponse(html, base, "text/html"),
