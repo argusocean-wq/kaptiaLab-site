@@ -64,7 +64,7 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
             results: dict[str, str] = {}
             html, html_type = _fetch(checks["html"][0], host)
             html_text = html.decode("utf-8", errors="replace")
-            if "kaptiaLab" not in html_text or 'id="releaseList"' not in html_text:
+            if not any(name in html_text for name in ("Kaptia", "kaptiaLab")) or 'id="releaseList"' not in html_text:
                 raise RuntimeError("部署後 HTML 缺少預期產品標題或版本公告區塊")
             if "interactiveBackground" not in html_text:
                 raise RuntimeError("部署後 HTML 缺少背景 canvas 入口")
