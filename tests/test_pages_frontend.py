@@ -102,7 +102,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("new AbortController()", self.sw)
         self.assertIn("if (response.status >= 500)", self.sw)
         self.assertIn("A storage/quota failure must not discard a good network response", self.sw)
-        self.assertIn("const CACHE = \"kaptia-pages-v11\"", self.sw)
+        self.assertIn("const CACHE = \"kaptia-pages-v12\"", self.sw)
 
 
 if __name__ == "__main__":
