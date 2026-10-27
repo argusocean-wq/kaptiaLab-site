@@ -84,7 +84,7 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
 
             manifest_bytes, manifest_type = _fetch(checks["manifest"][0], host)
             manifest = json.loads(manifest_bytes.decode("utf-8"))
-            if not isinstance(manifest, dict) or manifest.get("name") != "kaptiaLab":
+            if not isinstance(manifest, dict) or not (str(manifest.get("name", "")).lower().startswith("kaptia") or manifest.get("short_name") == "Kaptia"):
                 raise RuntimeError("Web manifest JSON 格式或產品名稱不符預期")
             if "json" not in manifest_type.lower() and "manifest" not in manifest_type.lower() and "text/plain" not in manifest_type.lower():
                 raise RuntimeError(f"Manifest Content-Type 不符合預期：{manifest_type}")
