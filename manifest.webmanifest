@@ -1,7 +1,7 @@
 {
-  "name": "kaptiaLab",
-  "short_name": "kaptiaLab",
-  "description": "kaptiaLab Windows 本機 AI 助理產品介紹與下載頁",
+  "name": "Kaptia — Personal AI Assistant",
+  "short_name": "Kaptia",
+  "description": "Kaptia 個人 AI 助手、每台電腦獨立的本機對話記憶與下載資訊",
   "start_url": "./",
   "scope": "./",
   "display": "browser",
