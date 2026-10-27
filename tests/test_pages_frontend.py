@@ -81,6 +81,8 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("Math.min(42", self.html)
         self.assertIn("width < 640 ? 22", self.html)
         self.assertIn("1000 / 60", self.html)
+        self.assertIn("const lineGap = 5 * 96 / 2.54", self.html)
+        self.assertIn("const lineGapSq = lineGap * lineGap", self.html)
         self.assertIn('document.addEventListener("visibilitychange"', self.html)
         self.assertIn("cancelAnimationFrame(raf)", self.html)
         self.assertIn("if (!ctx)", self.html)
