@@ -74,6 +74,45 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 
 
 
+
+/* Premium spatial hero treatment: restrained chromatic depth, not a static particle wallpaper. */
+.hero{cursor:default}
+.hero:before{
+  background:
+    radial-gradient(ellipse 48% 58% at 78% 42%,rgba(116,132,255,.15),transparent 72%),
+    radial-gradient(ellipse 36% 48% at 64% 76%,rgba(76,205,220,.11),transparent 70%),
+    radial-gradient(ellipse 34% 44% at 94% 82%,rgba(184,132,255,.10),transparent 72%),
+    linear-gradient(140deg,#fff 0%,#fcfcff 54%,#f7fbff 100%);
+  background-size:140% 140%;
+  animation:kaptia-aurora 18s ease-in-out infinite alternate;
+}
+@keyframes kaptia-aurora{
+  0%{background-position:0% 45%}
+  50%{background-position:65% 20%}
+  100%{background-position:100% 70%}
+}
+.hero.pointer-active:before{
+  background:
+    radial-gradient(ellipse 340px 270px at var(--pointer-x) var(--pointer-y),rgba(103,125,255,.10),transparent 72%),
+    radial-gradient(ellipse 48% 58% at 78% 42%,rgba(116,132,255,.15),transparent 72%),
+    radial-gradient(ellipse 36% 48% at 64% 76%,rgba(76,205,220,.11),transparent 70%),
+    radial-gradient(ellipse 34% 44% at 94% 82%,rgba(184,132,255,.10),transparent 72%),
+    linear-gradient(140deg,#fff 0%,#fcfcff 54%,#f7fbff 100%);
+  background-size:140% 140%;
+}
+h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-brand .hero-mark{border-color:#d9def8;background:linear-gradient(145deg,#fff,#eef1ff);color:#515fc5}
+.btn:not(.secondary){background:linear-gradient(105deg,#171923,#343b68);border-color:#343b68}
+.btn:not(.secondary):hover{background:linear-gradient(105deg,#303654,#505db0);border-color:#505db0}
+.hero .interactive-bg{opacity:.58}
+@media(max-width:800px){
+  .hero:before{background-size:180% 180%}
+  h1{background-image:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%)}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero:before{animation:none!important}
+}
+
 </style>
 </head>
 <body>
