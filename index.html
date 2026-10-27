@@ -154,7 +154,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Cap pairwise particle work; the previous 110-particle field checked 5,995 pairs/frame.
-    const count = width < 640 ? 28 : Math.min(64, Math.max(36, Math.floor(width / 20)));
+    const count = width < 640 ? 22 : Math.min(42, Math.max(28, Math.floor(width / 30)));
     particles = Array.from({ length: count }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
@@ -179,8 +179,8 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
   function draw(timestamp = 0) {
     raf = 0;
     if (!ctx || document.hidden) return;
-    // Limit animation to 24 FPS; the effect is decorative and should not compete with the page.
-    if (!reduceMotion && timestamp && timestamp - lastFrame < 1000 / 24) {
+    // Keep animation synced to the display refresh rate; expensive work is reduced below.
+    if (!reduceMotion && timestamp && timestamp - lastFrame < 1000 / 60) {
       scheduleDraw();
       return;
     }
@@ -201,7 +201,7 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
       ctx.stroke();
     }
 
-    const lineGap = 32;
+    const lineGap = 36;
     const lineGapSq = lineGap * lineGap;
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i];
@@ -228,19 +228,30 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
 
+      // Batch links into opacity groups instead of one canvas stroke per pair.
+      if (i === 0) draw.linkPaths = [[], [], [], []];
       for (let j = i + 1; j < particles.length; j++) {
         const q = particles[j];
         const dx = p.x - q.x, dy = p.y - q.y;
         const distSq = dx * dx + dy * dy;
         if (distSq < lineGapSq) {
-          const dist = Math.sqrt(distSq);
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(q.x, q.y);
-          ctx.strokeStyle = "rgba(20,20,25," + ((1 - dist / lineGap) * .075) + ")";
-          ctx.stroke();
+          const strength = 1 - Math.sqrt(distSq) / lineGap;
+          const bucket = Math.min(3, Math.floor(strength * 4));
+          draw.linkPaths[bucket].push(p.x, p.y, q.x, q.y);
         }
       }
+    }
+
+    for (let bucket = 0; bucket < 4; bucket++) {
+      const segments = draw.linkPaths && draw.linkPaths[bucket];
+      if (!segments || !segments.length) continue;
+      ctx.beginPath();
+      for (let k = 0; k < segments.length; k += 4) {
+        ctx.moveTo(segments[k], segments[k + 1]);
+        ctx.lineTo(segments[k + 2], segments[k + 3]);
+      }
+      ctx.strokeStyle = "rgba(20,20,25," + ((bucket + 1) * .018) + ")";
+      ctx.stroke();
     }
 
     if (!reduceMotion) scheduleDraw();
