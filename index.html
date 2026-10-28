@@ -120,15 +120,16 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
 .integrity-hash{padding:8px;background:#f1f1f1;border-radius:6px;margin-bottom:10px}
 .integrity-command{padding:8px;background:#f1f1f1;border-radius:6px}
 
-.site-particle-layer{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:0!important;pointer-events:none;opacity:.62}
+.site-particle-layer{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:0!important;pointer-events:none;opacity:.88}
 body>:not(#interactiveBackground){position:relative;z-index:1}
-.card,.req,.release-card{background-color:rgba(255,255,255,.97)}
-.release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.98),rgba(250,250,255,.97))}
-.hero{background-color:rgba(255,255,255,.94)!important}
+.card,.req,.release-card{background-color:rgba(255,255,255,.20)!important}
+.release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.24),rgba(250,250,255,.18))!important}
+.hero{background-color:transparent!important}
+.hero:before{background:radial-gradient(ellipse at 50% 75%,rgba(244,244,246,.22) 0%,rgba(255,255,255,.05) 57%),linear-gradient(165deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,.08) 58%,rgba(250,250,250,.16) 100%)!important}
 @media(max-width:800px){
-  .site-particle-layer{opacity:.72}
-  .card,.req,.release-card{background-color:rgba(255,255,255,.97)}
-  .release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.98),rgba(250,250,255,.97))}
+  .site-particle-layer{opacity:.96}
+  .card,.req,.release-card{background-color:rgba(255,255,255,.24)!important}
+  .release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.28),rgba(250,250,255,.20))!important}
 }
 </style>
 </head>
@@ -205,8 +206,8 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     return {
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - .5) * .42,
-      vy: (Math.random() - .5) * .42,
+      vx: (Math.random() - .5) * 1.26,
+      vy: (Math.random() - .5) * 1.26,
       r: Math.random() * 1.25 + (width < 640 ? 1.05 : .75),
       a: Math.random() * .26 + (width < 640 ? .28 : .20)
     };
@@ -344,10 +345,11 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
         if (pointer.active) {
           const dx = p.x - pointer.x, dy = p.y - pointer.y;
           const distSq = dx * dx + dy * dy;
-          if (distSq < 115 * 115 && distSq > 0) {
+          if (distSq < 150 * 150 && distSq > 0) {
             const dist = Math.sqrt(distSq);
-            p.x += dx / dist * .65;
-            p.y += dy / dist * .65;
+            const force = (1 - dist / 150) * 2.4;
+            p.x += dx / dist * force;
+            p.y += dy / dist * force;
           }
         }
       }
@@ -415,6 +417,30 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
       ctx.strokeStyle = "rgba(20,20,25," + ((bucket + 1) * .018) + ")";
       ctx.stroke();
     }
+    // Interactive field: nearby particles connect to the pointer/finger without intercepting UI input.
+    if (pointer.active) {
+      const radius = width < 640 ? 135 : 165;
+      const radiusSq = radius * radius;
+      ctx.beginPath();
+      let linked = 0;
+      for (const p of particles) {
+        const dx = p.x - pointer.x, dy = p.y - pointer.y;
+        if (dx * dx + dy * dy < radiusSq) {
+          ctx.moveTo(pointer.x, pointer.y);
+          ctx.lineTo(p.x, p.y);
+          linked++;
+        }
+      }
+      if (linked) {
+        ctx.strokeStyle = "rgba(25,25,35,0.16)";
+        ctx.lineWidth = 0.9;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(pointer.x, pointer.y, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(25,25,35,0.22)";
+        ctx.fill();
+      }
+    }
 
     lastDrawCost = performance.now() - frameStart;
     if (!reduceMotion) scheduleDraw();
@@ -422,12 +448,23 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
 
   hero.addEventListener("pointermove", event => {
     if (event.pointerType === "touch") return;
-    const rect = hero.getBoundingClientRect();
-    pointer.x = event.clientX - rect.left;
-    pointer.y = event.clientY - rect.top;
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
     pointer.active = true;
   }, { passive: true });
-  hero.addEventListener("pointerleave", () => { pointer.active = false; }, { passive: true });
+  window.addEventListener("pointermove", event => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.active = true;
+  }, { passive: true });
+  window.addEventListener("pointerdown", event => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.active = true;
+  }, { passive: true });
+  window.addEventListener("pointerup", () => { pointer.active = false; }, { passive: true });
+  window.addEventListener("pointercancel", () => { pointer.active = false; }, { passive: true });
+  window.addEventListener("pointerleave", () => { pointer.active = false; }, { passive: true });
   window.addEventListener("resize", queueResize, { passive: true });
   if ("ResizeObserver" in window) {
     const observer = new ResizeObserver(queueResize);
