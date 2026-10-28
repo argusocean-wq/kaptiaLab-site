@@ -78,7 +78,7 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
 
             sw_bytes, sw_type = _fetch(checks["service_worker"][0], host)
             sw_text = sw_bytes.decode("utf-8", errors="replace")
-            if "kaptia-pages-v12" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
+            if "kaptia-pages-v13" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
                 raise RuntimeError("Service Worker 版本或逾時保護標記不符預期")
             if "javascript" not in sw_type.lower() and "ecmascript" not in sw_type.lower() and "text/plain" not in sw_type.lower():
                 raise RuntimeError(f"Service Worker Content-Type 不符合預期：{sw_type}")
