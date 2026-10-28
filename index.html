@@ -206,8 +206,8 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     return {
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - .5) * 1.26,
-      vy: (Math.random() - .5) * 1.26,
+      vx: (Math.random() - .5) * 12.6,
+      vy: (Math.random() - .5) * 12.6,
       r: Math.random() * 1.25 + (width < 640 ? 1.05 : .75),
       a: Math.random() * .26 + (width < 640 ? .28 : .20)
     };
@@ -345,9 +345,9 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
         if (pointer.active) {
           const dx = p.x - pointer.x, dy = p.y - pointer.y;
           const distSq = dx * dx + dy * dy;
-          if (distSq < 150 * 150 && distSq > 0) {
+          if (distSq < 220 * 220 && distSq > 0) {
             const dist = Math.sqrt(distSq);
-            const force = (1 - dist / 150) * 2.4;
+            const force = (1 - dist / 220) * 10.0;
             p.x += dx / dist * force;
             p.y += dy / dist * force;
           }
@@ -419,7 +419,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     }
     // Interactive field: nearby particles connect to the pointer/finger without intercepting UI input.
     if (pointer.active) {
-      const radius = width < 640 ? 135 : 165;
+      const radius = width < 640 ? 190 : 240;
       const radiusSq = radius * radius;
       ctx.beginPath();
       let linked = 0;
@@ -432,12 +432,12 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
         }
       }
       if (linked) {
-        ctx.strokeStyle = "rgba(25,25,35,0.16)";
+        ctx.strokeStyle = "rgba(25,25,35,0.34)";
         ctx.lineWidth = 0.9;
         ctx.stroke();
         ctx.beginPath();
         ctx.arc(pointer.x, pointer.y, 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(25,25,35,0.22)";
+        ctx.fillStyle = "rgba(25,25,35,0.48)";
         ctx.fill();
       }
     }
@@ -462,9 +462,9 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     pointer.y = event.clientY;
     pointer.active = true;
   }, { passive: true });
-  window.addEventListener("pointerup", () => { pointer.active = false; }, { passive: true });
-  window.addEventListener("pointercancel", () => { pointer.active = false; }, { passive: true });
-  window.addEventListener("pointerleave", () => { pointer.active = false; }, { passive: true });
+  window.addEventListener("pointerup", event => { if (event.pointerType === "touch") { window.setTimeout(() => { pointer.active = false; }, 700); } else { pointer.active = false; } }, { passive: true });
+  window.addEventListener("pointercancel", event => { if (event.pointerType === "touch") { window.setTimeout(() => { pointer.active = false; }, 450); } else { pointer.active = false; } }, { passive: true });
+  window.addEventListener("pointerleave", event => { if (event.pointerType !== "touch") pointer.active = false; }, { passive: true });
   window.addEventListener("resize", queueResize, { passive: true });
   if ("ResizeObserver" in window) {
     const observer = new ResizeObserver(queueResize);
@@ -618,7 +618,6 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     hero.classList.add("pointer-active");
   };
   hero.addEventListener("pointermove", event => {
-    if (event.pointerType === "touch") return;
     setPointer(event.clientX, event.clientY);
   }, {passive:true});
   hero.addEventListener("pointerleave", () => hero.classList.remove("pointer-active"), {passive:true});
