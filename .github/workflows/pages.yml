@@ -80,9 +80,17 @@ jobs:
             --pattern "Kaptia-Setup.exe" \
             --dir _site/downloads
           test -s _site/downloads/Kaptia-Setup.exe
+          installer_sha256="$(sha256sum _site/downloads/Kaptia-Setup.exe | awk '{print $1}')"
+          installer_size_bytes="$(wc -c < _site/downloads/Kaptia-Setup.exe | tr -d '[:space:]')"
+          test "${#installer_sha256}" -eq 64
+          test "$installer_size_bytes" -gt 1024
 
-          jq -n --argjson releases "$published" \
-            '{releases: $releases, downloadReady: true}' > _site/releases.json
+          jq -n \
+            --argjson releases "$published" \
+            --arg latest_tag "$latest_tag" \
+            --arg installer_sha256 "$installer_sha256" \
+            --argjson installer_size_bytes "$installer_size_bytes" \
+            '{releases: $releases, downloadReady: true, installer: {file_name: "Kaptia-Setup.exe", tag_name: $latest_tag, sha256: $installer_sha256, size_bytes: $installer_size_bytes}}' > _site/releases.json
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
