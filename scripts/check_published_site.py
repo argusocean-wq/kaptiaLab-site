@@ -1,7 +1,9 @@
 """Post-deployment smoke checks for the public Kaptia Pages shell."""
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import sys
 import time
 from urllib.error import HTTPError, URLError
@@ -76,7 +78,7 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
 
             sw_bytes, sw_type = _fetch(checks["service_worker"][0], host)
             sw_text = sw_bytes.decode("utf-8", errors="replace")
-            if "kaptia-pages-v12" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
+            if "kaptia-pages-v13" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
                 raise RuntimeError("Service Worker 版本或逾時保護標記不符預期")
             if "javascript" not in sw_type.lower() and "ecmascript" not in sw_type.lower() and "text/plain" not in sw_type.lower():
                 raise RuntimeError(f"Service Worker Content-Type 不符合預期：{sw_type}")
@@ -100,12 +102,32 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
                 raise RuntimeError("版本資訊沒有已發布版本")
             if "json" not in release_type.lower() and "text/plain" not in release_type.lower():
                 raise RuntimeError(f"版本資訊 Content-Type 不符合預期：{release_type}")
-            results["releases"] = "200 + valid same-origin release metadata"
+
+            latest_tag = str(release_data["releases"][0].get("tag_name", ""))
+            installer_meta = release_data.get("installer")
+            if not isinstance(installer_meta, dict):
+                raise RuntimeError("版本資訊缺少安裝檔完整性 metadata")
+            if installer_meta.get("file_name") != "Kaptia-Setup.exe":
+                raise RuntimeError("安裝檔 metadata 的檔名不符預期")
+            if installer_meta.get("tag_name") != latest_tag or not latest_tag:
+                raise RuntimeError("安裝檔版本標籤與最新發布版本不一致")
+            expected_size = installer_meta.get("size_bytes")
+            if isinstance(expected_size, bool) or not isinstance(expected_size, int) or expected_size < 1024:
+                raise RuntimeError("安裝檔 metadata 的檔案大小無效")
+            expected_sha256 = installer_meta.get("sha256")
+            if not isinstance(expected_sha256, str) or re.fullmatch(r"[a-fA-F0-9]{64}", expected_sha256) is None:
+                raise RuntimeError("安裝檔 metadata 的 SHA-256 格式無效")
+            results["releases"] = "200 + same-origin release metadata and installer version match"
 
             installer_bytes, installer_type = _fetch(checks["installer"][0], host)
             if len(installer_bytes) < 1024 or not installer_bytes.startswith(b"MZ"):
                 raise RuntimeError("官網安裝檔缺失、過小或不是 Windows PE 檔案")
-            results["installer"] = f"200 + Windows PE signature ({len(installer_bytes)} bytes)"
+            if len(installer_bytes) != expected_size:
+                raise RuntimeError(f"安裝檔大小與 metadata 不一致：expected {expected_size}, got {len(installer_bytes)}")
+            actual_sha256 = hashlib.sha256(installer_bytes).hexdigest()
+            if actual_sha256.lower() != expected_sha256.lower():
+                raise RuntimeError("官網安裝檔 SHA-256 與版本 metadata 不一致")
+            results["installer"] = f"200 + Windows PE + SHA-256 match ({len(installer_bytes)} bytes)"
 
             return results
         except (HTTPError, URLError, TimeoutError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:

@@ -113,6 +113,12 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
   .hero:before{animation:none!important}
 }
 
+
+.release-integrity{margin-top:14px;padding:12px;border:1px solid #e5e5e5;border-radius:10px;background:#fafafa}
+.release-integrity p{margin:0 0 6px}
+.integrity-hash,.integrity-command{display:block;overflow-wrap:anywhere;word-break:break-all;white-space:pre-wrap;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:#333}
+.integrity-hash{padding:8px;background:#f1f1f1;border-radius:6px;margin-bottom:10px}
+.integrity-command{padding:8px;background:#f1f1f1;border-radius:6px}
 </style>
 </head>
 <body>
@@ -123,7 +129,7 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
 <section id="release-announcements" aria-labelledby="release-title">
 <div class="eyebrow">RELEASE NOTES</div><h2 id="release-title">版本發布公告</h2>
 <p class="copy">在此查看版本號、發布日期與更新內容。所有版本資訊直接顯示於官網，下載安裝程式不需要離開本網站。</p>
-<div class="release-list" id="releaseList" aria-live="polite"><article class="release-card"><p class="release-status">正在讀取 GitHub Releases 最新公告…</p></article></div>
+<div class="release-list" id="releaseList" aria-live="polite"><article class="release-card"><p class="release-status">正在讀取最新版本公告…</p></article></div>
 <p class="release-footnote">版本資訊與安裝程式由網站部署流程同步；頁面公告不代表該版本已在所有 Windows 裝置完成實機驗證。</p>
 </section>
 <section id="overview">
@@ -138,7 +144,7 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
 <section id="get-started">
 <div class="eyebrow">GET STARTED</div><h2>從第一次對話開始建立自己的助手</h2>
 <div class="steps">
-<div class="step"><div class="num">STEP 01</div><strong>下載並確認版本</strong><p class="copy">從 GitHub Releases 查看版本說明與安裝檔。請確認該版本是否已包含本機記憶功能，不要把官網改版當成安裝器已更新。</p></div>
+<div class="step"><div class="num">STEP 01</div><strong>下載並確認版本</strong><p class="copy">直接在本網站查看版本說明並下載安裝檔。請確認該版本是否已包含本機記憶功能，不要把官網改版當成安裝器已更新。</p></div>
 <div class="step"><div class="num">STEP 02</div><strong>開始自然對話</strong><p class="copy">像一般助手一樣提出問題、修正回答，並逐步建立可延續的對話脈絡。</p></div>
 <div class="step"><div class="num">STEP 03</div><strong>檢查與管理記憶</strong><p class="copy">本機記憶應能查閱與清除。新版記憶功能完成發布前，請以目前安裝器實際提供的命令與功能為準。</p></div>
 </div>
@@ -168,7 +174,9 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
   }
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let width = 0, height = 0, raf = 0, resizeRaf = 0, lastFrame = 0;
+  let width = 0, height = 0, raf = 0, resizeRaf = 0;
+  let lastTimestamp = 0, frameAccumulator = 0, lastDrawCost = 0;
+  let slowFrames = 0, fastFrames = 0, qualityLevel = 0, baseParticleCount = 22;
   const pointer = { x: -1000, y: -1000, active: false };
   let particles = [];
 
@@ -176,6 +184,26 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
     if (!reduceMotion && !document.hidden && raf === 0) {
       raf = requestAnimationFrame(draw);
     }
+  }
+
+  function createParticle() {
+    return {
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - .5) * .18,
+      vy: (Math.random() - .5) * .18,
+      r: Math.random() * 1.5 + .45,
+      a: Math.random() * .32 + .10
+    };
+  }
+
+  function applyQualityLevel(nextLevel) {
+    qualityLevel = Math.max(0, Math.min(2, nextLevel));
+    const reductions = [0, 8, 14];
+    const targetCount = Math.max(12, baseParticleCount - reductions[qualityLevel]);
+    if (particles.length > targetCount) particles.length = targetCount;
+    while (particles.length < targetCount) particles.push(createParticle());
+    frameAccumulator = 0;
   }
 
   function resize() {
@@ -192,17 +220,14 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // Cap pairwise particle work; the previous 110-particle field checked 5,995 pairs/frame.
-    const count = width < 640 ? 22 : Math.min(42, Math.max(28, Math.floor(width / 30)));
-    particles = Array.from({ length: count }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - .5) * .18,
-      vy: (Math.random() - .5) * .18,
-      r: Math.random() * 1.5 + .45,
-      a: Math.random() * .32 + .10
-    }));
-    lastFrame = 0;
+    baseParticleCount = width < 640 ? 22 : Math.min(42, Math.max(28, Math.floor(width / 30)));
+    qualityLevel = 0;
+    slowFrames = 0;
+    fastFrames = 0;
+    frameAccumulator = 0;
+    lastTimestamp = 0;
+    lastDrawCost = 0;
+    particles = Array.from({ length: baseParticleCount }, createParticle);
     if (reduceMotion) draw(0);
     else scheduleDraw();
   }
@@ -218,18 +243,52 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
   function draw(timestamp = 0) {
     raf = 0;
     if (!ctx || document.hidden) return;
-    // Keep animation synced to the display refresh rate; expensive work is reduced below.
-    if (!reduceMotion && timestamp && timestamp - lastFrame < 1000 / 60) {
-      scheduleDraw();
-      return;
+
+    if (!reduceMotion && timestamp) {
+      let delta = 0;
+      if (lastTimestamp) {
+        delta = Math.max(0, timestamp - lastTimestamp);
+        frameAccumulator += Math.min(delta, 100);
+      }
+      lastTimestamp = timestamp;
+
+      // Reduce workload after repeated slow frames, then cautiously recover after sustained headroom.
+      if (delta > 24 || lastDrawCost > 12) {
+        slowFrames++;
+        fastFrames = 0;
+      } else if (delta > 0 && delta < 20 && lastDrawCost < 6) {
+        fastFrames++;
+        slowFrames = 0;
+      } else {
+        slowFrames = 0;
+        fastFrames = 0;
+      }
+      if (slowFrames >= 6 && qualityLevel < 2) {
+        applyQualityLevel(qualityLevel + 1);
+        slowFrames = 0;
+      } else if (fastFrames >= 240 && qualityLevel > 0) {
+        applyQualityLevel(qualityLevel - 1);
+        fastFrames = 0;
+      }
+
+      // 60 FPS normally; step down to 45 FPS only after repeated frame-budget misses.
+      const targetInterval = qualityLevel >= 2 ? 1000 / 45 : 1000 / 60;
+      if (frameAccumulator + 0.5 < targetInterval) {
+        scheduleDraw();
+        return;
+      }
+      frameAccumulator %= targetInterval;
     }
-    lastFrame = timestamp || 0;
+
+    const frameStart = performance.now();
     ctx.clearRect(0, 0, width, height);
 
     ctx.lineWidth = .7;
-    for (let i = 0; i < 5; i++) {
+    const waveCount = qualityLevel >= 2 ? 3 : 5;
+    const waveStride = qualityLevel > 0 ? 22 : 16;
+    for (let i = 0; i < waveCount; i++) {
       ctx.beginPath();
-      for (let x = -20; x <= width + 20; x += 16) {
+      for (let x = -20; x <= width + 20; x += waveStride) {
         const wave = height * (.70 + i * .035)
           + Math.sin(x * .004 + i * .7) * 22
           + Math.sin(x * .009 - i) * 8;
@@ -240,13 +299,9 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
       ctx.stroke();
     }
 
-    // CSS reference pixels: 5 cm ≈ 5 × 96 / 2.54 = 188.98 CSS px.
-    // Device scaling can change the physical measurement; this is the browser-standard approximation.
-    const lineGap = 5 * 96 / 2.54;
-    const lineGapSq = lineGap * lineGap;
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      if (!reduceMotion) {
+    // Move particles first so the spatial grid and links use the same positions.
+    if (!reduceMotion) {
+      for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0) p.x = width;
@@ -263,29 +318,62 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
           }
         }
       }
+    }
 
+    // CSS reference pixels: 5 cm ≈ 5 × 96 / 2.54 = 188.98 CSS px.
+    // Device scaling can change the physical measurement; this is the browser-standard approximation.
+    const lineGap = 5 * 96 / 2.54;
+    const lineGapSq = lineGap * lineGap;
+    const cellSize = lineGap;
+    const grid = new Map();
+
+    // Spatial grid: only inspect the current cell and its 8 neighbors.
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      const cellX = Math.floor(p.x / cellSize);
+      const cellY = Math.floor(p.y / cellSize);
+      const key = cellX + "," + cellY;
+      let cell = grid.get(key);
+      if (!cell) {
+        cell = [];
+        grid.set(key, cell);
+      }
+      cell.push(i);
+    }
+
+    const linkPaths = [[], [], [], []];
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
       ctx.beginPath();
       ctx.fillStyle = "rgba(15,15,20," + p.a + ")";
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
 
-      // Batch links into opacity groups instead of one canvas stroke per pair.
-      if (i === 0) draw.linkPaths = [[], [], [], []];
-      for (let j = i + 1; j < particles.length; j++) {
-        const q = particles[j];
-        const dx = p.x - q.x, dy = p.y - q.y;
-        const distSq = dx * dx + dy * dy;
-        if (distSq < lineGapSq) {
-          const strength = 1 - Math.sqrt(distSq) / lineGap;
-          const bucket = Math.min(3, Math.floor(strength * 4));
-          draw.linkPaths[bucket].push(p.x, p.y, q.x, q.y);
+      const cellX = Math.floor(p.x / cellSize);
+      const cellY = Math.floor(p.y / cellSize);
+      for (let gx = cellX - 1; gx <= cellX + 1; gx++) {
+        for (let gy = cellY - 1; gy <= cellY + 1; gy++) {
+          const nearby = grid.get(gx + "," + gy);
+          if (!nearby) continue;
+          for (let k = 0; k < nearby.length; k++) {
+            const j = nearby[k];
+            if (j <= i) continue; // Each particle pair is evaluated only once.
+            const q = particles[j];
+            const dx = p.x - q.x, dy = p.y - q.y;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < lineGapSq) {
+              const strength = 1 - Math.sqrt(distSq) / lineGap;
+              const bucket = Math.min(3, Math.floor(strength * 4));
+              linkPaths[bucket].push(p.x, p.y, q.x, q.y);
+            }
+          }
         }
       }
     }
 
     for (let bucket = 0; bucket < 4; bucket++) {
-      const segments = draw.linkPaths && draw.linkPaths[bucket];
-      if (!segments || !segments.length) continue;
+      const segments = linkPaths[bucket];
+      if (!segments.length) continue;
       ctx.beginPath();
       for (let k = 0; k < segments.length; k += 4) {
         ctx.moveTo(segments[k], segments[k + 1]);
@@ -295,6 +383,7 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
       ctx.stroke();
     }
 
+    lastDrawCost = performance.now() - frameStart;
     if (!reduceMotion) scheduleDraw();
   }
 
@@ -315,6 +404,8 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
     if (document.hidden) {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
+      lastTimestamp = 0;
+      frameAccumulator = 0;
     } else if (reduceMotion) {
       draw(0);
     } else {
@@ -346,7 +437,7 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
       timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(date);
   }
-  function renderRelease(release, isLatest) {
+  function renderRelease(release, isLatest, installerMetadata) {
     const card = node("article", "release-card");
     const head = node("div", "release-head");
     const info = node("div");
@@ -364,16 +455,31 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
     const notes = typeof release.body === "string" && release.body.trim()
       ? release.body.trim().slice(0, 4000) : "此版本尚未提供更新說明。";
     card.appendChild(node("p", "release-notes", notes));
-    if (isLatest) {
+    if (isLatest && installerMetadata) {
       const links = node("div", "release-links");
       const a = node("a", "", "下載目前版本安裝程式 ↓");
       a.href = downloadUrl;
       a.setAttribute("download", "Kaptia-Setup.exe");
       links.appendChild(a);
       card.appendChild(links);
+
+      const integrity = node("div", "release-integrity");
+      integrity.appendChild(node("p", "release-meta", "安裝檔大小：" + formatBytes(installerMetadata.size_bytes)));
+      integrity.appendChild(node("p", "release-meta", "SHA-256（下載後可比對）"));
+      integrity.appendChild(node("code", "integrity-hash", installerMetadata.sha256));
+      integrity.appendChild(node("p", "release-meta", "Windows PowerShell 驗證指令（請按實際下載位置調整路徑）："));
+      integrity.appendChild(node("code", "integrity-command", '(Get-FileHash -LiteralPath "$env:USERPROFILE\\Downloads\\Kaptia-Setup.exe" -Algorithm SHA256).Hash'));
+      card.appendChild(integrity);
     }
     return card;
   }
+  function formatBytes(value) {
+    if (!Number.isSafeInteger(value) || value <= 0) return "大小未知";
+    return value >= 1024 * 1024
+      ? (value / (1024 * 1024)).toFixed(2) + " MB"
+      : (value / 1024).toFixed(1) + " KB";
+  }
+
   function setDownloadReady(ready, message) {
     for (const id of ["topDownload", "download"]) {
       const button = document.getElementById(id);
@@ -395,15 +501,26 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
       if (!response.ok) throw new Error("Release metadata unavailable");
       const data = await response.json();
       if (!Array.isArray(data.releases) || data.releases.length === 0) throw new Error("No published versions");
+      const latestTag = String(data.releases[0].tag_name || "");
+      const installer = data.installer;
+      const integrityReady = data.downloadReady === true
+        && installer
+        && installer.file_name === "Kaptia-Setup.exe"
+        && String(installer.tag_name || "") === latestTag
+        && Number.isSafeInteger(installer.size_bytes)
+        && installer.size_bytes > 1024
+        && typeof installer.sha256 === "string"
+        && /^[a-f0-9]{64}$/i.test(installer.sha256);
+      const checkedInstaller = integrityReady ? installer : null;
       const fragment = document.createDocumentFragment();
       data.releases.slice(0, 5).forEach((release, index) => {
-        fragment.appendChild(renderRelease(release, index === 0));
+        fragment.appendChild(renderRelease(release, index === 0, index === 0 ? checkedInstaller : null));
       });
       list.replaceChildren(fragment);
-      setDownloadReady(data.downloadReady === true,
-        data.downloadReady === true
-          ? "目前版本 " + String(data.releases[0].tag_name || "") + " · 安裝程式由本網站直接提供。"
-          : "版本資訊可供查看，但目前安裝程式尚未就緒。");
+      setDownloadReady(Boolean(checkedInstaller),
+        checkedInstaller
+          ? "目前版本 " + latestTag + " · " + formatBytes(checkedInstaller.size_bytes) + " · 官網下載，SHA-256 可供下載後比對。"
+          : "目前無法確認安裝檔與版本資訊一致，為避免提供未驗證檔案，下載已暫停。");
     } catch (_) {
       list.replaceChildren();
       const card = node("article", "release-card");
