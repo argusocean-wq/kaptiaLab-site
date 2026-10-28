@@ -78,14 +78,19 @@ class PagesFrontendTests(unittest.TestCase):
 
 
     def test_canvas_animation_has_bounded_cost_and_visibility_pause(self) -> None:
-        self.assertIn("Math.min(42", self.html)
-        self.assertIn("width < 640 ? 22", self.html)
+        self.assertIn("Math.min(90", self.html)
+        self.assertIn("width < 640\n      ? 42", self.html)
         self.assertIn("1000 / 60", self.html)
         self.assertIn("const lineGap = 5 * 96 / 2.54", self.html)
         self.assertIn("const lineGapSq = lineGap * lineGap", self.html)
         self.assertIn("const cellSize = lineGap", self.html)
         self.assertIn("const grid = new Map()", self.html)
         self.assertIn("applyQualityLevel", self.html)
+        self.assertIn("document.body.prepend(canvas)", self.html)
+        self.assertIn('classList.add("site-particle-layer")', self.html)
+        self.assertIn("const nextWidth = Math.max(1, Math.round(window.innerWidth))", self.html)
+        self.assertIn("p.vx = Math.abs(p.vx)", self.html)
+        self.assertNotIn("if (p.x < 0) p.x = width", self.html)
         self.assertIn("frameAccumulator", self.html)
         self.assertIn('document.addEventListener("visibilitychange"', self.html)
         self.assertIn("cancelAnimationFrame(raf)", self.html)
@@ -112,7 +117,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("new AbortController()", self.sw)
         self.assertIn("if (response.status >= 500)", self.sw)
         self.assertIn("A storage/quota failure must not discard a good network response", self.sw)
-        self.assertIn("const CACHE = \"kaptia-pages-v13\"", self.sw)
+        self.assertIn("const CACHE = \"kaptia-pages-v14\"", self.sw)
 
 
 if __name__ == "__main__":
