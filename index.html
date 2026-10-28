@@ -273,7 +273,7 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
 
       // 60 FPS normally; step down to 45 FPS only after repeated frame-budget misses.
       const targetInterval = qualityLevel >= 2 ? 1000 / 45 : 1000 / 60;
-      if (frameAccumulator < targetInterval) {
+      if (frameAccumulator + 0.5 < targetInterval) {
         scheduleDraw();
         return;
       }
