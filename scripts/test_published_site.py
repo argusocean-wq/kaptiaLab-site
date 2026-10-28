@@ -49,7 +49,7 @@ class PublishedSiteTests(unittest.TestCase):
     def test_valid_published_assets_pass(self):
         base = "https://example.github.io/kaptia/"
         html = '<title>kaptiaLab</title><div id="releaseList"></div><canvas id="interactiveBackground"></canvas><a href="./downloads/Kaptia-Setup.exe">Download</a>'
-        sw = 'const CACHE = "kaptia-pages-v13"; const NAVIGATION_TIMEOUT_MS = 8000;'
+        sw = 'const CACHE = "kaptia-pages-v14"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
         installer = b"MZ" + (b"0" * 2048)
         releases = json.dumps({
@@ -77,7 +77,7 @@ class PublishedSiteTests(unittest.TestCase):
     def test_installer_checksum_mismatch_fails_closed(self):
         base = "https://example.github.io/kaptia/"
         html = '<title>kaptiaLab</title><div id="releaseList"></div><canvas id="interactiveBackground"></canvas>'
-        sw = 'const CACHE = "kaptia-pages-v13"; const NAVIGATION_TIMEOUT_MS = 8000;'
+        sw = 'const CACHE = "kaptia-pages-v14"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
         installer = b"MZ" + (b"0" * 2048)
         releases = json.dumps({
