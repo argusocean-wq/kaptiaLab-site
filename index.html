@@ -119,6 +119,15 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
 .integrity-hash,.integrity-command{display:block;overflow-wrap:anywhere;word-break:break-all;white-space:pre-wrap;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:#333}
 .integrity-hash{padding:8px;background:#f1f1f1;border-radius:6px;margin-bottom:10px}
 .integrity-command{padding:8px;background:#f1f1f1;border-radius:6px}
+
+.site-particle-layer{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:0!important;pointer-events:none;opacity:.82}
+body>:not(#interactiveBackground){position:relative;z-index:1}
+.card,.req,.release-card{background-color:rgba(255,255,255,.82)}
+.release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.84),rgba(250,250,255,.82))}
+@media(max-width:800px){
+  .site-particle-layer{opacity:.96}
+  .card,.req,.release-card{background-color:rgba(255,255,255,.74)}
+}
 </style>
 </head>
 <body>
@@ -164,8 +173,12 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
 <script>
 (() => {
   const canvas = document.getElementById("interactiveBackground");
-  const hero = canvas && canvas.closest(".hero");
+  const hero = document.querySelector(".hero");
   if (!canvas || !hero) return;
+
+  // Keep the particle layer attached to the viewport, not clipped to the hero section.
+  document.body.prepend(canvas);
+  canvas.classList.add("site-particle-layer");
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -176,7 +189,7 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let width = 0, height = 0, raf = 0, resizeRaf = 0;
   let lastTimestamp = 0, frameAccumulator = 0, lastDrawCost = 0;
-  let slowFrames = 0, fastFrames = 0, qualityLevel = 0, baseParticleCount = 22;
+  let slowFrames = 0, fastFrames = 0, qualityLevel = 0, baseParticleCount = 42;
   const pointer = { x: -1000, y: -1000, active: false };
   let particles = [];
 
@@ -190,27 +203,30 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
     return {
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - .5) * .18,
-      vy: (Math.random() - .5) * .18,
-      r: Math.random() * 1.5 + .45,
-      a: Math.random() * .32 + .10
+      vx: (Math.random() - .5) * .14,
+      vy: (Math.random() - .5) * .14,
+      r: Math.random() * 1.25 + (width < 640 ? 1.05 : .75),
+      a: Math.random() * .26 + (width < 640 ? .28 : .20)
     };
   }
 
   function applyQualityLevel(nextLevel) {
     qualityLevel = Math.max(0, Math.min(2, nextLevel));
     const reductions = [0, 8, 14];
-    const targetCount = Math.max(12, baseParticleCount - reductions[qualityLevel]);
+    const minimumCount = width < 640 ? 28 : 32;
+    const targetCount = Math.max(minimumCount, baseParticleCount - reductions[qualityLevel]);
     if (particles.length > targetCount) particles.length = targetCount;
     while (particles.length < targetCount) particles.push(createParticle());
     frameAccumulator = 0;
   }
 
   function resize() {
-    const rect = hero.getBoundingClientRect();
-    const nextWidth = Math.max(1, Math.round(rect.width));
-    const nextHeight = Math.max(1, Math.round(rect.height));
+    const nextWidth = Math.max(1, Math.round(window.innerWidth));
+    const nextHeight = Math.max(1, Math.round(window.innerHeight));
     if (nextWidth === width && nextHeight === height && particles.length) return;
+
+    const previousWidth = width;
+    const previousHeight = height;
     width = nextWidth;
     height = nextHeight;
 
@@ -220,14 +236,28 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    baseParticleCount = width < 640 ? 22 : Math.min(42, Math.max(28, Math.floor(width / 30)));
+    // Preserve particle positions across orientation/viewport changes instead of regenerating them.
+    if (previousWidth > 0 && previousHeight > 0 && particles.length) {
+      const scaleX = width / previousWidth;
+      const scaleY = height / previousHeight;
+      for (const p of particles) {
+        p.x = Math.min(width - p.r, Math.max(p.r, p.x * scaleX));
+        p.y = Math.min(height - p.r, Math.max(p.r, p.y * scaleY));
+      }
+    }
+
+    baseParticleCount = width < 640
+      ? 42
+      : Math.min(90, Math.max(56, Math.floor((width * height) / 18000)));
     qualityLevel = 0;
     slowFrames = 0;
     fastFrames = 0;
     frameAccumulator = 0;
     lastTimestamp = 0;
     lastDrawCost = 0;
-    particles = Array.from({ length: baseParticleCount }, createParticle);
+    const targetCount = baseParticleCount;
+    if (particles.length > targetCount) particles.length = targetCount;
+    while (particles.length < targetCount) particles.push(createParticle());
     if (reduceMotion) draw(0);
     else scheduleDraw();
   }
@@ -284,8 +314,8 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
     ctx.clearRect(0, 0, width, height);
 
     ctx.lineWidth = .7;
-    const waveCount = qualityLevel >= 2 ? 3 : 5;
-    const waveStride = qualityLevel > 0 ? 22 : 16;
+    const waveCount = qualityLevel >= 2 ? 2 : 3;
+    const waveStride = qualityLevel > 0 ? 28 : 22;
     for (let i = 0; i < waveCount; i++) {
       ctx.beginPath();
       for (let x = -20; x <= width + 20; x += waveStride) {
@@ -304,10 +334,11 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
       for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
-        if (p.x < 0) p.x = width;
-        if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        if (p.y > height) p.y = 0;
+        // Reflect from viewport edges; wrapping from one side to the other looks like teleportation.
+        if (p.x < p.r) { p.x = p.r; p.vx = Math.abs(p.vx); }
+        else if (p.x > width - p.r) { p.x = width - p.r; p.vx = -Math.abs(p.vx); }
+        if (p.y < p.r) { p.y = p.r; p.vy = Math.abs(p.vy); }
+        else if (p.y > height - p.r) { p.y = height - p.r; p.vy = -Math.abs(p.vy); }
         if (pointer.active) {
           const dx = p.x - pointer.x, dy = p.y - pointer.y;
           const distSq = dx * dx + dy * dy;
