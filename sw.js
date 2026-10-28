@@ -1,4 +1,4 @@
-const CACHE = "kaptia-pages-v12";
+const CACHE = "kaptia-pages-v13";
 const APP_SHELL = ["./", "./index.html"];
 const OPTIONAL_FILES = ["./manifest.webmanifest"];
 const NAVIGATION_TIMEOUT_MS = 8000;
