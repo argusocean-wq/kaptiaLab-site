@@ -120,13 +120,15 @@ h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webki
 .integrity-hash{padding:8px;background:#f1f1f1;border-radius:6px;margin-bottom:10px}
 .integrity-command{padding:8px;background:#f1f1f1;border-radius:6px}
 
-.site-particle-layer{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:0!important;pointer-events:none;opacity:.82}
+.site-particle-layer{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;z-index:0!important;pointer-events:none;opacity:.62}
 body>:not(#interactiveBackground){position:relative;z-index:1}
-.card,.req,.release-card{background-color:rgba(255,255,255,.82)}
-.release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.84),rgba(250,250,255,.82))}
+.card,.req,.release-card{background-color:rgba(255,255,255,.97)}
+.release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.98),rgba(250,250,255,.97))}
+.hero{background-color:rgba(255,255,255,.94)!important}
 @media(max-width:800px){
-  .site-particle-layer{opacity:.96}
-  .card,.req,.release-card{background-color:rgba(255,255,255,.74)}
+  .site-particle-layer{opacity:.72}
+  .card,.req,.release-card{background-color:rgba(255,255,255,.97)}
+  .release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.98),rgba(250,250,255,.97))}
 }
 </style>
 </head>
@@ -203,8 +205,8 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     return {
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - .5) * .14,
-      vy: (Math.random() - .5) * .14,
+      vx: (Math.random() - .5) * .42,
+      vy: (Math.random() - .5) * .42,
       r: Math.random() * 1.25 + (width < 640 ? 1.05 : .75),
       a: Math.random() * .26 + (width < 640 ? .28 : .20)
     };
