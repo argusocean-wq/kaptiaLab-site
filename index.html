@@ -131,13 +131,34 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   .card,.req,.release-card{background-color:rgba(255,255,255,.24)!important}
   .release-card{background-image:linear-gradient(135deg,rgba(255,255,255,.28),rgba(250,250,255,.20))!important}
 }
+
+/* Language-first setup flow and conservative browser-side hardware preflight. */
+.setup-dialog{width:min(620px,calc(100% - 28px));max-height:min(88vh,820px);overflow:auto;border:1px solid #dedee6;border-radius:18px;padding:0;background:#fff;color:#171717;box-shadow:0 24px 80px #0003}
+.setup-dialog::backdrop{background:#10101488;backdrop-filter:blur(5px)}
+.setup-dialog-inner{padding:26px}
+.setup-dialog h2{font-size:26px;margin:5px 0 8px}
+.setup-dialog p{color:#60606a;font-size:14px;line-height:1.75}
+.setup-field{display:grid;gap:8px;margin:20px 0}
+.setup-field label{font-size:13px;font-weight:650}
+.setup-field select{width:100%;height:46px;border:1px solid #d4d4d4;border-radius:10px;padding:0 12px;background:#fff;color:#171717;font:inherit}
+.setup-hardware{display:grid;gap:9px;padding:15px;border:1px solid #e5e5e5;border-radius:12px;background:#fafafa}
+.setup-hardware-row{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+.setup-hardware-row span:first-child{color:#737373}
+.setup-hardware-row strong{text-align:right;font-weight:650}
+.setup-warning{padding:11px 12px;border-left:3px solid #777;background:#f5f5f5;color:#555!important}
+.setup-dialog-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:20px}
+.setup-dialog-actions button{font:inherit;cursor:pointer}
+.setup-dialog .btn{min-height:44px}
+.setup-dialog .btn:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:560px){.setup-dialog-inner{padding:20px}.setup-dialog-actions{display:grid}.setup-dialog-actions .btn{width:100%}}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品功能</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本資訊</a></nav><div class="top-actions"><a class="btn" style="min-height:38px;padding:0 17px;font-size:13px" href="./downloads/Kaptia-Setup.exe" download="Kaptia-Setup.exe" id="topDownload">下載安裝程式</a><span class="tag">ZH-TW</span></div></header>
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品功能</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本資訊</a></nav><div class="top-actions"><button class="btn" style="min-height:38px;padding:0 17px;font-size:13px" type="button" data-setup-open id="topDownload">下載安裝程式</button><span class="tag" id="languageTag">ZH-TW</span></div></header>
 <main>
-<section class="hero" style="border:0"><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>Kaptia · Personal AI Assistant</span></div><h1>一個會記住脈絡、<br>也會獨立思考的 AI 助手</h1><p class="lead">Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。</p><div class="actions"><a class="btn" href="./downloads/Kaptia-Setup.exe" download="Kaptia-Setup.exe" id="download">下載 Windows 安裝程式</a><a class="btn secondary" href="#overview">了解產品功能</a></div><p class="note" id="downloadNote">Windows 10/11 · 官網已更新產品方向；新版本機記憶功能仍須完成建置、測試並發布安裝器。</p></section>
+<section class="hero" style="border:0"><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>Kaptia · Personal AI Assistant</span></div><h1>一個會記住脈絡、<br>也會獨立思考的 AI 助手</h1><p class="lead">Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。</p><div class="actions"><button class="btn" type="button" data-setup-open id="download">下載 Windows 安裝程式</button><a class="btn secondary" href="#overview">了解產品功能</a></div><p class="note" id="downloadNote">Windows 10/11 · 官網已更新產品方向；新版本機記憶功能仍須完成建置、測試並發布安裝器。</p></section>
 <section id="release-announcements" aria-labelledby="release-title">
 <div class="eyebrow">RELEASE NOTES</div><h2 id="release-title">版本發布公告</h2>
 <p class="copy">在此查看版本號、發布日期與更新內容。所有版本資訊直接顯示於官網，下載安裝程式不需要離開本網站。</p>
@@ -171,14 +192,42 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
 </div>
 </section>
 </main>
+
+<dialog class="setup-dialog" id="setupDialog" aria-labelledby="setupDialogTitle">
+  <div class="setup-dialog-inner">
+    <div class="eyebrow">KAPTIA SETUP</div>
+    <h2 id="setupDialogTitle">選擇語言與檢查電腦</h2>
+    <p id="setupDialogIntro">先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。</p>
+    <div class="setup-field">
+      <label for="setupLanguage">安裝語言 / Installer language</label>
+      <select id="setupLanguage">
+        <option value="zh-TW">繁體中文</option>
+        <option value="zh-CN">简体中文</option>
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+      </select>
+    </div>
+    <div class="setup-hardware" id="setupHardware" aria-live="polite">
+      <div class="setup-hardware-row"><span>作業系統</span><strong>等待檢查</strong></div>
+      <div class="setup-hardware-row"><span>CPU / 架構</span><strong>等待檢查</strong></div>
+      <div class="setup-hardware-row"><span>記憶體</span><strong>等待檢查</strong></div>
+      <div class="setup-hardware-row"><span>GPU / VRAM</span><strong>需由安裝程式確認</strong></div>
+      <div class="setup-hardware-row"><span>建議配置</span><strong>等待檢查</strong></div>
+    </div>
+    <p class="setup-warning" id="setupWarning">瀏覽器只能提供部分硬體資訊，無法可靠讀取 GPU 型號與 VRAM。本站目前提供通用 Windows Setup；安裝程式必須在本機完成精確偵測後，才能選擇對應運算元件。</p>
+    <div class="setup-dialog-actions">
+      <button class="btn secondary" type="button" id="setupCancel">取消</button>
+      <button class="btn" type="button" id="setupConfirm" disabled>確認並下載 Setup</button>
+    </div>
+  </div>
+</dialog>
+
 <footer class="footer"><span>© <span class="notranslate" translate="no">Kaptia</span> · Personal AI Assistant</span><span><a href="#release-announcements">版本資訊</a> · <a href="#get-started">開始使用</a></span></footer>
 </div>
 <script>
 (() => {
-  const canvas = document.getElementById("interactiveBackground");
- <script>
-// Particle background interaction disabled by request.
-</script> return;
+  // Background particle interaction is disabled.
   const releasesUrl = "./releases.json";
   const downloadUrl = "./downloads/Kaptia-Setup.exe";
 
@@ -344,4 +393,95 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   }, { once: true });
 })();
 </script>
+
+<script>
+(() => {
+  const dialog = document.getElementById("setupDialog");
+  const language = document.getElementById("setupLanguage");
+  const hardware = document.getElementById("setupHardware");
+  const warning = document.getElementById("setupWarning");
+  const confirm = document.getElementById("setupConfirm");
+  const languageTag = document.getElementById("languageTag");
+  const languageNames = {"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어"};
+  const params = new URLSearchParams(location.search);
+  const supported = Object.keys(languageNames);
+  const initial = params.get("lang");
+  if (supported.includes(initial)) language.value = initial;
+  else {
+    const browserLang = (navigator.language || "").toLowerCase();
+    language.value = browserLang.startsWith("zh-cn") || browserLang.startsWith("zh-sg") ? "zh-CN"
+      : browserLang.startsWith("ja") ? "ja"
+      : browserLang.startsWith("ko") ? "ko"
+      : browserLang.startsWith("en") ? "en" : "zh-TW";
+  }
+  const labels = [
+    ["zh-TW","作業系統","CPU / 架構","記憶體","GPU / VRAM","建議配置","此瀏覽器無法可靠讀取 GPU 型號與 VRAM。通用 Setup 會在 Windows 本機再次掃描硬體，再選擇相容的運算元件。","此裝置不是支援的 Windows 桌面環境，暫停下載。"],
+    ["zh-CN","操作系统","CPU / 架构","内存","GPU / VRAM","建议配置","此浏览器无法可靠读取 GPU 型号与 VRAM。通用 Setup 会在 Windows 本机再次扫描硬件，再选择兼容的计算组件。","此设备不是受支持的 Windows 桌面环境，已暂停下载。"],
+    ["en","Operating system","CPU / architecture","Memory","GPU / VRAM","Recommended profile","This browser cannot reliably read GPU model or VRAM. The universal Setup must rescan hardware locally on Windows before selecting compatible compute components.","This is not a supported Windows desktop environment. Download is paused."],
+    ["ja","オペレーティングシステム","CPU / アーキテクチャ","メモリ","GPU / VRAM","推奨構成","ブラウザーから GPU 型番や VRAM を正確に取得することはできません。Windows 用 Setup がローカルで再検査し、互換性のある実行コンポーネントを選択します。","対応する Windows デスクトップ環境ではないため、ダウンロードを停止しました。"],
+    ["ko","운영 체제","CPU / 아키텍처","메모리","GPU / VRAM","권장 구성","브라우저에서는 GPU 모델과 VRAM을 정확히 확인할 수 없습니다. Windows Setup이 로컬에서 하드웨어를 다시 검사한 후 호환되는 실행 구성 요소를 선택해야 합니다.","지원되는 Windows 데스크톱 환경이 아니므로 다운로드를 중지했습니다."]
+  ];
+  function row(name,value){return '<div class="setup-hardware-row"><span>'+name+'</span><strong>'+value+'</strong></div>';}
+  async function inspect(){
+    const L = labels.find(x=>x[0]===language.value) || labels[0];
+    const ua = navigator.userAgent || "";
+    const platform = navigator.userAgentData?.platform || navigator.platform || "";
+    const isWindows = /Windows/i.test(platform) || /Windows NT/i.test(ua);
+    let architecture = "未知";
+    let bitness = "";
+    try {
+      if (navigator.userAgentData?.getHighEntropyValues) {
+        const data = await navigator.userAgentData.getHighEntropyValues(["architecture","bitness"]);
+        architecture = data.architecture || architecture;
+        bitness = data.bitness || "";
+      }
+    } catch (_) {}
+    const cpuCores = Number(navigator.hardwareConcurrency) || 0;
+    const ramGB = Number(navigator.deviceMemory) || 0;
+    const archLabel = architecture === "x86" ? "x86" : architecture === "arm" ? "ARM" : architecture;
+    const archText = (archLabel === "未知" ? "無法確認" : archLabel) + (bitness ? " / "+bitness+" bit" : "");
+    let profile = "通用相容模式";
+    if (ramGB >= 24 && cpuCores >= 8) profile = "高資源候選（仍需本機 GPU 驗證）";
+    else if (ramGB >= 12 && cpuCores >= 4) profile = "標準候選（仍需本機 GPU 驗證）";
+    else if (ramGB > 0 || cpuCores > 0) profile = "低資源候選（建議輕量配置）";
+    const memoryText = ramGB ? "約 "+ramGB+" GB（瀏覽器估計）" : "無法由瀏覽器取得";
+    hardware.innerHTML = row(L[1],isWindows?"Windows":"非 Windows / 未確認")
+      + row(L[2],archText+(cpuCores?" · "+cpuCores+" logical cores":""))
+      + row(L[3],memoryText)
+      + row(L[4],"安裝時由 Windows 本機確認")
+      + row(L[5],profile);
+    const supportedPlatform = isWindows && (architecture === "x86" || architecture === "x86_64" || architecture === "amd64" || architecture === "未知");
+    confirm.disabled = !supportedPlatform;
+    warning.textContent = supportedPlatform ? L[6] : L[7];
+    warning.dataset.supported = String(supportedPlatform);
+  }
+  function openDialog(){
+    inspect();
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else alert("請使用支援 HTML Dialog 的新版瀏覽器。");
+  }
+  document.querySelectorAll("[data-setup-open]").forEach(el=>el.addEventListener("click",openDialog));
+  document.getElementById("setupCancel").addEventListener("click",()=>dialog.close());
+  language.addEventListener("change",inspect);
+  confirm.addEventListener("click",()=>{
+    if(confirm.disabled) return;
+    const lang = language.value;
+    try { localStorage.setItem("kaptia.setup.language",lang); } catch (_) {}
+    if(languageTag) languageTag.textContent = lang.toUpperCase();
+    const url = new URL("./downloads/Kaptia-Setup.exe",location.href);
+    url.searchParams.set("lang",lang);
+    url.searchParams.set("profile","hardware-auto");
+    dialog.close();
+    // Query parameters select the requested locale/profile for a future installer bridge;
+    // the current universal executable may ignore them until its launcher supports this contract.
+    const a = document.createElement("a");
+    a.href = url.href;
+    a.download = "Kaptia-Setup.exe";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+})();
+</script>
+
 </body></html>
