@@ -108,6 +108,19 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("為避免提供未驗證檔案，下載已暫停", self.html)
         self.assertNotIn("GitHub Releases 查看", self.html)
 
+
+    def test_language_first_setup_flow_and_hardware_preflight(self) -> None:
+        for locale in ("zh-TW", "zh-CN", "en", "ja", "ko"):
+            self.assertIn(f'value="{locale}"', self.html)
+        self.assertIn('id="setupDialog"', self.html)
+        self.assertIn('data-setup-open', self.html)
+        self.assertIn('navigator.userAgentData.getHighEntropyValues', self.html)
+        self.assertIn('navigator.deviceMemory', self.html)
+        self.assertIn('navigator.hardwareConcurrency', self.html)
+        self.assertIn('url.searchParams.set("lang",lang)', self.html)
+        self.assertIn("VRAM", self.html)
+        self.assertIn("通用 Setup", self.html)
+
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
         self.assertIn('navigator.serviceWorker.register("./sw.js"', self.html)
         self.assertIn("Offline caching is optional", self.html)
@@ -117,7 +130,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("new AbortController()", self.sw)
         self.assertIn("if (response.status >= 500)", self.sw)
         self.assertIn("A storage/quota failure must not discard a good network response", self.sw)
-        self.assertIn("const CACHE = \"kaptia-pages-v17\"", self.sw)
+        self.assertIn("const CACHE = \"kaptia-pages-v18\"", self.sw)
 
 
 if __name__ == "__main__":
