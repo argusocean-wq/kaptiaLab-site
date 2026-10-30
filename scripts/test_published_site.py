@@ -48,8 +48,8 @@ class PublishedSiteTests(unittest.TestCase):
 
     def test_valid_published_assets_pass(self):
         base = "https://example.github.io/kaptia/"
-        html = '<title>kaptiaLab</title><div id="releaseList"></div><canvas id="interactiveBackground"></canvas><a href="./downloads/Kaptia-Setup.exe">Download</a>'
-        sw = 'const CACHE = "kaptia-pages-v14"; const NAVIGATION_TIMEOUT_MS = 8000;'
+        html = '<title>kaptiaLab</title><div id="releaseList"></div><dialog id="setupDialog"></dialog><select><option value="zh-TW"></option><option value="zh-CN"></option><option value="en"></option><option value="ja"></option><option value="ko"></option></select>'
+        sw = 'const CACHE = "kaptia-pages-v18"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
         installer = b"MZ" + (b"0" * 2048)
         releases = json.dumps({
@@ -76,7 +76,7 @@ class PublishedSiteTests(unittest.TestCase):
 
     def test_installer_checksum_mismatch_fails_closed(self):
         base = "https://example.github.io/kaptia/"
-        html = '<title>kaptiaLab</title><div id="releaseList"></div><canvas id="interactiveBackground"></canvas>'
+        html = '<title>kaptiaLab</title><div id="releaseList"></div><dialog id="setupDialog"></dialog>'
         sw = 'const CACHE = "kaptia-pages-v14"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
         installer = b"MZ" + (b"0" * 2048)
