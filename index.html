@@ -302,6 +302,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     }
     const note = document.getElementById("downloadNote");
     if (note) note.textContent = message;
+    window.dispatchEvent(new CustomEvent("kaptia-installer-readiness", { detail: { ready: Boolean(ready) } }));
   }
   async function loadReleases() {
     try {
@@ -402,6 +403,11 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   const warning = document.getElementById("setupWarning");
   const confirm = document.getElementById("setupConfirm");
   const languageTag = document.getElementById("languageTag");
+  let installerReady = false;
+  window.addEventListener("kaptia-installer-readiness", event => {
+    installerReady = Boolean(event.detail && event.detail.ready);
+    inspect();
+  });
   const languageNames = {"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어"};
   const params = new URLSearchParams(location.search);
   const supported = Object.keys(languageNames);
@@ -450,9 +456,9 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
       + row(L[3],memoryText)
       + row(L[4],"安裝時由 Windows 本機確認")
       + row(L[5],profile);
-    const supportedPlatform = isWindows && (architecture === "x86" || architecture === "x86_64" || architecture === "amd64" || architecture === "未知");
+    const supportedPlatform = installerReady && isWindows && (architecture === "x86" || architecture === "x86_64" || architecture === "amd64" || architecture === "未知");
     confirm.disabled = !supportedPlatform;
-    warning.textContent = supportedPlatform ? L[6] : L[7];
+    warning.textContent = !installerReady ? "尚未通過版本與 SHA-256 驗證，暫停下載。" : (supportedPlatform ? L[6] : L[7]);
     warning.dataset.supported = String(supportedPlatform);
   }
   function openDialog(){
