@@ -70,15 +70,15 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
             html_text = html.decode("utf-8", errors="replace")
             if not any(name in html_text for name in ("Kaptia", "kaptiaLab")) or 'id="releaseList"' not in html_text:
                 raise RuntimeError("部署後 HTML 缺少預期產品標題或版本公告區塊")
-            if "interactiveBackground" not in html_text:
-                raise RuntimeError("部署後 HTML 缺少背景 canvas 入口")
+            if not all(f'value="{locale}"' in html_text for locale in ("zh-TW", "zh-CN", "en", "ja", "ko")) or 'id="setupDialog"' not in html_text:
+                raise RuntimeError("部署後 HTML 缺少五語言 Setup 選擇器或下載檢查視窗")
             if "html" not in html_type.lower():
                 raise RuntimeError(f"HTML Content-Type 不符合預期：{html_type}")
             results["html"] = "200 + expected shell markers"
 
             sw_bytes, sw_type = _fetch(checks["service_worker"][0], host)
             sw_text = sw_bytes.decode("utf-8", errors="replace")
-            if "kaptia-pages-v14" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
+            if "kaptia-pages-v18" not in sw_text or "NAVIGATION_TIMEOUT_MS" not in sw_text:
                 raise RuntimeError("Service Worker 版本或逾時保護標記不符預期")
             if "javascript" not in sw_type.lower() and "ecmascript" not in sw_type.lower() and "text/plain" not in sw_type.lower():
                 raise RuntimeError(f"Service Worker Content-Type 不符合預期：{sw_type}")
