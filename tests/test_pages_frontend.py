@@ -50,7 +50,7 @@ class PagesFrontendTests(unittest.TestCase):
         cls.parser.close()
 
     def test_required_page_elements_exist(self) -> None:
-        self.assertIn("interactiveBackground", self.parser.ids)
+        self.assertIn("setupDialog", self.parser.ids)
         self.assertIn("releaseList", self.parser.ids)
         self.assertIn("release-announcements", self.parser.ids)
         self.assertNotIn("plans", self.parser.ids)
@@ -77,24 +77,10 @@ class PagesFrontendTests(unittest.TestCase):
                 )
 
 
-    def test_canvas_animation_has_bounded_cost_and_visibility_pause(self) -> None:
-        self.assertIn("Math.min(90", self.html)
-        self.assertIn("width < 640\n      ? 42", self.html)
-        self.assertIn("1000 / 60", self.html)
-        self.assertIn("const lineGap = 5 * 96 / 2.54", self.html)
-        self.assertIn("const lineGapSq = lineGap * lineGap", self.html)
-        self.assertIn("const cellSize = lineGap", self.html)
-        self.assertIn("const grid = new Map()", self.html)
-        self.assertIn("applyQualityLevel", self.html)
-        self.assertIn("document.body.prepend(canvas)", self.html)
-        self.assertIn('classList.add("site-particle-layer")', self.html)
-        self.assertIn("const nextWidth = Math.max(1, Math.round(window.innerWidth))", self.html)
-        self.assertIn("p.vx = Math.abs(p.vx)", self.html)
-        self.assertNotIn("if (p.x < 0) p.x = width", self.html)
-        self.assertIn("frameAccumulator", self.html)
-        self.assertIn('document.addEventListener("visibilitychange"', self.html)
-        self.assertIn("cancelAnimationFrame(raf)", self.html)
-        self.assertIn("if (!ctx)", self.html)
+    def test_removed_background_interactions_stay_disabled(self) -> None:
+        self.assertNotIn('id="interactiveBackground"', self.html)
+        self.assertNotIn("pointermove", self.html)
+        self.assertNotIn("pointer-ripple", self.html)
 
     def test_releases_and_installer_stay_on_same_origin(self) -> None:
         self.assertIn('const releasesUrl = "./releases.json"', self.html)
