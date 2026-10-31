@@ -1,13 +1,11 @@
 """Unit tests for the Pages post-deployment health checker; no network access."""
-import hashlib
-import io
 import json
 import unittest
 from unittest.mock import patch
 
 try:
     import check_published_site as checker
-except ImportError:  # Also support python -m unittest scripts.test_published_site.
+except ImportError:
     from scripts import check_published_site as checker
 
 _normalise_base = checker._normalise_base
@@ -46,74 +44,53 @@ class PublishedSiteTests(unittest.TestCase):
         self.assertEqual(base, "https://example.github.io/kaptia/")
         self.assertEqual(host, "example.github.io")
 
-    def test_valid_published_assets_pass(self):
+    def test_latest_setup_only_site_passes(self):
         base = "https://example.github.io/kaptia/"
-        html = '<title>kaptiaLab</title><div id="releaseList"></div><dialog id="setupDialog"></dialog><select><option value="zh-TW"></option><option value="zh-CN"></option><option value="en"></option><option value="ja"></option><option value="ko"></option></select>'
-        sw = 'const CACHE = "kaptia-pages-v18"; const NAVIGATION_TIMEOUT_MS = 8000;'
+        html = '<title>kaptiaLab</title><a id="download" href="./downloads/Kaptia-Setup.exe" download="Kaptia-Setup.exe">下載最新 Setup</a>'
+        sw = 'const CACHE = "kaptia-pages-v19"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
         installer = b"MZ" + (b"0" * 2048)
-        releases = json.dumps({
-            "releases": [{"tag_name": "v9.0.0"}],
-            "downloadReady": True,
-            "installer": {
-                "file_name": "Kaptia-Setup.exe",
-                "tag_name": "v9.0.0",
-                "size_bytes": len(installer),
-                "sha256": hashlib.sha256(installer).hexdigest(),
-            },
-        })
-        responses = [
-            FakeResponse(html, base, "text/html"),
-            FakeResponse(sw, base + "sw.js", "text/javascript"),
-            FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
-            FakeResponse(releases, base + "releases.json", "application/json"),
-            FakeResponse(installer, base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
-        ]
-        with patch.object(checker, "urlopen", side_effect=responses):
-            result = verify_deployed_site(base)
-        self.assertEqual(set(result), {"html", "service_worker", "manifest", "releases", "installer"})
-        self.assertIn("SHA-256 match", result["installer"])
-
-    def test_installer_checksum_mismatch_fails_closed(self):
-        base = "https://example.github.io/kaptia/"
-        html = '<title>kaptiaLab</title><div id="releaseList"></div><dialog id="setupDialog"></dialog>'
-        sw = 'const CACHE = "kaptia-pages-v14"; const NAVIGATION_TIMEOUT_MS = 8000;'
-        manifest = json.dumps({"name": "kaptiaLab"})
-        installer = b"MZ" + (b"0" * 2048)
-        releases = json.dumps({
-            "releases": [{"tag_name": "v9.0.0"}],
-            "downloadReady": True,
-            "installer": {
-                "file_name": "Kaptia-Setup.exe",
-                "tag_name": "v9.0.0",
-                "size_bytes": len(installer),
-                "sha256": "0" * 64,
-            },
-        })
         payloads = {
-            base: (html, "text/html"),
-            base + "sw.js": (sw, "text/javascript"),
-            base + "manifest.webmanifest": (manifest, "application/manifest+json"),
-            base + "releases.json": (releases, "application/json"),
-            base + "downloads/Kaptia-Setup.exe": (installer, "application/octet-stream"),
+            base: FakeResponse(html, base, "text/html"),
+            base + "sw.js": FakeResponse(sw, base + "sw.js", "text/javascript"),
+            base + "manifest.webmanifest": FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
+            base + "downloads/Kaptia-Setup.exe": FakeResponse(installer, base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
         }
+        with patch.object(checker, "urlopen", side_effect=lambda request, timeout: payloads[request.full_url]):
+            result = verify_deployed_site(base)
+        self.assertEqual(set(result), {"html", "service_worker", "manifest", "installer"})
+        self.assertIn("Windows PE", result["installer"])
 
-        def fake_urlopen(request, timeout):
-            body, content_type = payloads[request.full_url]
-            return FakeResponse(body, request.full_url, content_type)
-
-        with patch.object(checker, "urlopen", side_effect=fake_urlopen):
+    def test_release_history_is_rejected(self):
+        base = "https://example.github.io/kaptia/"
+        html = '<title>kaptiaLab</title><a href="./downloads/Kaptia-Setup.exe">Setup</a><section id="release-announcements"></section>'
+        with patch.object(checker, "urlopen", return_value=FakeResponse(html, base, "text/html")):
             with patch.object(checker.time, "sleep"):
-                with self.assertRaisesRegex(RuntimeError, "SHA-256"):
+                with self.assertRaisesRegex(RuntimeError, "仍暴露版本資訊"):
+                    verify_deployed_site(base)
+
+    def test_non_pe_setup_is_rejected(self):
+        base = "https://example.github.io/kaptia/"
+        html = '<title>kaptiaLab</title><a href="./downloads/Kaptia-Setup.exe">Setup</a>'
+        sw = 'const CACHE = "kaptia-pages-v19"; const NAVIGATION_TIMEOUT_MS = 8000;'
+        manifest = json.dumps({"name": "kaptiaLab"})
+        payloads = {
+            base: FakeResponse(html, base, "text/html"),
+            base + "sw.js": FakeResponse(sw, base + "sw.js", "text/javascript"),
+            base + "manifest.webmanifest": FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
+            base + "downloads/Kaptia-Setup.exe": FakeResponse(b"not-an-exe", base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
+        }
+        with patch.object(checker, "urlopen", side_effect=lambda request, timeout: payloads[request.full_url]):
+            with patch.object(checker.time, "sleep"):
+                with self.assertRaisesRegex(RuntimeError, "Windows PE"):
                     verify_deployed_site(base)
 
     def test_cross_host_redirect_is_rejected(self):
         base = "https://example.github.io/kaptia/"
         fake = FakeResponse("<title>other</title>", "https://other-domain.example/")
         with patch.object(checker, "urlopen", return_value=fake):
-            with self.assertRaisesRegex(RuntimeError, "重新導向"):
-                # Patch sleep so the expected failure test finishes immediately.
-                with patch.object(checker.time, "sleep"):
+            with patch.object(checker.time, "sleep"):
+                with self.assertRaisesRegex(RuntimeError, "重新導向"):
                     verify_deployed_site(base)
 
 
