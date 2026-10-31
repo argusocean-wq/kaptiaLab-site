@@ -1,4 +1,4 @@
-"""Static and JavaScript syntax guardrails for the GitHub Pages frontend."""
+"""Static and JavaScript syntax guardrails for the latest-Setup-only Pages frontend."""
 from __future__ import annotations
 
 from html.parser import HTMLParser
@@ -17,6 +17,7 @@ class PageParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.ids: set[str] = set()
+        self.links: list[dict[str, str]] = []
         self.inline_scripts: list[str] = []
         self._inside_inline_script = False
         self._parts: list[str] = []
@@ -25,6 +26,8 @@ class PageParser(HTMLParser):
         attributes = dict(attrs)
         if attributes.get("id"):
             self.ids.add(attributes["id"])
+        if tag.lower() == "a":
+            self.links.append(attributes)
         if tag.lower() == "script":
             self._inside_inline_script = not bool(attributes.get("src"))
             self._parts = []
@@ -49,14 +52,19 @@ class PagesFrontendTests(unittest.TestCase):
         cls.parser.feed(cls.html)
         cls.parser.close()
 
-    def test_required_page_elements_exist(self) -> None:
-        self.assertIn("setupDialog", self.parser.ids)
-        self.assertIn("releaseList", self.parser.ids)
-        self.assertIn("release-announcements", self.parser.ids)
+    def test_product_sections_and_direct_setup_links_exist(self) -> None:
+        for element in ("overview", "get-started", "requirements", "topDownload", "download"):
+            self.assertIn(element, self.parser.ids)
+        self.assertNotIn("releaseList", self.parser.ids)
+        self.assertNotIn("release-announcements", self.html)
+        self.assertNotIn("setupDialog", self.parser.ids)
         self.assertNotIn("plans", self.parser.ids)
         self.assertNotIn("planGrid", self.parser.ids)
         self.assertNotIn("Free、Pro、Ultra", self.html)
-        self.assertGreaterEqual(len(self.parser.inline_scripts), 3)
+        setup_links = [link for link in self.parser.links if link.get("href") == "./downloads/Kaptia-Setup.exe"]
+        self.assertGreaterEqual(len(setup_links), 2)
+        self.assertTrue(all(link.get("download") == "Kaptia-Setup.exe" for link in setup_links))
+        self.assertGreaterEqual(len(self.parser.inline_scripts), 1)
 
     def test_inline_javascript_and_service_worker_parse(self) -> None:
         node = shutil.which("node")
@@ -71,52 +79,26 @@ class PagesFrontendTests(unittest.TestCase):
                     [node, "--check", str(path)],
                     capture_output=True, text=True, timeout=15, check=False,
                 )
-                self.assertEqual(
-                    result.returncode, 0,
-                    f"{filename} has a JavaScript syntax error:\\n{result.stderr}",
-                )
+                self.assertEqual(result.returncode, 0, f"{filename} syntax error:\\n{result.stderr}")
 
+    def test_site_does_not_expose_release_history_or_repository_links(self) -> None:
+        lowered = self.html.lower()
+        for marker in ("releases.json", "release-announcements", "github.com/releases", "raw.githubusercontent.com"):
+            self.assertNotIn(marker, lowered)
+        self.assertIn('href="./downloads/Kaptia-Setup.exe"', self.html)
+        self.assertIn("下載最新 Setup", self.html)
+        self.assertIn("安裝程式會透過安全下載服務取得核心套件", self.html)
 
-    def test_removed_background_interactions_stay_disabled(self) -> None:
+    def test_removed_background_canvas_stays_absent(self) -> None:
         self.assertNotIn('id="interactiveBackground"', self.html)
-        self.assertNotIn("pointermove", self.html)
-        self.assertNotIn("pointer-ripple", self.html)
 
-    def test_releases_and_installer_stay_on_same_origin(self) -> None:
-        self.assertIn('const releasesUrl = "./releases.json"', self.html)
-        self.assertIn('const downloadUrl = "./downloads/Kaptia-Setup.exe"', self.html)
-        self.assertIn('downloadReady === true', self.html)
-        self.assertNotIn("github.com", self.html.lower())
-        self.assertNotIn("raw.githubusercontent.com", self.html.lower())
-        self.assertIn('download="Kaptia-Setup.exe"', self.html)
-        self.assertIn("installer.size_bytes", self.html)
-        self.assertIn("installer.sha256", self.html)
-        self.assertIn("為避免提供未驗證檔案，下載已暫停", self.html)
-        self.assertNotIn("GitHub Releases 查看", self.html)
-
-
-    def test_language_first_setup_flow_and_hardware_preflight(self) -> None:
-        for locale in ("zh-TW", "zh-CN", "en", "ja", "ko"):
-            self.assertIn(f'value="{locale}"', self.html)
-        self.assertIn('id="setupDialog"', self.html)
-        self.assertIn('data-setup-open', self.html)
-        self.assertIn('navigator.userAgentData.getHighEntropyValues', self.html)
-        self.assertIn('navigator.deviceMemory', self.html)
-        self.assertIn('navigator.hardwareConcurrency', self.html)
-        self.assertIn('url.searchParams.set("lang",lang)', self.html)
-        self.assertIn("VRAM", self.html)
-        self.assertIn("通用 Setup", self.html)
-
-    def test_optional_service_worker_cannot_block_page_render(self) -> None:
-        self.assertIn('navigator.serviceWorker.register("./sw.js"', self.html)
-        self.assertIn("Offline caching is optional", self.html)
-
-    def test_service_worker_has_network_timeout_and_cache_failure_guard(self) -> None:
+    def test_service_worker_keeps_navigation_timeout_and_download_out_of_cache(self) -> None:
         self.assertIn("NAVIGATION_TIMEOUT_MS = 8000", self.sw)
         self.assertIn("new AbortController()", self.sw)
         self.assertIn("if (response.status >= 500)", self.sw)
         self.assertIn("A storage/quota failure must not discard a good network response", self.sw)
-        self.assertIn("const CACHE = \"kaptia-pages-v18\"", self.sw)
+        self.assertIn('const CACHE = "kaptia-pages-v19"', self.sw)
+        self.assertIn('Kaptia-Setup.exe', self.sw)
 
 
 if __name__ == "__main__":
