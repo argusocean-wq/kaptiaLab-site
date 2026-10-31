@@ -50,13 +50,13 @@ class PublishedSiteTests(unittest.TestCase):
         sw = 'const CACHE = "kaptia-pages-v19"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
         installer = b"MZ" + (b"0" * 2048)
-        responses = [
-            FakeResponse(html, base, "text/html"),
-            FakeResponse(sw, base + "sw.js", "text/javascript"),
-            FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
-            FakeResponse(installer, base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
-        ]
-        with patch.object(checker, "urlopen", side_effect=responses):
+        payloads = {
+            base: FakeResponse(html, base, "text/html"),
+            base + "sw.js": FakeResponse(sw, base + "sw.js", "text/javascript"),
+            base + "manifest.webmanifest": FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
+            base + "downloads/Kaptia-Setup.exe": FakeResponse(installer, base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
+        }
+        with patch.object(checker, "urlopen", side_effect=lambda request, timeout: payloads[request.full_url]):
             result = verify_deployed_site(base)
         self.assertEqual(set(result), {"html", "service_worker", "manifest", "installer"})
         self.assertIn("Windows PE", result["installer"])
@@ -64,8 +64,7 @@ class PublishedSiteTests(unittest.TestCase):
     def test_release_history_is_rejected(self):
         base = "https://example.github.io/kaptia/"
         html = '<title>kaptiaLab</title><a href="./downloads/Kaptia-Setup.exe">Setup</a><section id="release-announcements"></section>'
-        responses = [FakeResponse(html, base, "text/html")]
-        with patch.object(checker, "urlopen", side_effect=responses):
+        with patch.object(checker, "urlopen", return_value=FakeResponse(html, base, "text/html")):
             with patch.object(checker.time, "sleep"):
                 with self.assertRaisesRegex(RuntimeError, "仍暴露版本資訊"):
                     verify_deployed_site(base)
@@ -75,13 +74,13 @@ class PublishedSiteTests(unittest.TestCase):
         html = '<title>kaptiaLab</title><a href="./downloads/Kaptia-Setup.exe">Setup</a>'
         sw = 'const CACHE = "kaptia-pages-v19"; const NAVIGATION_TIMEOUT_MS = 8000;'
         manifest = json.dumps({"name": "kaptiaLab"})
-        responses = [
-            FakeResponse(html, base, "text/html"),
-            FakeResponse(sw, base + "sw.js", "text/javascript"),
-            FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
-            FakeResponse(b"not-an-exe", base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
-        ]
-        with patch.object(checker, "urlopen", side_effect=responses):
+        payloads = {
+            base: FakeResponse(html, base, "text/html"),
+            base + "sw.js": FakeResponse(sw, base + "sw.js", "text/javascript"),
+            base + "manifest.webmanifest": FakeResponse(manifest, base + "manifest.webmanifest", "application/manifest+json"),
+            base + "downloads/Kaptia-Setup.exe": FakeResponse(b"not-an-exe", base + "downloads/Kaptia-Setup.exe", "application/octet-stream"),
+        }
+        with patch.object(checker, "urlopen", side_effect=lambda request, timeout: payloads[request.full_url]):
             with patch.object(checker.time, "sleep"):
                 with self.assertRaisesRegex(RuntimeError, "Windows PE"):
                     verify_deployed_site(base)
