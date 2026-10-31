@@ -1,7 +1,11 @@
-name: Mirror public installer release
+name: Mirror current core installer to public site
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/mirror-release.yml"
 
 permissions:
   contents: write
@@ -14,18 +18,18 @@ jobs:
   mirror:
     runs-on: ubuntu-latest
     steps:
-      - name: Download latest public installer assets
+      - name: Download latest installer from private core repository
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.KAPTIALAB_CORE_READ_TOKEN || github.token }}
         run: |
           set -euo pipefail
-          release_json="$(gh api repos/argusocean-wq/kaptiaLab/releases/latest)"
+          release_json="$(gh api repos/argusocean-wq/kaptiaLab-core/releases/latest)"
           tag="$(jq -r '.tag_name' <<< "$release_json")"
           title="$(jq -r '.name' <<< "$release_json")"
           notes="$(jq -r '.body // ""' <<< "$release_json")"
           mkdir -p release-assets
           gh release download "$tag" \
-            --repo argusocean-wq/kaptiaLab \
+            --repo argusocean-wq/kaptiaLab-core \
             --pattern "Kaptia-Setup.exe" \
             --pattern "Kaptia-Setup.exe.sha256" \
             --dir release-assets
@@ -44,5 +48,4 @@ jobs:
               --title "$title" \
               --notes "$notes"
           fi
-
-          echo "Mirrored release $tag to $GITHUB_REPOSITORY"
+          echo "Mirrored verified installer $tag to $GITHUB_REPOSITORY"
