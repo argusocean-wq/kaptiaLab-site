@@ -67,7 +67,8 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${DISTRIBUTION_URL:-}" || { echo "Set the KAPTIA_DISTRIBUTION_URL Actions variable to the deployed Cloudflare Worker origin."; exit 1; }
-          case "$DISTRIBUTION_URL" in https://*) ;; *) echo "Worker URL must use HTTPS."; exit 1 ;; esac
+          DISTRIBUTION_URL="${DISTRIBUTION_URL%/}"
+          [[ "$DISTRIBUTION_URL" =~ ^https://[A-Za-z0-9.-]+(:[0-9]+)?$ ]] || { echo "Worker URL must be an HTTPS origin without a path."; exit 1; }
           mkdir -p _site/downloads
           cp index.html manifest.webmanifest sw.js .nojekyll _site/
           curl --fail --silent --show-error --location --retry 3 "$DISTRIBUTION_URL/v1/manifest" -o /tmp/kaptia-manifest.json
