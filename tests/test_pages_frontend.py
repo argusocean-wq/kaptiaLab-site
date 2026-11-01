@@ -83,11 +83,11 @@ class PagesFrontendTests(unittest.TestCase):
 
     def test_site_does_not_expose_release_history_or_repository_links(self) -> None:
         lowered = self.html.lower()
-        for marker in ("releases.json", "release-announcements", "github.com/releases", "raw.githubusercontent.com"):
+        for marker in ("releases.json", "release-announcements", "github.com/releases", "raw.githubusercontent.com", "workers.dev", "cloudflare worker"):
             self.assertNotIn(marker, lowered)
         self.assertIn('href="./downloads/Kaptia-Setup.exe"', self.html)
         self.assertIn("下載最新 Setup", self.html)
-        self.assertIn("安裝程式會透過安全下載服務取得核心套件", self.html)
+        self.assertIn("安裝程式內含對應版本的核心套件，安裝前會驗證完整性", self.html)
 
     def test_removed_background_canvas_stays_absent(self) -> None:
         self.assertNotIn('id="interactiveBackground"', self.html)
@@ -97,7 +97,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("new AbortController()", self.sw)
         self.assertIn("if (response.status >= 500)", self.sw)
         self.assertIn("A storage/quota failure must not discard a good network response", self.sw)
-        self.assertIn('const CACHE = "kaptia-pages-v19"', self.sw)
+        self.assertIn('const CACHE = "kaptia-pages-v20"', self.sw)
         self.assertIn('Kaptia-Setup.exe', self.sw)
 
 
