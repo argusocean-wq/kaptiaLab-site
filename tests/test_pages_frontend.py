@@ -87,7 +87,7 @@ class PagesFrontendTests(unittest.TestCase):
             self.assertNotIn(marker, lowered)
         self.assertIn('href="./downloads/Kaptia-Setup.exe"', self.html)
         self.assertIn("下載最新 Setup", self.html)
-        self.assertIn("安裝程式內含對應版本的核心套件，安裝前會驗證完整性", self.html)
+        self.assertIn("核心套件已內含於安裝程式，安裝前會驗證完整性", self.html)
 
     def test_removed_background_canvas_stays_absent(self) -> None:
         self.assertNotIn('id="interactiveBackground"', self.html)
