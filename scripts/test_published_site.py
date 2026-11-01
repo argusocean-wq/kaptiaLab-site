@@ -81,7 +81,7 @@ class PublishedSiteTests(unittest.TestCase):
         payloads = self.payloads(
             base,
             html='<title>kaptiaLab</title><a href="./downloads/Kaptia-Setup.exe">Setup</a>'
-                 '<section id="release-announcements"></section>',
+                 '<a href="./downloads/Kaptia-Setup.exe">Download</a><section id="release-announcements"></section>',
         )
         with patch.object(checker, "urlopen", side_effect=lambda request, timeout: payloads[request.full_url]):
             with patch.object(checker.time, "sleep"):
