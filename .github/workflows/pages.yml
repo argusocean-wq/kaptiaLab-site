@@ -18,6 +18,8 @@ on:
       - "manifest.webmanifest"
       - "sw.js"
       - "tests/test_pages_frontend.py"
+      - "scripts/test_published_site.py"
+      - "scripts/check_published_site.py"
       - ".nojekyll"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -28,7 +30,6 @@ permissions:
   id-token: write
 
 concurrency:
-  # PR validation must not cancel a real production deployment from main.
   group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
   cancel-in-progress: true
 
@@ -46,8 +47,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Validate landing page and JavaScript failure boundaries
-        run: python -m unittest tests.test_pages_frontend scripts.test_published_site
+      - name: Validate landing page, service worker, and download contract
+        run: python -m unittest tests.test_pages_frontend scripts.test_published_site -v
 
   deploy:
     needs: validate
@@ -61,28 +62,32 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
-      - name: Stage public website and latest Setup from the private core
+      - name: Stage website and latest public Setup release
         env:
-          DISTRIBUTION_URL: ${{ vars.KAPTIA_DISTRIBUTION_URL }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          test -n "${DISTRIBUTION_URL:-}" || { echo "Set the KAPTIA_DISTRIBUTION_URL Actions variable to the deployed Cloudflare Worker origin."; exit 1; }
-          DISTRIBUTION_URL="${DISTRIBUTION_URL%/}"
-          [[ "$DISTRIBUTION_URL" =~ ^https://[A-Za-z0-9.-]+(:[0-9]+)?$ ]] || { echo "Worker URL must be an HTTPS origin without a path."; exit 1; }
           mkdir -p _site/downloads
           cp index.html manifest.webmanifest sw.js .nojekyll _site/
-          curl --fail --silent --show-error --location --retry 3 "$DISTRIBUTION_URL/v1/manifest" -o /tmp/kaptia-manifest.json
-          expected_sha="$(jq -r '.setup.sha256 // empty' /tmp/kaptia-manifest.json)"
-          setup_url="$(jq -r '.setup.url // empty' /tmp/kaptia-manifest.json)"
-          test "${#expected_sha}" -eq 64
-          case "$expected_sha" in *[!0-9a-fA-F]*) echo "Invalid Setup SHA-256 in Worker manifest."; exit 1 ;; esac
-          test "$setup_url" = "$DISTRIBUTION_URL/v1/assets/setup"
-          curl --fail --silent --show-error --location --retry 3 "$setup_url" -o _site/downloads/Kaptia-Setup.exe
-          actual_sha="$(sha256sum _site/downloads/Kaptia-Setup.exe | awk '{print $1}')"
-          test "$actual_sha" = "$expected_sha"
-          test "$(wc -c < _site/downloads/Kaptia-Setup.exe)" -gt 1024
+
+          # The core CI publishes the verified EXE and checksum to this public repository.
+          # No private-core credential or third-party distribution gateway is used here.
+          gh release download --repo "$GITHUB_REPOSITORY" \
+            --pattern "Kaptia-Setup.exe" \
+            --pattern "Kaptia-Setup.exe.sha256" \
+            --dir _site/downloads
+
+          test -s _site/downloads/Kaptia-Setup.exe
+          test -s _site/downloads/Kaptia-Setup.exe.sha256
+          (
+            cd _site/downloads
+            sha256sum --check Kaptia-Setup.exe.sha256
+          )
+          installer_size="$(wc -c < _site/downloads/Kaptia-Setup.exe | tr -d '[:space:]')"
+          test "$installer_size" -gt 1048576
           head -c 2 _site/downloads/Kaptia-Setup.exe | grep -q 'MZ'
-          echo "Verified latest core Setup SHA-256: $actual_sha"
+          echo "Staged latest verified Setup: $installer_size bytes"
+
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -90,7 +95,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Verify the published site and critical assets
+      - name: Verify the published site and downloadable Setup
         env:
           PAGE_URL: https://argusocean-wq.github.io/kaptiaLab-site/
         run: python scripts/check_published_site.py "$PAGE_URL"
