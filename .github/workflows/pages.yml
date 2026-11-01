@@ -18,8 +18,12 @@ on:
       - "manifest.webmanifest"
       - "sw.js"
       - "tests/test_pages_frontend.py"
+      - "scripts/test_published_site.py"
+      - "scripts/check_published_site.py"
       - ".nojekyll"
       - ".github/workflows/pages.yml"
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -28,7 +32,6 @@ permissions:
   id-token: write
 
 concurrency:
-  # PR validation must not cancel a real production deployment from main.
   group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
   cancel-in-progress: true
 
@@ -46,12 +49,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Validate landing page and JavaScript failure boundaries
-        run: python -m unittest tests.test_pages_frontend scripts.test_published_site
+      - name: Validate landing page, service worker, and download contract
+        run: python -m unittest tests.test_pages_frontend scripts.test_published_site -v
 
   deploy:
     needs: validate
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.event_name != 'release' || startsWith(github.event.release.tag_name, 'kaptia-build-'))
     environment:
       name: github-pages
       url: https://argusocean-wq.github.io/kaptiaLab-site/
@@ -61,7 +64,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
-      - name: Stage public website and current installer
+      - name: Stage website and latest public Setup release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -69,28 +72,24 @@ jobs:
           mkdir -p _site/downloads
           cp index.html manifest.webmanifest sw.js .nojekyll _site/
 
-          # Publish version information as same-origin JSON; never expose GitHub release URLs to visitors.
-          all_releases="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=10")"
-          published="$(jq '[.[] | select(.draft == false and .published_at != null) | {name: (.name // .tag_name), tag_name, published_at, body: (.body // "")}]' <<< "$all_releases")"
-          latest_tag="$(jq -r '.[0].tag_name // empty' <<< "$published")"
-          test -n "$latest_tag"
-
-          gh release download "$latest_tag" \
-            --repo "$GITHUB_REPOSITORY" \
+          # The core CI publishes the verified EXE and checksum to this public repository.
+          # No private-core credential or third-party distribution gateway is used here.
+          gh release download --repo "$GITHUB_REPOSITORY" \
             --pattern "Kaptia-Setup.exe" \
+            --pattern "Kaptia-Setup.exe.sha256" \
             --dir _site/downloads
-          test -s _site/downloads/Kaptia-Setup.exe
-          installer_sha256="$(sha256sum _site/downloads/Kaptia-Setup.exe | awk '{print $1}')"
-          installer_size_bytes="$(wc -c < _site/downloads/Kaptia-Setup.exe | tr -d '[:space:]')"
-          test "${#installer_sha256}" -eq 64
-          test "$installer_size_bytes" -gt 1024
 
-          jq -n \
-            --argjson releases "$published" \
-            --arg latest_tag "$latest_tag" \
-            --arg installer_sha256 "$installer_sha256" \
-            --argjson installer_size_bytes "$installer_size_bytes" \
-            '{releases: $releases, downloadReady: true, installer: {file_name: "Kaptia-Setup.exe", tag_name: $latest_tag, sha256: $installer_sha256, size_bytes: $installer_size_bytes}}' > _site/releases.json
+          test -s _site/downloads/Kaptia-Setup.exe
+          test -s _site/downloads/Kaptia-Setup.exe.sha256
+          (
+            cd _site/downloads
+            sha256sum --check Kaptia-Setup.exe.sha256
+          )
+          installer_size="$(wc -c < _site/downloads/Kaptia-Setup.exe | tr -d '[:space:]')"
+          test "$installer_size" -gt 1048576
+          head -c 2 _site/downloads/Kaptia-Setup.exe | grep -q 'MZ'
+          echo "Staged latest verified Setup: $installer_size bytes"
+
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -98,7 +97,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Verify the published site and critical assets
+      - name: Verify the published site and downloadable Setup
         env:
           PAGE_URL: https://argusocean-wq.github.io/kaptiaLab-site/
         run: python scripts/check_published_site.py "$PAGE_URL"
