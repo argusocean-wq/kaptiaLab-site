@@ -88,7 +88,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn('downloadReady === true', self.html)
         self.assertNotIn("github.com", self.html.lower())
         self.assertNotIn("raw.githubusercontent.com", self.html.lower())
-        self.assertIn('download="Kaptia-Setup.exe"', self.html)
+        self.assertIn('a.setAttribute("download", "Kaptia-Setup.exe")', self.html)
         self.assertIn("installer.size_bytes", self.html)
         self.assertIn("installer.sha256", self.html)
         self.assertIn("為避免提供未驗證檔案，下載已暫停", self.html)

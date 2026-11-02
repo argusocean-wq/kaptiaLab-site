@@ -1,0 +1,49 @@
+{
+  "name": "kaptia-ask-context",
+  "displayName": "問問 Kaptia",
+  "description": "Directly send selected editor text to the local Kaptia assistant.",
+  "version": "0.1.0",
+  "publisher": "kaptia-local",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:kaptia.askAboutSelection"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "kaptia.askAboutSelection",
+        "title": "問問 Kaptia"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "kaptia.askAboutSelection",
+          "when": "editorTextFocus && editorHasSelection",
+          "group": "navigation@99"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "問問 Kaptia",
+      "properties": {
+        "kaptia.defaultAssistant": {
+          "type": "string",
+          "default": "Kaptia",
+          "description": "預設助手名稱，會附加到詢問指令。"
+        },
+        "kaptia.defaultQuestion": {
+          "type": "string",
+          "default": "請用繁體中文分析選取內容，說明用途、執行流程、重點與可能問題。",
+          "description": "選取文字右鍵後直接送出的預設問題，不再顯示詢問對話框。"
+        }
+      }
+    }
+  }
+}
