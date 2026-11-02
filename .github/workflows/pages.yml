@@ -12,6 +12,8 @@ on:
       - "scripts/check_published_site.py"
       - ".nojekyll"
       - ".github/workflows/pages.yml"
+  release:
+    types: [published]
   pull_request:
     paths:
       - "index.html"
