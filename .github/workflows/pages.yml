@@ -14,6 +14,10 @@ on:
       - ".github/workflows/pages.yml"
   release:
     types: [published]
+  workflow_run:
+    workflows: ["Build and validate Kaptia Windows installer"]
+    types: [completed]
+    branches: ["main"]
   pull_request:
     paths:
       - "index.html"
@@ -53,7 +57,7 @@ jobs:
 
   deploy:
     needs: validate
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     environment:
       name: github-pages
       url: https://argusocean-wq.github.io/kaptiaLab-site/
