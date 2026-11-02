@@ -56,25 +56,6 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 
 
-/* Interactive pointer field: subtle monochrome spotlight, touch ripples and clear focus states. */
-.hero{--pointer-x:50%;--pointer-y:45%;cursor:crosshair}
-.hero:before{transition:background-position .12s linear,filter .18s ease}
-.hero.pointer-active:before{
- background:
- radial-gradient(ellipse 340px 270px at var(--pointer-x) var(--pointer-y),rgba(0,0,0,.075),transparent 72%),
- radial-gradient(ellipse at 72% 55%,#f5f5f5 0%,rgba(255,255,255,0) 58%),
- linear-gradient(140deg,#fff 0%,#fff 60%,#fafafa 100%);
-}
-.pointer-ripple{position:absolute;z-index:0;pointer-events:none;width:12px;height:12px;border:1px solid rgba(20,20,20,.28);border-radius:50%;transform:translate(-50%,-50%);animation:pointer-ripple .8s ease-out forwards}
-@keyframes pointer-ripple{to{width:210px;height:210px;opacity:0;border-width:1px}}
-.hero .interactive-bg{opacity:.72;transition:opacity .2s}
-.hero:focus-within .interactive-bg{opacity:1}
-@media(hover:none){.hero{cursor:default}.hero.pointer-active:before{background:radial-gradient(ellipse 240px 180px at var(--pointer-x) var(--pointer-y),rgba(0,0,0,.06),transparent 72%),linear-gradient(140deg,#fff 0%,#fff 60%,#fafafa 100%)}}
-@media(prefers-reduced-motion:reduce){.pointer-ripple{animation:none;display:none}.hero:before,.hero .interactive-bg{transition:none}}
-
-
-
-
 /* Premium spatial hero treatment: restrained chromatic depth, not a static particle wallpaper. */
 .hero{cursor:default}
 .hero:before{
@@ -90,15 +71,6 @@ h2{font-size:clamp(28px,4vw,40px);letter-spacing:-.06em;font-weight:720}
   0%{background-position:0% 45%}
   50%{background-position:65% 20%}
   100%{background-position:100% 70%}
-}
-.hero.pointer-active:before{
-  background:
-    radial-gradient(ellipse 340px 270px at var(--pointer-x) var(--pointer-y),rgba(103,125,255,.10),transparent 72%),
-    radial-gradient(ellipse 48% 58% at 78% 42%,rgba(116,132,255,.15),transparent 72%),
-    radial-gradient(ellipse 36% 48% at 64% 76%,rgba(76,205,220,.11),transparent 70%),
-    radial-gradient(ellipse 34% 44% at 94% 82%,rgba(184,132,255,.10),transparent 72%),
-    linear-gradient(140deg,#fff 0%,#fcfcff 54%,#f7fbff 100%);
-  background-size:140% 140%;
 }
 h1{background:linear-gradient(105deg,#15151b 5%,#373b52 58%,#5c68a7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero-brand .hero-mark{border-color:#d9def8;background:linear-gradient(145deg,#fff,#eef1ff);color:#515fc5}
@@ -343,46 +315,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
 </script>
 
 
-<script>
-/* Interactive pointer handlers */
-(() => {
-  const hero = document.querySelector(".hero");
-  if (!hero) return;
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let lastRipple = 0;
-  const setPointer = (clientX, clientY) => {
-    const rect = hero.getBoundingClientRect();
-    hero.style.setProperty("--pointer-x", Math.max(0, Math.min(rect.width, clientX - rect.left)) + "px");
-    hero.style.setProperty("--pointer-y", Math.max(0, Math.min(rect.height, clientY - rect.top)) + "px");
-    hero.classList.add("pointer-active");
-  };
-  hero.addEventListener("pointermove", event => {
-    setPointer(event.clientX, event.clientY);
-  }, {passive:true});
-  hero.addEventListener("pointerleave", () => hero.classList.remove("pointer-active"), {passive:true});
-  hero.addEventListener("pointerdown", event => {
-    setPointer(event.clientX, event.clientY);
-    if (reduceMotion || event.button > 0) return;
-    const now = performance.now();
-    if (now - lastRipple < 100) return;
-    lastRipple = now;
-    const rect = hero.getBoundingClientRect();
-    const ripple = document.createElement("span");
-    ripple.className = "pointer-ripple";
-    ripple.setAttribute("aria-hidden", "true");
-    ripple.style.left = (event.clientX - rect.left) + "px";
-    ripple.style.top = (event.clientY - rect.top) + "px";
-    hero.appendChild(ripple);
-    ripple.addEventListener("animationend", () => ripple.remove(), {once:true});
-  }, {passive:true});
-  hero.addEventListener("pointerup", event => {
-    if (event.pointerType === "touch") {
-      setPointer(event.clientX, event.clientY);
-      window.setTimeout(() => hero.classList.remove("pointer-active"), 900);
-    }
-  }, {passive:true});
-})();
-</script>
+
 
 <script>
 (() => {
