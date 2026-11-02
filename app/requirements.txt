@@ -1,0 +1,12 @@
+# Runtime dependencies for the Kaptia desktop assistant (no training stack).
+torch>=2.4.0
+transformers>=4.51.0
+accelerate>=1.2.0
+safetensors>=0.4.5
+bitsandbytes>=0.46.0
+pywebview>=5.3,<7
+pythonnet>=3.0.3; platform_system == "Windows"
+winotify>=1.1.0; platform_system == "Windows"
+
+# Desktop Attach UI Automation on Windows
+pywinauto>=0.6.9,<0.7; platform_system == "Windows"

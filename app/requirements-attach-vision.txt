@@ -1,0 +1,5 @@
+# Optional Attach Vision engine for Windows
+# Install with: python -m pip install -r requirements-attach-vision.txt
+Pillow>=10.0,<12
+pyautogui>=0.9.54,<1
+rapidocr-onnxruntime>=1.4.4,<2

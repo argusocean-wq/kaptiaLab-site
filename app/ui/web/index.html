@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kaptia</title>
+<style>
+:root{color-scheme:dark;--bg:#171819;--side:#1d1f20;--panel:#222526;--panel2:#292c2e;--line:#34383a;--text:#e7e9e9;--muted:#92999b;--soft:#b9bfc0;--accent:#d8dddd;--green:#8bb8a2;--danger:#d48d8d}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",Inter,system-ui,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}
+.app{height:100%;display:grid;grid-template-columns:54px 250px minmax(0,1fr);overflow:hidden}
+.rail{background:#17191a;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px}
+.logo{width:32px;height:32px;border:1px solid #62696b;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:15px;margin-bottom:16px}
+.rail-btn{width:38px;height:38px;border:0;border-radius:9px;background:transparent;color:#9ca3a4;font-size:18px}.rail-btn:hover,.rail-btn.active{background:#303536;color:#f0f2f2}.rail-spacer{flex:1}
+.sidebar{background:var(--side);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;min-width:0}
+.workspace{display:flex;align-items:center;justify-content:space-between;padding:0 7px 18px}.workspace strong{font-size:14px;font-weight:600}.workspace small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.side-action{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--soft);text-align:left}.side-action:hover,.side-action.active{background:#2c3031;color:var(--text);border-color:#3b4142}
+.side-label{padding:22px 9px 8px;color:#777f81;font-size:10px;letter-spacing:1.2px;text-transform:uppercase}
+.history{display:grid;gap:3px}.history-item{border:0;background:transparent;color:#aeb5b6;text-align:left;padding:8px 10px;border-radius:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-item:hover{background:#292d2e;color:var(--text)}
+.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;color:var(--muted);font-size:11px;line-height:1.7}
+.main{min-width:0;display:flex;flex-direction:column;background:#1b1d1e}
+.topbar{height:54px;flex:0 0 54px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#1b1d1e}
+.crumb{display:flex;align-items:center;gap:9px;color:#c5cbcc}.crumb strong{font-weight:600}.dot{width:7px;height:7px;border-radius:50%;background:#737b7d}.dot.ready{background:var(--green)}
+.top-actions{display:flex;align-items:center;gap:8px}.subtle{background:transparent;border:1px solid transparent;color:var(--muted);padding:7px 9px;border-radius:7px}.subtle:hover{background:#2a2e2f;color:var(--text)}
+.workspace-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 260px}
+.chat-area{min-width:0;display:flex;flex-direction:column;position:relative}
+.messages{flex:1;overflow:auto;padding:34px max(28px,calc((100% - 820px)/2));display:flex;flex-direction:column;gap:22px}
+.welcome{margin:auto;max-width:650px;width:100%;padding:20px 0 42px}.welcome h1{font-size:27px;font-weight:500;letter-spacing:-.5px;margin:0 0 8px}.welcome p{color:var(--muted);margin:0 0 26px}
+.suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.suggestion{border:1px solid var(--line);background:#202324;color:#c4cbcc;text-align:left;padding:13px;border-radius:9px}.suggestion:hover{border-color:#626a6c;background:#262a2b}.suggestion strong{display:block;font-size:12px;font-weight:600;margin-bottom:3px}.suggestion span{font-size:11px;color:var(--muted)}
+.message{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;max-width:820px;width:100%;margin:0 auto}.avatar{width:26px;height:26px;border-radius:7px;background:#34393a;display:grid;place-items:center;color:#e1e5e5;font-size:12px;font-weight:600}.avatar.user{background:#41494a}.message-content{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;padding-top:2px}.message-role{font-size:11px;color:var(--muted);margin-bottom:5px}.message.error .message-content{color:var(--danger)}
+.composer-wrap{padding:14px 24px 18px;display:flex;justify-content:center}.composer{width:min(820px,100%);border:1px solid #454b4d;border-radius:12px;background:#25292a;box-shadow:0 8px 28px #0002}.composer:focus-within{border-color:#697173}.composer textarea{display:block;width:100%;min-height:58px;max-height:220px;resize:vertical;background:transparent;border:0;outline:0;color:var(--text);padding:15px 16px 8px}.composer textarea::placeholder{color:#838b8d}.composer-bottom{display:flex;align-items:center;justify-content:space-between;padding:7px 9px 9px 13px}.composer-note{font-size:11px;color:#858d8f}.composer-tools{display:flex;align-items:center;gap:8px}.mode{background:transparent;color:#aeb5b6;border:1px solid #424849;border-radius:7px;padding:6px 8px;font-size:11px}.send{width:31px;height:31px;border:0;border-radius:7px;background:#e0e4e4;color:#202425;font-size:16px}.send:disabled{opacity:.35;cursor:default}
+.right-panel{border-left:1px solid var(--line);background:#1e2021;padding:17px 15px;overflow:auto}.right-title{font-size:12px;font-weight:600;margin:1px 0 16px}.info-card{border-bottom:1px solid var(--line);padding:12px 0}.info-card:first-of-type{padding-top:0}.info-label{font-size:10px;color:#858d8f;letter-spacing:.6px;margin-bottom:6px}.info-value{font-size:12px;color:#d1d6d6}.info-note{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.6}.outline-btn{width:100%;margin-top:12px;border:1px solid #454b4d;background:transparent;color:#c6cccc;padding:8px;border-radius:7px;text-align:center}.outline-btn:hover{background:#292e2f}
+.statusbar{height:25px;flex:0 0 25px;background:#242829;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 12px;color:#92999b;font-size:10px}
+.page{display:none;flex:1;overflow:auto;padding:30px max(26px,calc((100% - 780px)/2))}.page.active{display:block}.page h2{font-size:21px;font-weight:500;margin:0 0 6px}.page-intro{color:var(--muted);font-size:12px;margin-bottom:22px}.settings-card{border:1px solid var(--line);background:#202324;border-radius:10px;padding:17px;margin:12px 0}.settings-card h3{font-size:13px;font-weight:600;margin:0 0 6px}.settings-card p{font-size:11px;color:var(--muted);margin:0 0 12px}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:11px;color:#aeb5b6}.field input,.field select,.field textarea{width:100%;background:#191c1d;color:var(--text);border:1px solid #424849;border-radius:7px;padding:9px;outline:0}.primary{background:#dfe3e3;color:#202425;border:0;border-radius:7px;padding:8px 13px;font-size:12px}.secondary{background:#2b3031;color:#d4dada;border:1px solid #454b4d;border-radius:7px;padding:8px 13px;font-size:12px}
+.event-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:12px}.event-row button{border:0;background:transparent;color:#aeb5b6}
+#toast{position:fixed;right:22px;bottom:40px;background:#303637;border:1px solid #555d5f;color:#e7eaea;padding:10px 14px;border-radius:8px;font-size:12px;opacity:0;pointer-events:none;transition:opacity .18s}#toast.show{opacity:1}
+@media(max-width:1050px){.workspace-body{grid-template-columns:minmax(0,1fr)}.right-panel{display:none}}
+@media(max-width:760px){.app{grid-template-columns:48px 190px minmax(0,1fr)}.sidebar{padding:12px 8px}.topbar{padding:0 12px}.messages{padding:20px 14px}.composer-wrap{padding:10px}.suggestions{grid-template-columns:1fr}.page{padding:22px 16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="rail">
+ <div class="logo">K</div>
+ <button class="rail-btn active" title="對話" data-page="chat">◫</button>
+ <button class="rail-btn" title="行事曆" data-page="calendar">▦</button>
+ <button class="rail-btn" title="記憶" data-page="memory">◇</button>
+ <button class="rail-btn" title="Attach 桌面連線" data-page="attach">▣</button>
+ <button class="rail-btn" title="Cloud Compute" data-page="cloud">☁</button>
+ <button class="rail-btn" title="設定" data-page="settings">⚙</button>
+ <div class="rail-spacer"></div><button class="rail-btn" title="關於 Kaptia" data-page="about">i</button>
+</aside>
+<aside class="sidebar">
+ <div class="workspace"><div><strong>Kaptia</strong><small>個人助理工作區</small></div><span style="color:#7f888a">⌄</span></div>
+ <button class="side-action active" data-page="chat"><span>＋</span> 新對話</button>
+ <button class="side-action" data-page="calendar"><span>▦</span> 行事曆</button>
+ <button class="side-action" data-page="memory"><span>◇</span> 個人記憶</button>
+ <button class="side-action" data-page="attach"><span>▣</span> Attach 桌面連線</button>
+ <button class="side-action" data-page="cloud"><span>☁</span> Cloud Compute</button>
+ <button class="side-action" data-page="workspace"><span>⌘</span> 工作區 Agent</button>
+ <button class="side-action" data-page="settings"><span>⚙</span> 設定</button>
+ <div class="side-label">最近訊息</div><div class="history" id="history"><div class="history-item" style="color:#777f81">本機對話記憶會在此工作區延續</div></div>
+ <div class="side-bottom">LOCAL SESSION<br><span id="local-status">尚未載入模型</span></div>
+</aside>
+<main class="main">
+ <header class="topbar"><div class="crumb"><span class="dot" id="state-dot"></span><strong id="top-title">新對話</strong><span style="color:#737b7d">/</span><span id="model-label">Kaptia Assistant</span></div><div class="top-actions"><button class="subtle" data-page="settings">設定</button></div></header>
+ <section class="workspace-body" id="chat-layout">
+  <div class="chat-area">
+   <div class="messages" id="messages">
+    <div class="welcome" id="welcome"><h1>今天要處理什麼？</h1><p>Kaptia 是你的桌面 AI 助手。可以從一個問題開始，也可以把工作拆成幾個步驟。</p>
+     <div class="suggestions"><button class="suggestion" data-prompt="幫我整理今天要完成的工作"><strong>整理工作</strong><span>把待辦事項整理成清楚的優先順序</span></button><button class="suggestion" data-prompt="解釋這段程式碼，並指出可能的問題"><strong>理解程式碼</strong><span>分析程式結構與錯誤原因</span></button><button class="suggestion" data-prompt="幫我規劃一個專案的實作步驟"><strong>規劃專案</strong><span>從目標拆成可執行的階段</span></button><button class="suggestion" data-prompt="用簡單的方式解釋一個我不懂的概念"><strong>學習新概念</strong><span>用例子說明複雜的主題</span></button></div>
+    </div>
+   </div>
+   <div class="composer-wrap"><div class="composer"><textarea id="chat-input" rows="2" placeholder="傳送訊息給 Kaptia…（Enter 送出，Shift+Enter 換行）"></textarea><div class="composer-bottom"><span class="composer-note" id="composer-state">本機推論 · 對話記憶保存在此電腦</span><div class="composer-tools"><select class="mode" id="chat-mode"><option value="fast">快速</option><option value="deep">深度</option></select><button class="send" id="send" title="傳送">↑</button></div></div></div></div>
+  </div>
+  <aside class="right-panel"><div class="right-title">工作區資訊</div>
+   <div class="info-card"><div class="info-label">ASSISTANT</div><div class="info-value">Kaptia</div><div class="info-note">你的本機桌面助理</div></div>
+   <div class="info-card"><div class="info-label">LANGUAGE MODEL</div><div class="info-value" id="side-model">Qwen3-8B</div><div class="info-note" id="model-state">首次對話時載入模型</div></div>
+   <div class="info-card"><div class="info-label">PRIVACY</div><div class="info-value">本機記憶</div><div class="info-note">除非明確設定外部服務，否則對話留在此電腦</div></div>
+   <div class="info-card"><div class="info-label">UPDATES</div><div class="info-value" id="update-state">自動更新已啟用</div></div>
+  </aside>
+ </section>
+ <section class="page" id="calendar">
+  <h2>行事曆</h2><div class="page-intro">管理事件與桌面提醒。提醒只會在 Kaptia 正在執行時輪詢。</div>
+  <div class="settings-card"><h3>新增事件</h3><div class="field"><label>事件名稱</label><input id="event-title" placeholder="例如：專案檢查"></div><div class="field"><label>日期與時間</label><div style="display:flex;gap:8px"><input id="event-date" type="date"><input id="event-time" type="time" value="09:00"></div></div><div class="field"><label>提醒時間</label><select id="lead"><option value="1">提前 1 天</option><option value="2">提前 2 天</option><option value="both">提前 1 天及 2 天</option></select></div><div class="field"><label>備註</label><input id="event-notes" placeholder="選填"></div><button class="primary" id="add-event">新增事件</button></div>
+  <div class="settings-card"><h3>已建立的事件</h3><div id="events">載入中…</div></div>
+ </section>
+ <section class="page" id="memory">
+  <h2>個人記憶</h2><div class="page-intro">只有你確認保存的資訊會進入模型上下文。不同內容發生衝突時，Kaptia 會先等待你決定，不會自行覆蓋舊記憶。</div>
+  <div class="settings-card"><h3>新增已確認記憶</h3><div class="field"><label>分類</label><select id="memory-category"><option value="preference">偏好</option><option value="project">專案</option><option value="workflow">工作流程</option><option value="profile">一般資訊</option><option value="knowledge">知識</option></select></div><div class="field"><label>記憶名稱</label><input id="memory-key" maxlength="120" placeholder="例如：主要開發工具"></div><div class="field"><label>記憶內容</label><textarea id="memory-value" maxlength="1000" rows="3" placeholder="例如：主要使用 VS Code"></textarea></div><div class="field"><label>適用範圍</label><input id="memory-scope" maxlength="100" value="global" placeholder="global 或專案名稱"></div><button class="primary" id="add-memory">保存記憶</button><div class="info-note">記憶會保存在此 Windows 使用者的本機 SQLite 資料庫，不會自動上傳。新增內容視為使用者確認資訊。</div></div>
+  <div class="settings-card"><h3>記憶清單</h3><div id="memory-count" class="info-note">載入中…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button class="secondary" id="compact-memory">備份並最佳化資料庫</button><span id="memory-storage" class="info-note"></span></div><div id="memory-facts">正在載入記憶…</div></div>
+  <div class="settings-card"><h3>歷史對話封存</h3><p>超出近期記憶容量的完整對話會保存在本機壓縮檔。你可以瀏覽、搜尋及查看封存內容。還原會先把目前近期對話另存為封存，再將選定封存載入近期記憶；原始封存檔會保留。</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><input id="archive-search" placeholder="搜尋封存對話內容…" maxlength="200" style="flex:1;min-width:180px;background:#191c1d;color:var(--text);border:1px solid #424849;border-radius:7px;padding:9px"><button class="secondary" id="archive-search-button">搜尋</button><button class="secondary" id="archive-list-button">顯示全部</button><button class="secondary" id="archive-prev">上一頁</button><button class="secondary" id="archive-next">下一頁</button></div><div id="archive-summary" class="info-note">載入封存清單…</div><div id="archive-list"></div><div id="archive-detail" style="margin-top:14px"></div></div>
+ </section>
+ <section class="page" id="workspace">
+  <h2>工作區 Agent</h2><div class="page-intro">Agent 可以規劃任務、讀取你選定的工作區，以及提出檔案修改。讀取權限只在本次執行期間有效；每次寫入都必須預覽並由你確認。此版本不提供 Shell 或任意命令執行。</div>
+  <div class="settings-card"><h3>工作區資料夾</h3><p>只選擇你希望 Kaptia 讀取的專案資料夾。更換資料夾會重設讀取權限。</p><button class="secondary" id="select-workspace">選擇資料夾</button><div id="workspace-path" class="info-value" style="margin-top:10px">尚未選擇工作區</div><label style="display:flex;align-items:center;gap:8px;margin-top:14px;color:#b9bfc0;font-size:12px"><input id="workspace-read" type="checkbox">允許此工作階段讀取所選工作區</label><div id="workspace-permission" class="info-note">預設不允許讀取。</div></div>
+  <div class="settings-card"><h3>建立任務計畫</h3><p>先在對話頁載入模型，再輸入工作目標。Kaptia 會產生受限制的 JSON 計畫；不會自動執行步驟。</p><div class="field"><label>任務目標</label><textarea id="agent-task" rows="3" maxlength="6000" placeholder="例如：檢查這個專案的入口程式與依賴問題，先提出修正建議"></textarea></div><button class="primary" id="create-agent-plan">建立 Agent 計畫</button><div id="agent-plan-list" style="margin-top:14px"></div><div id="agent-result" style="margin-top:14px"></div></div>
+ </section>
+ <section class="page" id="attach">
+  <h2>Attach 桌面連線</h2>
+  <div class="page-intro">連接目前正在執行的 Windows 桌面軟體。Attach 僅授權指定視窗，不會取得管理員權限、讀取程序記憶體或執行任意命令。</div>
+  <div class="settings-card">
+   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h3>執行中的應用程式</h3><p>掃描可見的頂層視窗；同一軟體的不同視窗會分別列出。</p></div><button class="primary" id="attach-scan">重新掃描</button></div>
+   <div id="attach-scan-status" class="info-note">尚未掃描。</div>
+   <div id="attach-app-list" style="margin-top:12px"></div>
+  </div>
+  <div class="settings-card">
+   <h3>已附加的視窗</h3><p>每個工作階段只綁定一個視窗。關閉 Kaptia 或按下解除連線會撤銷工作階段。</p>
+   <div id="attach-session-list" class="info-note">目前沒有附加的視窗。</div>
+  </div>
+  <div class="settings-card">
+   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h3>AI 待批准操作</h3><p>AI 可以提出點擊或文字輸入，但操作必須在此逐筆批准才會執行。</p></div><button class="secondary" id="attach-refresh-pending">重新整理</button></div>
+   <div id="attach-pending-list" class="info-note">目前沒有待批准操作。</div>
+  </div>
+  <div class="settings-card">
+   <h3>控制權限與安全</h3>
+   <p>優先使用 UI Automation；不支援的軟體可改用 Vision OCR 與視窗座標操作。OCR 可能誤判，所有點擊及輸入都必須逐次批准。Vision 目前僅支援 ASCII 文字輸入；中文請使用 UI Automation 文字欄位。</p>
+   <div id="attach-control-details" class="info-note">附加視窗後可檢查 UI Automation 與 Vision OCR。</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="secondary" id="attach-install-vision">安裝 Vision 元件</button><button class="secondary" id="attach-run-ocr">辨識附加視窗畫面</button></div><div id="attach-vision-status" class="info-note" style="margin-top:8px">Vision 元件為選用功能，尚未確認安裝狀態。</div><div id="attach-ocr-results" class="info-note" style="margin-top:10px">尚未執行 OCR。</div>
+  </div>
+ </section>
+ <section class="page" id="cloud">
+  <h2>Cloud Compute 外接雲端運算</h2>
+  <div class="page-intro">連接由你自己租用及管理的雲端伺服器，將大型計算工作交給遠端 Worker。這不是 Claude、GPT 或其他大模型 API；Kaptia 本機模型仍負責理解與規劃。</div>
+  <div class="settings-card">
+   <h3>連接你的 Cloud Worker</h3>
+   <p>先在自己的 Linux 伺服器安裝 Kaptia Cloud Worker，並設定 HTTPS。Token 只保留在目前 Kaptia 執行階段記憶體，不會寫入設定檔；重新啟動後需要重新輸入。</p>
+   <div class="field"><label>Worker HTTPS 位址</label><input id="cloud-endpoint" placeholder="https://your-worker.example" autocomplete="url"></div>
+   <div class="field"><label>Worker Token（不會保存到磁碟）</label><input id="cloud-token" type="password" placeholder="貼上伺服器產生的 Worker Token" autocomplete="off"></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" id="cloud-connect">連線並保存位址</button><button class="secondary" id="cloud-test">測試連線</button><button class="secondary" id="cloud-disconnect">中斷連線</button></div>
+   <div id="cloud-status" class="info-note" style="margin-top:10px">尚未連線。</div>
+   <pre id="cloud-capabilities" style="white-space:pre-wrap;max-height:220px;overflow:auto;background:#171a1b;color:#cbd0d0;border:1px solid #3b4142;border-radius:7px;padding:12px;margin:12px 0 0;font:11px/1.6 ui-monospace">尚未取得 Worker 能力資訊。</pre>
+  </div>
+  <div class="settings-card">
+   <h3>可連接的服務商</h3>
+   <p>下列標示代表可在該服務商租用伺服器後，手動安裝 Worker 並連接；不代表 Kaptia 已能透過服務商 API 自動建立主機或代付費用。</p>
+   <div id="cloud-provider-list" class="info-note">正在載入服務商清單…</div>
+  </div>
+  <div class="settings-card">
+   <h3>目前支援的遠端工作</h3>
+   <ul><li>Python 腳本計算</li><li>Blender 背景工作（需伺服器預先配置相容的 Blender 容器映像）</li></ul>
+   <p>目前使用固定容器入口、無網路容器、CPU／記憶體／執行時間限制。完整專案資料夾同步、產物下載、GPU 自動選型與 Agent 自動派工仍在開發中。</p>
+   <p><strong>注意：</strong>送往雲端的程式碼與資料會離開本機，請先確認不含密碼、API Token、私人金鑰或不應外傳的內容。雲端費用由你與服務商直接結算。</p>
+  </div>
+ </section>
+ <section class="page" id="settings">
+  <h2>設定</h2><div class="page-intro">管理助手執行環境、模型與更新。</div>
+  <div class="settings-card"><h3>本機模型</h3><p>預設使用 Qwen3-8B 作為語言引擎。模型權重會在首次對話時下載；需要支援 CUDA 的 NVIDIA GPU 與足夠的顯示記憶體。</p><div class="field"><label>模型識別碼</label><input id="model-id" value="Qwen/Qwen3-8B"></div><div class="field"><label>量化方式</label><select id="quantization"><option value="4bit">4-bit（較低 VRAM）</option><option value="none">不量化</option></select></div><button class="primary" id="save-model">儲存模型設定</button></div>
+  <div class="settings-card"><h3>環境診斷</h3><p>檢查 Python、PyTorch、CUDA、GPU VRAM、Transformers、4-bit 量化套件與模型快取磁碟空間。診斷不會下載模型。</p><button class="secondary" id="run-diagnostics">執行環境診斷</button><pre id="diagnostics-output" style="white-space:pre-wrap;max-height:260px;overflow:auto;background:#171a1b;color:#cbd0d0;border:1px solid #3b4142;border-radius:7px;padding:12px;margin:12px 0 0;font:11px/1.6 ui-monospace">尚未執行診斷。</pre></div>
+  <div class="settings-card"><h3>自動更新</h3><p>啟用後，Kaptia 會定期檢查核心倉庫提供的最新核心套件。更新套件會先驗證完整性；安裝前仍會要求確認。關閉後不再執行背景更新檢查。</p><label style="display:flex;align-items:center;gap:10px;color:#d4dada;font-size:12px"><input id="auto-updates" type="checkbox" checked>啟用自動更新</label><div id="update-result" class="info-note" style="margin-top:10px">自動更新已啟用</div></div>
+  <div class="settings-card"><h3>本機記憶</h3><p>對話記憶保存在 Windows 使用者的本機資料夾，不會自動同步至 GitHub。</p><div id="memory-state" class="info-value">載入中…</div></div>
+ </section>
+ <section class="page" id="about"><h2>關於 Kaptia</h2><div class="page-intro">桌面 AI 助手，而非模型訓練平台。</div><div class="settings-card"><h3>KaptiaLab</h3><p>以本機工作流程、個人記憶與可選工具為核心的桌面 AI 助手。</p><div id="about-build" class="info-note"></div></div></section>
+ <footer class="statusbar"><span id="status-left">就緒</span><span>kaptiaLab · Windows</span></footer>
+</main>
+</div><div id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);let busy=false;let activePage='chat';let archiveOffset=0,archiveTotal=0,archiveDetailId='',archiveDetailOffset=0;
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2600)}
+function switchPage(name){activePage=name;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===name));$('chat-layout').style.display=name==='chat'?'grid':'none';if(name==='workspace')loadWorkspaceStatus();if(name==='attach'){scanAttachApps();refreshAttachSessions();refreshAttachPending();refreshAttachVisionStatus();}document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===name));$('top-title').textContent=({chat:'新對話',calendar:'行事曆',memory:'個人記憶',workspace:'工作區 Agent',attach:'Attach 桌面連線',settings:'設定',about:'關於'})[name]||'Kaptia';if(name==='memory'){loadMemoryFacts();loadConversationArchives()}}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.page)));
+document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{$('chat-input').value=b.dataset.prompt;$('chat-input').focus()}));
+const attachSessions=new Map();
+async function refreshAttachSessions(){const r=await call('attach_sessions');if(!r?.ok)return;attachSessions.clear();r.sessions.forEach(session=>attachSessions.set(session.session_id,{process:'PID '+session.pid,title:'Window '+session.window_id,window_id:session.window_id}));renderAttachSessions()}
+function renderAttachSessions(){const root=$('attach-session-list');root.textContent='';if(!attachSessions.size){root.textContent='目前沒有附加的視窗。';return}attachSessions.forEach((session,id)=>{const row=document.createElement('div');row.className='event-row';const label=document.createElement('span');label.textContent=session.process+' · '+session.title;const btn=document.createElement('button');btn.textContent='解除連線';btn.onclick=async()=>{await call('attach_disconnect',id);attachSessions.delete(id);renderAttachSessions();$('attach-control-details').textContent='已解除連線。'};row.append(label,btn);root.append(row)})}
+async function refreshAttachPending(){const root=$('attach-pending-list');const r=await call('attach_pending_actions');root.textContent='';if(!r?.ok){root.textContent=r?.error||'無法取得待批准操作';return}if(!r.pending.length){root.textContent='目前沒有待批准操作。';return}r.pending.forEach(item=>{const row=document.createElement('div');row.className='event-row';const info=document.createElement('span');info.textContent=({click:'UIA 點擊',type_text:'UIA 輸入',vision_click:'Vision 座標點擊',vision_type_text:'Vision 座標輸入'}[item.action]||item.action)+' · '+(item.point?('x='+item.point.x+', y='+item.point.y):JSON.stringify(item.selector))+(item.text_preview?' · '+item.text_preview:'');const actions=document.createElement('span');const approve=document.createElement('button');approve.textContent='批准';approve.onclick=async()=>{if(!window.confirm('確認讓 Kaptia 執行這項操作？\n\n'+info.textContent))return;approve.disabled=true;const result=await call('attach_approve_action',item.pending_id,true);toast(result?.ok?'操作已執行':(result?.error||'操作失敗'));await refreshAttachPending()};const reject=document.createElement('button');reject.textContent='拒絕';reject.onclick=async()=>{await call('attach_reject_action',item.pending_id);await refreshAttachPending()};actions.append(approve,reject);row.append(info,actions);root.append(row)})}
+$('attach-refresh-pending').addEventListener('click',refreshAttachPending);
+async function runAttachOcr(){const root=$('attach-ocr-results');const sessionId=attachSessions.keys().next().value;if(!sessionId){root.textContent='請先附加一個視窗。';return}root.textContent='正在擷取視窗並辨識文字…';const r=await call('attach_capture_ocr',sessionId);if(!r?.ok){root.textContent=r?.error||'OCR 辨識失敗';return}root.textContent='辨識到 '+r.count+' 個文字區塊（視窗 '+r.image_size.width+' × '+r.image_size.height+'）。';r.elements.forEach((item,index)=>{const row=document.createElement('div');row.className='event-row';const label=document.createElement('span');label.textContent='#'+index+' '+item.text+' · x='+item.center.x+', y='+item.center.y+' · '+Math.round(item.confidence*100)+'%';row.append(label);root.append(row)})}
+$('attach-run-ocr').addEventListener('click',runAttachOcr);
+async function refreshAttachVisionStatus(){const r=await call('attach_vision_status');if(!r)return;$('attach-vision-status').textContent=r.status+(r.busy?'（安裝中…）':(r.error?'：'+r.error:''));$('attach-install-vision').disabled=!!r.busy||!!r.ok}
+$('attach-install-vision').addEventListener('click',async()=>{if(!window.confirm('安裝 Vision OCR 與桌面控制元件？\n\n需要下載第三方 Python 套件及 OCR 執行環境，首次辨識可能另需下載模型。'))return;const r=await call('attach_install_vision');if(!r?.ok){toast(r?.error||'無法開始安裝');return}refreshAttachVisionStatus();for(let i=0;i<600;i++){await new Promise(resolve=>setTimeout(resolve,1500));await refreshAttachVisionStatus();const s=await call('attach_vision_status');if(s&&!s.busy)break}});
+
+
+async function scanAttachApps(){const root=$('attach-app-list');root.textContent='掃描中…';const r=await call('attach_scan');if(!r?.ok){$('attach-scan-status').textContent=r?.error||'掃描失敗';root.textContent='無法取得應用程式清單。';return}$('attach-scan-status').textContent='找到 '+r.count+' 個可見視窗。';root.textContent='';r.windows.forEach(app=>{const row=document.createElement('div');row.className='event-row';const label=document.createElement('span');label.textContent=app.process+' · '+app.title+' · PID '+app.pid;const btn=document.createElement('button');btn.textContent='Attach';btn.onclick=async()=>{if(!window.confirm('允許 Kaptia 附加並檢視此視窗的介面元素？\n\n'+app.process+'\n'+app.title+'\n\n後續點擊或輸入仍須逐次確認。'))return;btn.disabled=true;const connected=await call('attach_connect',app.window_id,true);if(!connected?.ok){toast(connected?.error||'附加失敗');btn.disabled=false;return}attachSessions.set(connected.session_id,{process:app.process,title:app.title,window_id:app.window_id});renderAttachSessions();const detail=$('attach-control-details');detail.textContent='已附加 '+app.process+'。正在檢查 UI Automation…';const inspected=await call('attach_inspect',connected.session_id);if(inspected?.ok){detail.textContent='可存取 '+inspected.controls.length+' 個介面控制項。AI 可使用這些資訊規劃操作；實際點擊與輸入仍需逐次確認。'}else{detail.textContent='已附加視窗，但無法讀取 UI Automation：'+(inspected?.error||'未知錯誤')+'。此軟體可能需要其他控制介面。'}};row.append(label,btn);root.append(row)});if(!r.windows.length)root.textContent='目前沒有可附加的可見應用程式視窗。'}
+$('attach-scan').addEventListener('click',scanAttachApps);
+function appendMessage(role,content,error){$('welcome')?.remove();const row=document.createElement('div');row.className='message'+(error?' error':'');const avatar=document.createElement('div');avatar.className='avatar'+(role==='user'?' user':'');avatar.textContent=role==='user'?'你':'K';const body=document.createElement('div');body.className='message-content';const label=document.createElement('div');label.className='message-role';label.textContent=role==='user'?'你':'Kaptia';const text=document.createElement('div');text.textContent=content;body.append(label,text);row.append(avatar,body);$('messages').append(row);$('messages').scrollTop=$('messages').scrollHeight}
+function setBusy(v){busy=v;$('send').disabled=v;$('state-dot').classList.toggle('ready',!v);$('status-left').textContent=v?'正在回應…':'就緒';$('composer-state').textContent=v?'Kaptia 正在處理訊息…':'本機推論 · 對話記憶保存在此電腦'}
+async function call(name,...args){if(!window.pywebview?.api){toast('桌面服務尚未就緒');return null}try{return await window.pywebview.api[name](...args)}catch(e){toast(String(e));return null}}
+async function sendChat(){const input=$('chat-input'),value=input.value.trim();if(!value||busy)return;input.value='';appendMessage('user',value);setBusy(true);const r=await call('chat',value,$('chat-mode').value);if(!r?.ok){appendMessage('assistant',r?.error||'無法送出訊息',true);setBusy(false)}}
+$('send').onclick=sendChat;$('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
+window.kaptiaChatUpdate=d=>{if(d.status){$('composer-state').textContent=d.status;$('status-left').textContent=d.status}if(d.answer){appendMessage('assistant',d.answer);setBusy(false)}if(d.error){appendMessage('assistant',d.error,true);setBusy(false)}};
+async function refresh(){const d=await call('get_status');if(!d)return;$('about-build').textContent='核心更新通道';$('local-status').textContent=d.model_status||'未載入';$('model-state').textContent=d.model_status||'首次對話時載入';$('side-model').textContent=d.model||'Qwen3-8B';$('model-label').textContent=d.model||'Kaptia Assistant';$('model-id').value=d.model_id||'Qwen/Qwen3-8B';$('quantization').value=d.quantization||'4bit';$('state-dot').classList.toggle('ready',!!d.ready);$('status-left').textContent=d.status||'就緒';$('memory-state').textContent=d.memory||'本機記憶可用';if(d.hardware)$('status-left').title=d.hardware;await loadUpdateSettings();loadHistory()}
+async function loadHistory(){const items=await call('recent_history');if(!items)return;const root=$('history');root.textContent='';if(!items.length){root.textContent='目前沒有已保存的訊息';return}items.slice().reverse().forEach(item=>{const b=document.createElement('button');b.className='history-item';b.textContent=item;b.title=item;b.onclick=()=>{$('chat-input').value=item;$('chat-input').focus();switchPage('chat')};root.append(b)})}
+async function loadEvents(){const d=await call('list_events');if(!d)return;$('events').textContent='';if(!d.events.length){$('events').textContent='目前沒有事件';return}d.events.forEach(e=>{const row=document.createElement('div');row.className='event-row';const label=document.createElement('span');label.textContent=e.date+' '+e.time+' · '+e.title;const del=document.createElement('button');del.textContent='刪除';del.onclick=async()=>{await call('delete_event',e.id);loadEvents()};row.append(label,del);$('events').append(row)})}
+function memoryButton(label,action){const b=document.createElement('button');b.className='secondary';b.textContent=label;b.onclick=action;return b}
+async function loadWorkspaceStatus(){const s=await call('workspace_status');if(!s)return;$('workspace-path').textContent=s.selected?s.root:'尚未選擇工作區';$('workspace-read').checked=!!s.read_enabled;$('workspace-permission').textContent=s.read_enabled?'已授權本工作階段讀取；關閉視窗後不會保留此權限。':'讀取權限關閉。寫入仍需逐次確認。'}
+$('select-workspace').onclick=async()=>{const r=await call('select_workspace');if(r?.ok){toast('工作區已選擇');loadWorkspaceStatus()}else if(!r?.cancelled)toast(r?.error||'選擇工作區失敗')};
+$('workspace-read').onchange=async()=>{const r=await call('set_workspace_read',$('workspace-read').checked);if(!r?.ok){$('workspace-read').checked=false;toast(r?.error||'無法設定權限')}loadWorkspaceStatus()};
+function renderAgentPlan(plan){const root=$('agent-plan-list');root.textContent='';const heading=document.createElement('div');heading.className='info-value';heading.textContent='目標：'+plan.goal;root.append(heading);plan.steps.forEach(step=>{const card=document.createElement('div');card.className='event-row';card.style.flexDirection='column';card.style.alignItems='stretch';const title=document.createElement('strong');title.textContent=step.id+' · '+step.action;const reason=document.createElement('div');reason.textContent=step.reason;reason.style.color='#aeb5b6';const run=memoryButton('執行此步驟',async()=>{run.disabled=true;const r=await call('execute_agent_step',plan.plan_id,step.id);run.disabled=false;if(!r?.ok){toast(r?.error||'步驟執行失敗');return}const out=document.createElement('pre');out.style.whiteSpace='pre-wrap';out.style.maxHeight='260px';if(step.action==='propose_write'){out.textContent=r.result.preview||'沒有差異';const apply=memoryButton('確認並套用檔案修改',async()=>{if(!confirm('即將修改 '+r.result.path+'。已檢查檔案是否在預覽後變更，並會備份原始內容。確定套用？'))return;apply.disabled=true;const a=await call('apply_agent_change',r.result.change_id,true);apply.disabled=false;if(a?.ok){out.textContent+='\n\n已套用。SHA-256：'+a.sha256;apply.remove();}else toast(a?.error||'套用失敗')});card.append(title,reason,run,out,apply);return}out.textContent=JSON.stringify(r.result,null,2).slice(0,12000);card.append(title,reason,run,out)});card.append(title,reason,run);root.append(card)});const finish=memoryButton('整合目前執行結果',async()=>{finish.disabled=true;const r=await call('finish_agent_plan',plan.plan_id);finish.disabled=false;$('agent-result').textContent=r?.answer||r?.error||'整合失敗'});root.append(finish)}
+$('create-agent-plan').onclick=async()=>{const task=$('agent-task').value.trim();if(!task)return toast('請輸入任務目標');$('create-agent-plan').disabled=true;$('agent-plan-list').textContent='正在建立計畫…';const r=await call('create_agent_plan',task);$('create-agent-plan').disabled=false;if(!r?.ok){$('agent-plan-list').textContent=r?.error||'建立計畫失敗';return}renderAgentPlan(r.plan)};
+async function loadMemoryFacts(){const r=await call('list_memory_facts');if(!r?.ok){$('memory-facts').textContent=r?.error||'無法讀取記憶';return}const s=r.status||{};$('memory-count').textContent='已確認 '+(s.active||0)+' 條 · 待確認 '+(s.review||0)+' 條 · 已封存 '+(s.archived||0)+' 條';$('memory-state').textContent=(s.active||0)+' 條已確認記憶 · '+(s.review||0)+' 項待確認';const root=$('memory-facts');root.textContent='';if(!r.facts.length){root.textContent='尚未建立結構化記憶'}else r.facts.forEach(f=>{const card=document.createElement('div');card.className='event-row';card.style.alignItems='flex-start';card.style.flexDirection='column';card.style.gap='8px';const title=document.createElement('strong');title.textContent='['+f.category+'] '+f.fact_key+' · '+f.status;const value=document.createElement('div');value.textContent=f.fact_value+'（範圍：'+f.scope+'；來源：'+f.source+'）';value.style.color='#aeb5b6';card.append(title,value);if(f.status==='review'){const conflict=document.createElement('div');conflict.textContent='與既有記憶衝突：'+(f.conflict_key||'')+' → '+(f.conflict_value||'');conflict.style.color='#d6b98a';card.append(conflict);const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='8px';actions.append(memoryButton('採用新記憶',async()=>{const x=await call('resolve_memory_conflict',f.fact_id,'keep_new');toast(x?.ok?'已採用新記憶':x?.error||'處理失敗');loadMemoryFacts()}),memoryButton('保留舊記憶',async()=>{const x=await call('resolve_memory_conflict',f.fact_id,'keep_existing');toast(x?.ok?'已保留舊記憶':x?.error||'處理失敗');loadMemoryFacts()}));card.append(actions)}else if(f.status==='active'){card.append(memoryButton('封存',async()=>{const x=await call('archive_memory_fact',f.fact_id);toast(x?.ok?'已封存記憶':'封存失敗');loadMemoryFacts()}))}else if(f.status==='archived'||f.status==='superseded'){card.append(memoryButton('還原至活躍記憶',async()=>{const x=await call('restore_memory_fact',f.fact_id);toast(x?.ok?'已還原記憶':x?.error||'還原失敗');loadMemoryFacts()}))}root.append(card)});const conversation=r.conversation||{};$('memory-storage').textContent='SQLite '+formatBytes(s.bytes||0)+' · WAL '+formatBytes(s.wal_bytes||0)+' · 對話封存 '+(conversation.archive_files||0)+' 個 / '+formatBytes(conversation.archive_bytes||0)}
+function formatBytes(n){if(n<1024)return n+' B';if(n<1024*1024)return (n/1024).toFixed(1)+' KB';return (n/1024/1024).toFixed(2)+' MB'}
+
+async function loadConversationArchives(offset=archiveOffset){
+ archiveOffset=Math.max(0,offset);
+ const root=$('archive-list'),detail=$('archive-detail');root.textContent='正在載入封存清單…';detail.textContent='';
+ const r=await call('list_conversation_archives',archiveOffset,50);
+ if(!r?.ok){root.textContent=r?.error||'無法讀取封存清單';return}
+ archiveTotal=r.total;
+ $('archive-prev').disabled=archiveOffset===0;
+ $('archive-next').disabled=archiveOffset+ r.archives.length>=archiveTotal;
+ $('archive-summary').textContent='共 '+r.total+' 個封存檔 · 顯示第 '+(r.total?archiveOffset+1:0)+'–'+(archiveOffset+r.archives.length)+' 個';
+ root.textContent='';
+ if(!r.archives.length){root.textContent='目前沒有歷史對話封存';return}
+ r.archives.forEach(a=>{
+  const card=document.createElement('div');card.className='event-row';card.style.alignItems='flex-start';card.style.flexDirection='column';card.style.gap='6px';
+  const title=document.createElement('strong');title.textContent=a.first_timestamp+' · '+a.exchanges+' 段對話 / '+a.messages+' 則訊息';
+  const preview=document.createElement('div');preview.textContent=a.preview||'（沒有使用者訊息摘要）';preview.style.color='#aeb5b6';
+  const meta=document.createElement('div');meta.className='info-note';meta.textContent=a.archive_id+' · '+formatBytes(a.bytes);
+  const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='8px';actions.style.flexWrap='wrap';
+  actions.append(memoryButton('查看完整內容',()=>openConversationArchive(a.archive_id)),memoryButton('還原為近期記憶',()=>restoreConversationArchive(a.archive_id)));
+  card.append(title,preview,meta,actions);root.append(card);
+ });
+}
+async function searchConversationArchives(){
+ const query=$('archive-search').value.trim();if(!query)return toast('請輸入搜尋文字');
+ const root=$('archive-list');root.textContent='正在搜尋本機封存…';$('archive-detail').textContent='';
+ $('archive-prev').disabled=true;$('archive-next').disabled=true;
+ const r=await call('search_conversation_archives',query,50);
+ if(!r?.ok){root.textContent=r?.error||'搜尋失敗';return}
+ $('archive-summary').textContent='搜尋到 '+r.matches.length+' 筆 · 掃描 '+r.scanned_archives+'/'+r.total_archives+' 個封存檔'+(r.truncated?' · 結果或掃描範圍已截斷':'');
+ root.textContent='';
+ if(!r.matches.length){root.textContent='沒有符合的封存訊息';return}
+ r.matches.forEach(m=>{
+  const card=document.createElement('div');card.className='event-row';card.style.alignItems='flex-start';card.style.flexDirection='column';card.style.gap='6px';
+  const title=document.createElement('strong');title.textContent=(m.role==='user'?'使用者':'Kaptia')+' · '+m.timestamp_utc;
+  const excerpt=document.createElement('div');excerpt.textContent=m.content;excerpt.style.whiteSpace='pre-wrap';excerpt.style.color='#aeb5b6';
+  const open=memoryButton('查看所屬封存',()=>openConversationArchive(m.archive_id));
+  card.append(title,excerpt,open);root.append(card);
+ });
+}
+async function openConversationArchive(archiveId,offset=0){
+ archiveDetailId=archiveId;archiveDetailOffset=Math.max(0,offset);
+ const root=$('archive-detail');root.textContent='正在讀取封存內容…';
+ const r=await call('read_conversation_archive',archiveId,archiveDetailOffset,200);
+ if(!r?.ok){root.textContent=r?.error||'無法讀取封存';return}
+ root.textContent='';
+ const heading=document.createElement('div');heading.className='info-value';heading.textContent='封存內容 · '+r.archive_id+' · 第 '+(r.total?archiveDetailOffset+1:0)+'–'+(archiveDetailOffset+r.messages.length)+' / '+r.total+' 則訊息';
+ const restore=memoryButton('還原為近期記憶',()=>restoreConversationArchive(archiveId));
+ const previous=memoryButton('上一頁訊息',()=>openConversationArchive(archiveId,Math.max(0,archiveDetailOffset-200)));
+ previous.disabled=archiveDetailOffset===0;
+ const next=memoryButton('下一頁訊息',()=>openConversationArchive(archiveId,archiveDetailOffset+200));
+ next.disabled=archiveDetailOffset+r.messages.length>=r.total;
+ root.append(heading,restore,previous,next);
+ r.messages.forEach(m=>{
+  const row=document.createElement('div');row.className='event-row';row.style.flexDirection='column';row.style.alignItems='stretch';row.style.gap='5px';
+  const role=document.createElement('strong');role.textContent=(m.role==='user'?'使用者':'Kaptia')+' · '+m.timestamp_utc;
+  const body=document.createElement('div');body.textContent=m.content;body.style.whiteSpace='pre-wrap';body.style.overflowWrap='anywhere';body.style.color='#c3caca';
+  row.append(role,body);root.append(row);
+ });
+}
+async function restoreConversationArchive(archiveId){
+ if(!confirm('將選定封存載入近期記憶。現在的近期對話會先另存為新的封存檔；選定的原始封存也會保留。是否繼續？'))return;
+ const r=await call('restore_conversation_archive',archiveId);
+ if(!r?.ok){toast(r?.error||'還原失敗');return}
+ toast('已載入 '+r.restored_messages+' 則訊息；原近期記憶已另行封存');
+ $('archive-detail').textContent='還原完成。原始封存仍保留，可再次查看。';
+ loadConversationArchives();loadMemoryFacts();loadHistory();
+}
+$('archive-search-button').onclick=searchConversationArchives;
+$('archive-list-button').onclick=()=>loadConversationArchives(0);
+$('archive-prev').onclick=()=>loadConversationArchives(Math.max(0,archiveOffset-50));
+$('archive-next').onclick=()=>{if(archiveOffset+50<archiveTotal)loadConversationArchives(archiveOffset+50)};
+$('archive-search').addEventListener('keydown',e=>{if(e.key==='Enter')searchConversationArchives()});
+$('compact-memory').onclick=async()=>{const button=$('compact-memory');button.disabled=true;button.textContent='正在備份及最佳化…';const r=await call('compact_memory_storage');button.disabled=false;button.textContent='備份並最佳化資料庫';if(r?.ok){toast('資料庫完整性正常，已完成最佳化');loadMemoryFacts()}else toast(r?.error||'資料庫最佳化失敗')};
+$('add-memory').onclick=async()=>{const category=$('memory-category').value,key=$('memory-key').value.trim(),value=$('memory-value').value.trim(),scope=$('memory-scope').value.trim()||'global';if(!key||!value)return toast('請填寫記憶名稱與內容');const r=await call('add_memory_fact',category,key,value,scope);if(!r?.ok){toast(r?.error||'保存失敗');return}if(r.fact?.status==='review')toast('發現內容衝突，請在清單中確認');else toast(r.fact?.duplicate?'相同記憶已存在':'已保存本機記憶');$('memory-key').value='';$('memory-value').value='';loadMemoryFacts();refresh()};
+$('add-event').onclick=async()=>{const title=$('event-title').value.trim();if(!title)return toast('請輸入事件名稱');const raw=$('lead').value,days=raw==='both'?[1,2]:[Number(raw)];const r=await call('add_event',title,$('event-date').value,$('event-time').value,$('event-notes').value,days);if(r?.ok){$('event-title').value='';$('event-notes').value='';loadEvents()}else toast(r?.error||'新增失敗')};
+async function loadUpdateSettings(){const r=await call('get_update_settings');if(!r)return;$('auto-updates').checked=!!r.auto_updates;const msg=r.auto_updates?'自動更新已啟用（每 6 小時檢查）':'自動更新已關閉';$('update-state').textContent=msg;$('update-result').textContent=msg}
+$('auto-updates').onchange=async()=>{const enabled=$('auto-updates').checked;$('auto-updates').disabled=true;const r=await call('set_auto_updates',enabled);$('auto-updates').disabled=false;if(!r?.ok){$('auto-updates').checked=!enabled;toast(r?.error||'更新設定失敗');return}const msg=enabled?'自動更新已啟用':'自動更新已關閉';$('update-state').textContent=msg;$('update-result').textContent=r.warning||msg;toast(r.warning||msg)}
+async function runDiagnostics(){const button=$('run-diagnostics'),output=$('diagnostics-output');button.disabled=true;button.textContent='正在檢查…';output.textContent='正在檢查本機執行環境，請稍候。';const r=await call('diagnostics');if(!r){output.textContent='診斷服務無回應。';}else{const labels={pass:'PASS',warn:'WARN',fail:'FAIL'};output.textContent=r.summary+'\n\n'+r.checks.map(x=>'['+(labels[x.status]||x.status)+'] '+x.label+'\n'+x.detail).join('\n\n');$('status-left').textContent=r.summary;}button.disabled=false;button.textContent='重新執行診斷'}
+$('run-diagnostics').onclick=runDiagnostics;
+
+async function loadCloudCompute(){
+ const saved=await call('cloud_get_settings');
+ if(saved?.endpoint)$('cloud-endpoint').value=saved.endpoint;
+ const listed=await call('cloud_get_providers');
+ const root=$('cloud-provider-list');root.textContent='';
+ (listed?.providers||[]).forEach(p=>{const row=document.createElement('div');row.className='info-note';row.style.marginBottom='7px';row.textContent=p.name+' · '+p.class+' · 可連接（手動部署 Worker）';root.append(row)});
+ $('cloud-status').textContent=saved?.connected?'Worker 已連線（Token 僅存在記憶體）':'尚未連線；請輸入 Worker HTTPS 位址與 Token。';
+}
+$('cloud-connect').onclick=async()=>{
+ const endpoint=$('cloud-endpoint').value.trim(),token=$('cloud-token').value;
+ if(!endpoint||!token)return toast('請輸入 HTTPS 位址及 Token');
+ $('cloud-connect').disabled=true;
+ const r=await call('cloud_set_connection',endpoint,token);
+ $('cloud-connect').disabled=false;
+ if(!r?.ok){$('cloud-status').textContent=r?.error||'連線設定失敗';return}
+ $('cloud-token').value='';
+ $('cloud-status').textContent='連線設定已保存；Token 僅存在目前執行階段記憶體。請按「測試連線」確認伺服器狀態。';
+};
+$('cloud-test').onclick=async()=>{
+ $('cloud-test').disabled=true;$('cloud-status').textContent='正在測試 Worker…';
+ const r=await call('cloud_test_connection');
+ $('cloud-test').disabled=false;
+ if(!r?.ok){$('cloud-status').textContent=r?.error||'測試失敗';return}
+ $('cloud-status').textContent='連線成功：'+(r.health?.service||'Cloud Worker')+' · '+(r.health?.version||'');
+ $('cloud-capabilities').textContent=JSON.stringify(r.capabilities,null,2);
+};
+$('cloud-disconnect').onclick=async()=>{
+ const r=await call('cloud_disconnect');
+ $('cloud-status').textContent=r?.ok?'已中斷連線；記憶體中的 Token 已清除。':'中斷連線失敗';
+ $('cloud-capabilities').textContent='尚未取得 Worker 能力資訊。';
+};
+$('save-model').onclick=async()=>{const id=$('model-id').value.trim(),q=$('quantization').value;if(!id)return toast('模型識別碼不可空白');const r=await call('save_model_settings',id,q);toast(r?.ok?'模型設定已儲存，重新啟動後生效':(r?.error||'儲存失敗'))};
+window.addEventListener('pywebviewready',()=>{refresh();loadEvents();loadCloudCompute();switchPage('chat');setInterval(()=>call('poll_reminders'),60000)});
+</script>
+</body></html>

@@ -1,0 +1,83 @@
+name: Validate Windows desktop assistant
+
+"on":
+  pull_request:
+    branches: [main]
+    paths:
+      - "installer/**"
+      - "ui/**"
+      - "scripts/**"
+      - "kaptia_packaging/**"
+      - "tests/**"
+      - "requirements.txt"
+      - ".github/workflows/validate-windows-installer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate assistant runtime and self-contained Windows installer
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install installer runtime dependencies
+        run: python -m pip install pywebview pythonnet
+      - name: Compile application and run regression tests
+        run: |
+          python -m compileall -q scripts installer kaptia_packaging
+          python -m unittest tests.test_kaptia_update tests.test_installer_download tests.test_hardware_profile tests.test_kaptia_diagnostics tests.test_kaptia_memory_store tests.test_kaptia_agent_runtime tests.test_kaptia_context_menu tests.test_kaptia_locale tests.test_kaptia_modes tests.test_kaptia_calendar tests.test_packaging_protocol -v
+      - name: Prepare commit-pinned embedded core archive
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $commit = (git rev-parse HEAD).Trim()
+          $prefix = "kaptiaLab-core-$commit/"
+          git archive --format=zip --prefix="$prefix" $commit -o dist/kaptia-core-source.zip
+          if ($LASTEXITCODE -ne 0) { throw "Could not archive the checked-out source commit." }
+          $sourceHash = (Get-FileHash "dist/kaptia-core-source.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          @"
+          BUILD_NUMBER = 0
+          BUILD_TAG = "validation"
+          SOURCE_COMMIT = "$commit"
+          SOURCE_SHA256 = "$sourceHash"
+          "@ | Set-Content -Path installer/build_info.py -Encoding utf8
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pyinstaller pywebview pythonnet
+      - name: Build self-contained Setup without publishing
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name Kaptia-Setup --collect-all webview --collect-all clr --hidden-import webview.platforms.edgechromium --add-data "dist/kaptia-core-source.zip;payload" --add-data "ui;ui" installer/windows_installer.py
+      - name: Inspect PyInstaller archive for embedded core and build metadata
+        shell: pwsh
+        run: |
+          $listing = (pyi-archive_viewer -l -r "dist/Kaptia-Setup.exe" 2>&1 | Out-String)
+          if ($LASTEXITCODE -ne 0) { throw "Could not inspect the generated Setup archive." }
+          if ($listing -notmatch "kaptia-core-source.zip") { throw "The core ZIP is missing from the Setup executable." }
+          if ($listing -notmatch "build_info") { throw "Build metadata is missing from the Setup executable." }
+          Write-Output "Embedded core ZIP and build metadata are present."
+      - name: Verify embedded installer output and checksum
+        shell: pwsh
+        run: |
+          $exe = Get-Item "dist/Kaptia-Setup.exe" -ErrorAction Stop
+          if ($exe.Length -le 1048576) { throw "Setup is unexpectedly small; embedded core may be missing." }
+          $bytes = [System.IO.File]::ReadAllBytes($exe.FullName)
+          if ($bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) { throw "Setup is not a Windows PE executable." }
+          $hash = (Get-FileHash "dist/Kaptia-Setup.exe" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  Kaptia-Setup.exe" | Set-Content "dist/Kaptia-Setup.exe.sha256" -Encoding ascii
+          Write-Output "EXE bytes: $($exe.Length)"
+          Write-Output "SHA-256: $hash"
+      - name: Upload test-only installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kaptia-Setup-assistant-test-${{ github.sha }}
+          path: |
+            dist/Kaptia-Setup.exe
+            dist/Kaptia-Setup.exe.sha256
+          if-no-files-found: error
+          retention-days: 7

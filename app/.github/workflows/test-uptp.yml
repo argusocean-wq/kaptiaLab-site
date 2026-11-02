@@ -1,0 +1,28 @@
+name: Validate UPTP packaging protocol
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "kaptia_packaging/**"
+      - "scripts/kaptia_packager.py"
+      - "tests/test_packaging_protocol.py"
+      - "docs/UPTP.md"
+      - ".github/workflows/test-uptp.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile UPTP modules
+        run: python -m py_compile scripts/kaptia_packager.py kaptia_packaging/__init__.py kaptia_packaging/adapters.py kaptia_packaging/protocol.py
+      - name: Run UPTP regression tests
+        run: python -m unittest tests.test_packaging_protocol -v
