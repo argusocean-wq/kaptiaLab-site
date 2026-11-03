@@ -120,11 +120,18 @@ def dispatch_tool(name, arguments):
     try:
         from plugins.github_plugin import get_default_plugin
         github = get_default_plugin()
+        def github_read_for_agent(**kw):
+            result = github.read_file(kw["path"], kw["branch"] or None)
+            if len(result["content"]) > 5000:
+                return _result("github_read_file", False,
+                    error="檔案超過 AI 工具單次讀取 5,000 字元上限；請使用 Desktop 檔案編輯器分段檢查，避免模型以截斷內容覆蓋完整檔案。",
+                    path=result["path"], sha=result["sha"], characters=len(result["content"]))
+            return {"ok": True, **result}
         registry.update({
             "github_list_repositories": lambda **kw: {"ok": True, "repositories": github.list_repositories()},
             "github_select_repository": lambda **kw: {"ok": True, **github.set_repository(kw["repository"])},
             "github_list_branches": lambda **kw: {"ok": True, "branches": github.list_branches()},
-            "github_read_file": lambda **kw: {"ok": True, **github.read_file(kw["path"], kw["branch"] or None)},
+            "github_read_file": github_read_for_agent,
             "github_propose_branch": lambda **kw: github.propose_branch(kw["branch"], kw["base_branch"]),
             "github_propose_file_write": lambda **kw: github.propose_file_write(
                 kw["path"], kw["content"], kw["message"], kw["branch"], kw["existing_sha"]),
