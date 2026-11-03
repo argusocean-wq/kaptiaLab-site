@@ -9,7 +9,9 @@ from __future__ import annotations
 import base64
 import difflib
 import json
+import os
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -42,6 +44,8 @@ class GitHubPlugin:
         self._default_branch = ""
         self._pending_proposals: dict[str, dict[str, Any]] = {}
         self._proposal_lock = threading.RLock()
+        self._device_auth: dict[str, Any] | None = None
+        self._device_lock = threading.RLock()
 
     @property
     def current_repository(self) -> str:
@@ -91,31 +95,140 @@ class GitHubPlugin:
         except Exception as exc:
             raise GitHubPluginError("無法載入 OS Credential Manager；請安裝 requirements-github.txt。") from exc
 
-    def connect(self, token: str) -> dict[str, Any]:
-        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\r\n"):
+    def connect(self, token: str, *, refresh_token: str | None = None,
+                expires_in: int | None = None, refresh_token_expires_in: int | None = None) -> dict[str, Any]:
+        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\\r\\n"):
             raise GitHubPluginError("GitHub Token 格式無效。")
+        clean_token = token.strip()
+        self._request("GET", "/user", token=clean_token)
+        try:
+            keyring = self._get_keyring()
+            keyring.set_password(SERVICE_NAME, "github-token", clean_token)
+            if refresh_token and isinstance(refresh_token, str) and len(refresh_token) >= 20:
+                keyring.set_password(SERVICE_NAME, "github-refresh-token", refresh_token)
+                access_expiry = int(time.time()) + max(60, int(expires_in or 28800))
+                refresh_expiry = int(time.time()) + max(60, int(refresh_token_expires_in or 15897600))
+                keyring.set_password(SERVICE_NAME, "github-token-expires-at", str(access_expiry))
+                keyring.set_password(SERVICE_NAME, "github-refresh-expires-at", str(refresh_expiry))
+            else:
+                for key in ("github-refresh-token", "github-token-expires-at", "github-refresh-expires-at"):
+                    try: keyring.delete_password(SERVICE_NAME, key)
+                    except Exception: pass
+        except Exception as exc:
+            raise GitHubPluginError("無法安全保存 GitHub 憑證；未改用明文檔案保存。") from exc
         with self._proposal_lock:
-            self._request("GET", "/user", token=token.strip())
-            try:
-                self._get_keyring().set_password(SERVICE_NAME, "github-token", token.strip())
-            except Exception as exc:
-                raise GitHubPluginError("無法安全保存 Token；未改用明文檔案保存。") from exc
             self._repository = ""
             self._default_branch = ""
             self._pending_proposals.clear()
-            return {"ok": True, "connected": True, "storage": "OS Credential Manager"}
+        return {"ok": True, "connected": True, "storage": "OS Credential Manager",
+                "auth_type": "github_app" if refresh_token else "personal_access_token"}
+
+    def _app_client_id(self) -> str:
+        value = os.environ.get("KAPTIA_GITHUB_APP_CLIENT_ID", "").strip()
+        if not value or len(value) > 128 or not re.fullmatch(r"[A-Za-z0-9_]+", value):
+            raise GitHubPluginError("尚未設定 KaptiaLab GitHub App Client ID；請先完成 GitHub App 註冊設定。")
+        return value
+
+    def _oauth_post(self, url: str, values: dict[str, str]) -> dict[str, Any]:
+        body = urllib.parse.urlencode(values).encode("utf-8")
+        request = urllib.request.Request(url, data=body, method="POST", headers={
+            "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "KaptiaLab-Desktop",
+        })
+        try:
+            with self._opener(request, timeout=20) as response:
+                raw = response.read(65537)
+                if len(raw) > 65536: raise GitHubPluginError("GitHub OAuth 回應超過大小限制。")
+                data = json.loads(raw.decode("utf-8")) if raw else {}
+        except urllib.error.HTTPError as exc:
+            raise GitHubPluginError(f"GitHub OAuth HTTP {exc.code}") from None
+        except (urllib.error.URLError, TimeoutError, OSError):
+            raise GitHubPluginError("GitHub OAuth 連線失敗；請檢查網路後重試。") from None
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            raise GitHubPluginError("GitHub OAuth 回應格式無效。") from None
+        if not isinstance(data, dict): raise GitHubPluginError("GitHub OAuth 回應格式無效。")
+        return data
+
+    def device_flow_start(self) -> dict[str, Any]:
+        client_id = self._app_client_id()
+        data = self._oauth_post("https://github.com/login/device/code",
+                                {"client_id": client_id, "scope": "offline_access"})
+        required = ("device_code", "user_code", "verification_uri", "expires_in", "interval")
+        if any(k not in data for k in required):
+            raise GitHubPluginError(str(data.get("error_description") or data.get("error") or "GitHub 未提供有效 Device Flow 授權資料。"))
+        if not str(data["verification_uri"]).startswith("https://github.com/"):
+            raise GitHubPluginError("GitHub 回傳的驗證網址不安全，已拒絕開啟。")
+        now = time.monotonic()
+        with self._device_lock:
+            self._device_auth = {"device_code": str(data["device_code"]), "interval": max(5, int(data["interval"])),
+                "expires_at": now + max(30, int(data["expires_in"])), "next_poll_at": now + max(5, int(data["interval"]))}
+        return {"ok": True, "user_code": str(data["user_code"]),
+                "verification_uri": str(data["verification_uri"]),
+                "expires_in": int(data["expires_in"]), "interval": max(5, int(data["interval"]))}
+
+    def device_flow_poll(self) -> dict[str, Any]:
+        with self._device_lock:
+            state = self._device_auth
+            if not state: raise GitHubPluginError("目前沒有進行中的 GitHub 授權；請重新開始連線。")
+            now = time.monotonic()
+            if now >= state["expires_at"]:
+                self._device_auth = None
+                raise GitHubPluginError("GitHub 授權碼已過期，請重新開始連線。")
+            if now < state["next_poll_at"]:
+                return {"ok": True, "status": "pending", "retry_after": max(1, int(state["next_poll_at"] - now + 0.99))}
+            state["next_poll_at"] = now + state["interval"]
+            device_code = state["device_code"]
+        data = self._oauth_post("https://github.com/login/oauth/access_token", {
+            "client_id": self._app_client_id(), "device_code": device_code,
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code"})
+        error = data.get("error")
+        if error == "authorization_pending": return {"ok": True, "status": "pending", "retry_after": state["interval"]}
+        if error == "slow_down":
+            with self._device_lock:
+                if self._device_auth: self._device_auth["interval"] += 5
+            return {"ok": True, "status": "pending", "retry_after": state["interval"] + 5}
+        if error in {"expired_token", "access_denied", "incorrect_client_credentials", "device_flow_disabled"}:
+            with self._device_lock: self._device_auth = None
+            messages = {"expired_token":"授權碼已過期，請重新開始。","access_denied":"使用者已拒絕 GitHub 授權。",
+                "incorrect_client_credentials":"GitHub App Client ID 設定錯誤。","device_flow_disabled":"GitHub App 尚未啟用 Device Flow。"}
+            raise GitHubPluginError(messages[error])
+        token = data.get("access_token")
+        if not isinstance(token, str) or not isinstance(data.get("refresh_token"), str):
+            raise GitHubPluginError(str(data.get("error_description") or error or "GitHub 未回傳可更新的授權 Token。"))
+        try:
+            result = self.connect(token, refresh_token=data["refresh_token"],
+                expires_in=int(data.get("expires_in", 28800)),
+                refresh_token_expires_in=int(data.get("refresh_token_expires_in", 15897600)))
+        finally:
+            with self._device_lock: self._device_auth = None
+        return {"ok": True, "status": "connected", **result}
+
+    def _refresh_access_token(self) -> str:
+        keyring = self._get_keyring()
+        refresh = keyring.get_password(SERVICE_NAME, "github-refresh-token")
+        refresh_expiry = keyring.get_password(SERVICE_NAME, "github-refresh-expires-at")
+        if not refresh or (refresh_expiry and int(refresh_expiry) <= int(time.time())):
+            raise GitHubPluginError("GitHub 授權已過期；請重新連接 GitHub。")
+        data = self._oauth_post("https://github.com/login/oauth/access_token", {
+            "client_id": self._app_client_id(), "grant_type": "refresh_token", "refresh_token": refresh})
+        if not isinstance(data.get("access_token"), str) or not isinstance(data.get("refresh_token"), str):
+            raise GitHubPluginError("GitHub Token 更新失敗；請重新連接 GitHub。")
+        keyring.set_password(SERVICE_NAME, "github-token", data["access_token"])
+        keyring.set_password(SERVICE_NAME, "github-refresh-token", data["refresh_token"])
+        keyring.set_password(SERVICE_NAME, "github-token-expires-at", str(int(time.time()) + int(data.get("expires_in", 28800))))
+        keyring.set_password(SERVICE_NAME, "github-refresh-expires-at", str(int(time.time()) + int(data.get("refresh_token_expires_in", 15897600))))
+        return data["access_token"]
 
     def disconnect(self) -> dict[str, Any]:
         with self._proposal_lock:
             try:
                 keyring = self._get_keyring()
-                try:
-                    keyring.delete_password(SERVICE_NAME, "github-token")
-                except Exception as exc:
-                    errors = getattr(keyring, "errors", None)
-                    missing = getattr(errors, "PasswordDeleteError", ())
-                    if not missing or not isinstance(exc, missing):
-                        raise
+                for key in ("github-token", "github-refresh-token", "github-token-expires-at", "github-refresh-expires-at"):
+                    try: keyring.delete_password(SERVICE_NAME, key)
+                    except Exception as exc:
+                        errors = getattr(keyring, "errors", None)
+                        missing = getattr(errors, "PasswordDeleteError", ())
+                        if not missing or not isinstance(exc, missing): raise
             except Exception as exc:
                 raise GitHubPluginError("無法確認已從 OS Credential Manager 移除 Token。") from exc
             self._repository = ""
@@ -134,12 +247,33 @@ class GitHubPlugin:
 
     def _token(self) -> str:
         try:
-            token = self._get_keyring().get_password(SERVICE_NAME, "github-token")
+            keyring = self._get_keyring()
+            token = keyring.get_password(SERVICE_NAME, "github-token")
+            expires_at = keyring.get_password(SERVICE_NAME, "github-token-expires-at")
+            if token and expires_at and int(expires_at) <= int(time.time()) + 90:
+                token = self._refresh_access_token()
+        except GitHubPluginError: raise
         except Exception as exc:
-            raise GitHubPluginError("無法讀取 OS Credential Manager 中的 GitHub Token。") from exc
-        if not token:
-            raise GitHubPluginError("尚未連接 GitHub。")
+            raise GitHubPluginError("無法讀取或更新 OS Credential Manager 中的 GitHub 憑證。") from exc
+        if not token: raise GitHubPluginError("尚未連接 GitHub。")
         return token
+
+    def auth_status(self) -> dict[str, Any]:
+        configured = bool(os.environ.get("KAPTIA_GITHUB_APP_CLIENT_ID", "").strip())
+        try:
+            keyring = self._get_keyring()
+            connected = bool(keyring.get_password(SERVICE_NAME, "github-token"))
+        except Exception: connected = False
+        return {"installed": self._keyring_module is not None or self._has_keyring(),
+                "app_configured": configured, "connected": connected,
+                "auth_method": "GitHub App Device Flow" if connected else "GitHub App Device Flow / PAT fallback"}
+
+    @staticmethod
+    def _has_keyring() -> bool:
+        try:
+            import keyring  # noqa: F401
+            return True
+        except Exception: return False
 
     def _request(self, method: str, path: str, *, token: str | None = None,
                  payload: dict | None = None) -> Any:
