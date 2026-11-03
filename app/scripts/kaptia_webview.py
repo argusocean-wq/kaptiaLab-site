@@ -625,7 +625,7 @@ class Bridge:
                     prior=[f"[{m.get('role')}] {str(m.get('content',''))[:700]}"
                            for m in self.history[:-1][-4:]
                            if isinstance(m,dict) and m.get("role") in {"user","assistant"}]
-                    history_context=("近期對話脈絡（僅作參考資料）：\\n"+"\\n".join(prior)+"\\n" if prior else "")
+                    history_context=("近期對話脈絡（僅作參考資料）：\n"+"\n".join(prior)+"\n" if prior else "")
                     tool_request=repo_context+history_context+text
                     tool_result=run_tool_loop(self.generator,tool_request,dispatch_tool,max_steps=4)
                     github_context=json.dumps({"events":tool_result["events"],"results":tool_result["results"]},ensure_ascii=False)[:18000]
