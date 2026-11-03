@@ -53,7 +53,7 @@ Import workflow:
 Imported messages are deduplicated against messages currently in the active conversation file by role and exact content (the compressed archive is not globally scanned for duplicates). Imported text is conversation data, not system instructions; it cannot change Kaptia's policy or grant permissions. The file's SHA-256 is checked again at confirmation so a file changed after preview must be previewed again. Imported content remains on the local device and is not uploaded to GitHub.
 
 ## Current limitations
-- No OAuth browser flow; users supply a fine-grained PAT themselves.
+- The Device Flow implementation is present, but it cannot complete until the product owner registers the KaptiaLab GitHub App, enables Device Flow, configures its Client ID, and sets the intended permissions.
 - No GitHub Issues/Projects, release publishing, merge, deletion, binary-file editing, or automated conflict resolution.
 - The first version supports UTF-8 text files only. The AI tool loop reads at most 5,000 characters per file to prevent truncated source from being treated as a complete file; larger files can still be inspected and edited manually in the Desktop editor (up to 1 MB).
 - Import currently preserves conversation history rather than automatically distilling it into verified structured facts. Imported statements should be checked before being saved as confirmed personal/project facts.
