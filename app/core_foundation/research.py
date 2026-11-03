@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Callable, Iterable, Protocol
 from urllib.parse import urlsplit
-import hashlib, ipaddress, time
+import hashlib, ipaddress, math, time
 
 def utc_now():
     return datetime.now(timezone.utc).isoformat()
@@ -17,11 +17,13 @@ class ResearchBudget:
     max_wall_seconds: float = 300.0
     max_energy_wh: float | None = None
     def __post_init__(self):
-        if isinstance(self.max_rounds, bool) or not 1 <= self.max_rounds <= 20: raise ValueError("max_rounds 必須介於 1 到 20")
-        if isinstance(self.max_searches, bool) or not 1 <= self.max_searches <= 100: raise ValueError("max_searches 必須介於 1 到 100")
-        if isinstance(self.max_sources, bool) or not 1 <= self.max_sources <= 200: raise ValueError("max_sources 必須介於 1 到 200")
-        if not 0 < self.max_wall_seconds <= 86400: raise ValueError("max_wall_seconds 無效")
-        if self.max_energy_wh is not None and self.max_energy_wh <= 0: raise ValueError("max_energy_wh 必須大於 0")
+        for name, value, maximum in (("max_rounds", self.max_rounds, 20), ("max_searches", self.max_searches, 100), ("max_sources", self.max_sources, 200)):
+            if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= maximum:
+                raise ValueError(f"{name} 必須是 1 到 {maximum} 的整數")
+        if not math.isfinite(self.max_wall_seconds) or not 0 < self.max_wall_seconds <= 86400:
+            raise ValueError("max_wall_seconds 無效")
+        if self.max_energy_wh is not None and (not math.isfinite(self.max_energy_wh) or self.max_energy_wh <= 0):
+            raise ValueError("max_energy_wh 必須是有限正數")
 
 @dataclass(frozen=True)
 class SearchHit:
@@ -157,9 +159,14 @@ class ResearchEngine:
             answer=self.synthesizer.synthesize(query.strip(),source_tuple) if source_tuple else ""
             review=self.reviewer.review(query.strip(),answer,source_tuple)
             if not isinstance(review,ResearchReview): raise TypeError("reviewer 必須回傳 ResearchReview")
-            if review.sufficient: stop="quality_gate_passed"; break
+            domain_count=len({item.domain for item in source_tuple})
+            evidence_ready=len(source_tuple)>=min_sources and domain_count>=min_domains
+            if review.sufficient and evidence_ready:
+                stop="quality_gate_passed"; break
             pending.extend(q for q in review.follow_up_queries if isinstance(q,str) and q.strip())
-            if not pending: stop="review_no_followups"; break
+            if not pending:
+                stop="insufficient_evidence_no_followups" if review.sufficient and not evidence_ready else "review_no_followups"
+                break
         elapsed=max(0.0,self.clock()-started)
         energy=max(0.0,self.energy_meter.energy_wh()-(energy_start or 0)) if self.energy_meter else None
         domains=len({s.domain for s in sources.values()}); count=len(sources)
