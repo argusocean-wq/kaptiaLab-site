@@ -64,7 +64,7 @@ class MemoryImportTests(unittest.TestCase):
 
     def test_commit_calls_local_import(self):
         path = self.root / "x.txt"; path.write_text("context", encoding="utf-8")
-        with patch("kaptia_personal_memory.import_messages", return_value={"imported":1}) as fn:
+        with patch("kaptia_personal_memory.import_messages", return_value={"imported":1,"duplicates":0,"total_messages":1}) as fn:
             result = import_memory_file(path, locally_confirmed=True)
         self.assertEqual(result["imported"], 1)
         fn.assert_called_once()
