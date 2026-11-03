@@ -275,7 +275,7 @@ def restore_conversation_archive(archive_id: str) -> dict:
     backup_archive = _archive_rows(current) if current else None
     temp = path.with_suffix(".jsonl.restore.tmp")
     try:
-        temp.write_text(encoded, encoding="utf-8", newline="\\n")
+        temp.write_text(encoded, encoding="utf-8", newline="\n")
         temp.replace(path)
     except Exception:
         temp.unlink(missing_ok=True)
@@ -370,7 +370,7 @@ def import_messages(messages: list[dict], *, source_ref: str, locally_confirmed:
         rows = rows[len(overflow):]
         encoded = "".join(json.dumps(row, ensure_ascii=False) + "\\n" for row in rows)
     temp = path.with_suffix(".jsonl.tmp")
-    temp.write_text(encoded, encoding="utf-8", newline="\\n")
+    temp.write_text(encoded, encoding="utf-8", newline="\n")
     temp.replace(path)
     return {"ok": True, "imported": len(added), "duplicates": len(incoming) - len(added),
             "total_messages": len(rows), "source_ref": source_ref}
