@@ -25,6 +25,9 @@ class GitHubPluginTests(unittest.TestCase):
         with self.assertRaises(GitHubPluginError): self.plugin.set_repository("../owner/repo")
         self.plugin.set_repository("owner/repo")
         with self.assertRaises(GitHubPluginError): self.plugin._validate_branch("../main")
+        with self.assertRaises(GitHubPluginError): self.plugin._validate_branch("feature/")
+        with self.assertRaises(GitHubPluginError): self.plugin._validate_path("src//main.py")
+        with self.assertRaises(GitHubPluginError): self.plugin._validate_path("src/./main.py")
 
     def test_write_requires_explicit_approval(self):
         self.plugin.set_repository("owner/repo")
