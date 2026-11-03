@@ -128,6 +128,9 @@ def import_memory_file(path: str | Path, *, locally_confirmed: bool = False) -> 
     if locally_confirmed is not True:
         raise MemoryImportError("匯入前必須由使用者在 Kaptia Desktop 確認預覽內容。")
     parsed = parse_memory_file(path)
-    from kaptia_personal_memory import import_messages
+    try:
+        from kaptia_personal_memory import import_messages
+    except ImportError:
+        from scripts.kaptia_personal_memory import import_messages
     result = import_messages(parsed["messages"], source_ref=parsed["source_sha256"], locally_confirmed=True)
     return {**{k: v for k, v in parsed.items() if k != "messages"}, **result}
