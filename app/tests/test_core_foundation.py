@@ -83,6 +83,29 @@ class RepositoryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.repo.retry_failed_step(step["step_id"])
 
+
+    def test_multiple_tasks_with_same_step_key_are_isolated(self):
+        first_plan = build_plan("First", "First task", [{"step_id": "build", "title": "Build"}])
+        second_plan = build_plan("Second", "Second task", [{"step_id": "build", "title": "Build"}])
+        self.repo.create_plan(first_plan)
+        self.repo.create_plan(second_plan)
+        claimed = self.repo.claim_ready_steps("worker-a", limit=2)
+        self.assertEqual(len(claimed), 2)
+        self.assertEqual(len({item["step_id"] for item in claimed}), 2)
+
+    def test_separate_repository_instances_do_not_claim_same_step_twice(self):
+        plan = build_plan("Concurrent", "Claim once", [
+            {"step_id": "a", "title": "A"},
+            {"step_id": "b", "title": "B"},
+        ])
+        self.repo.create_plan(plan)
+        second_repo = TaskRepository(Path(self.temp.name) / "tasks.sqlite3")
+        first_claim = self.repo.claim_ready_steps("worker-a", limit=1)
+        second_claim = second_repo.claim_ready_steps("worker-b", limit=1)
+        self.assertEqual(len(first_claim), 1)
+        self.assertEqual(len(second_claim), 1)
+        self.assertNotEqual(first_claim[0]["step_id"], second_claim[0]["step_id"])
+
     def test_events_are_auditable(self):
         plan = build_plan("Events", "Record events", [{"title": "Do", "objective": "Do it"}])
         created = self.repo.create_plan(plan)
