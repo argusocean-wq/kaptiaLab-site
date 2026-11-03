@@ -97,7 +97,7 @@ class GitHubPlugin:
 
     def connect(self, token: str, *, refresh_token: str | None = None,
                 expires_in: int | None = None, refresh_token_expires_in: int | None = None) -> dict[str, Any]:
-        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\\r\\n"):
+        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\r\n"):
             raise GitHubPluginError("GitHub Token 格式無效。")
         clean_token = token.strip()
         self._request("GET", "/user", token=clean_token)
