@@ -25,7 +25,7 @@ except ImportError:
     from scripts.kaptia_diagnostics import run_diagnostics
     from scripts.kaptia_memory_store import MemoryStore, default_memory_db_path
     from scripts.kaptia_agent_runtime import WorkspaceSandbox, create_agent_plan
-    from plugins.github_plugin import GitHubPlugin, GitHubPluginError
+    from plugins.github_plugin import GitHubPlugin, GitHubPluginError, get_default_plugin
     from plugins.memory_import import parse_memory_file, import_memory_file
 
 def _read_settings():
