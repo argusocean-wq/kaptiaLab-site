@@ -46,19 +46,6 @@ class TaskPlan:
     steps: tuple[StepSpec, ...]
     created_at: str = field(default_factory=utc_now)
 
-    @classmethod
-    def create(cls, title: str, objective: str, steps: tuple[StepSpec, ...]) -> "TaskPlan":
-        return cls(task_id=uuid.uuid4().hex, title=title, objective=objective, steps=steps)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "task_id": self.task_id,
-            "title": self.title,
-            "objective": self.objective,
-            "created_at": self.created_at,
-            "steps": [step.to_dict() for step in self.steps],
-        }
-
 
 @dataclass(frozen=True)
 class ModelRequest:
@@ -75,6 +62,12 @@ class ExecutionResult:
     output: str
     provider_id: str | None = None
     evidence: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.output, str):
+            raise TypeError("ExecutionResult.output 必須是文字")
+        if not isinstance(self.evidence, Mapping):
+            raise TypeError("ExecutionResult.evidence 必須是 mapping")
 
 
 @dataclass(frozen=True)
