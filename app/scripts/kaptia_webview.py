@@ -133,13 +133,13 @@ class Bridge:
             preview=parse_memory_file(path)
             self.pending_memory_import=path
             self.pending_memory_import_digest=preview["source_sha256"]
-            return {"ok":True,"preview":{k:v for k,v in preview.items() if k!="messages"}}
+            return {"ok":True,"preview":{k:v for k,v in preview.items() if k not in {"messages","_conversation_data"}}}
         except Exception as exc:
             self.pending_memory_import=None
             self.pending_memory_import_digest=None
             return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
-    def confirm_memory_import(self,user_confirmed=False):
+    def confirm_memory_import(self,selected_conversation_ids,user_confirmed=False):
         if user_confirmed is not True:
             return {"ok":False,"error":"必須在匯入預覽後明確確認。"}
         if not self.pending_memory_import or not self.pending_memory_import_digest:
@@ -147,7 +147,8 @@ class Bridge:
         path=self.pending_memory_import
         digest=self.pending_memory_import_digest
         try:
-            result=import_memory_file(path,locally_confirmed=True,expected_sha256=digest)
+            result=import_memory_file(path,locally_confirmed=True,expected_sha256=digest,
+                                      selected_conversation_ids=selected_conversation_ids)
             self.pending_memory_import=None
             self.pending_memory_import_digest=None
             result["conversation"]=memory_status()
