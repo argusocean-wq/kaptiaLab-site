@@ -202,6 +202,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   // Background particle interaction is disabled.
   const releasesUrl = "./releases.json";
   const downloadUrl = "./downloads/Kaptia-Setup.exe";
+  const list = document.getElementById("releaseList");
 
   function node(tag, className, value) {
     const el = document.createElement(tag);
@@ -297,13 +298,14 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
       data.releases.slice(0, 5).forEach((release, index) => {
         fragment.appendChild(renderRelease(release, index === 0, index === 0 ? checkedInstaller : null));
       });
+      if (!list) throw new Error("Release list container missing");
       list.replaceChildren(fragment);
       setDownloadReady(Boolean(checkedInstaller),
         checkedInstaller
           ? "目前版本 " + latestTag + " · " + formatBytes(checkedInstaller.size_bytes) + " · 官網下載，SHA-256 可供下載後比對。"
           : "目前無法確認安裝檔與版本資訊一致，為避免提供未驗證檔案，下載已暫停。");
     } catch (_) {
-      list.replaceChildren();
+      if (list) list.replaceChildren();
       const card = node("article", "release-card");
       card.appendChild(node("p", "release-status", "目前無法載入版本資訊。請稍後重新整理本網站。"));
       list.appendChild(card);

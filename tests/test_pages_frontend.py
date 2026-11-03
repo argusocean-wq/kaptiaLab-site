@@ -95,6 +95,11 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertNotIn("GitHub Releases 查看", self.html)
 
 
+    def test_release_loader_has_a_bound_release_list_container(self) -> None:
+        self.assertIn('const list = document.getElementById("releaseList")', self.html)
+        self.assertIn('if (!list) throw new Error("Release list container missing")', self.html)
+        self.assertIn("if (list) list.replaceChildren()", self.html)
+
     def test_language_first_setup_flow_and_hardware_preflight(self) -> None:
         for locale in ("zh-TW", "zh-CN", "en", "ja", "ko"):
             self.assertIn(f'value="{locale}"', self.html)
