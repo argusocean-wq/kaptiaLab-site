@@ -41,6 +41,7 @@ class Bridge:
         self.memory_store=MemoryStore(default_memory_db_path())
         self.github_plugin=GitHubPlugin()
         self.pending_memory_import=None
+        self.pending_memory_import_digest=None
         self.workspace=WorkspaceSandbox()
         self.agent_plans={}
         saved_workspace=_read_settings().get("workspace_root")
@@ -129,23 +130,29 @@ class Bridge:
             path=str(selected[0] if isinstance(selected,(list,tuple)) else selected)
             preview=parse_memory_file(path)
             self.pending_memory_import=path
+            self.pending_memory_import_digest=preview["source_sha256"]
             return {"ok":True,"preview":{k:v for k,v in preview.items() if k!="messages"}}
         except Exception as exc:
             self.pending_memory_import=None
+            self.pending_memory_import_digest=None
             return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
     def confirm_memory_import(self,user_confirmed=False):
         if user_confirmed is not True:
             return {"ok":False,"error":"必須在匯入預覽後明確確認。"}
-        if not self.pending_memory_import:
+        if not self.pending_memory_import or not self.pending_memory_import_digest:
             return {"ok":False,"error":"沒有待確認的記憶匯入。"}
         path=self.pending_memory_import
+        digest=self.pending_memory_import_digest
         try:
-            result=import_memory_file(path,locally_confirmed=True)
+            result=import_memory_file(path,locally_confirmed=True,expected_sha256=digest)
             self.pending_memory_import=None
+            self.pending_memory_import_digest=None
             result["conversation"]=memory_status()
             return result
         except Exception as exc:
+            self.pending_memory_import=None
+            self.pending_memory_import_digest=None
             return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
     def github_install_dependencies(self,user_approved=False):
