@@ -83,6 +83,8 @@ class GitHubPluginTests(unittest.TestCase):
         self.plugin.set_repository("owner/repo")
         with self.assertRaises(GitHubPluginError):
             self.plugin.propose_file_write("README.md", "updated", "update", "main")
+        with self.assertRaises(GitHubPluginError):
+            self.plugin.write_file("README.md", "updated", "update", "main", user_approved=True)
 
 
 if __name__ == "__main__": unittest.main()
