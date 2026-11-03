@@ -36,7 +36,7 @@ def _help_text() -> str:
         if usage != command:
             lines.append(f"{'':12} 用法：{usage}")
     lines.extend(["", "提示：指令不區分大小寫；輸入未知的 / 指令時會提示查看 /help。"])
-    return "\\n".join(lines)
+    return "\n".join(lines)
 
 
 def _status_text(mode: str, subagents_enabled: bool, max_input_chars: int,
@@ -51,7 +51,7 @@ def _status_text(mode: str, subagents_enabled: bool, max_input_chars: int,
         memory_line = f"本機永久記憶：{memory['exchanges']} 段對話、{memory['messages']} 則訊息"
     except Exception as exc:
         memory_line = f"本機永久記憶：讀取失敗（{type(exc).__name__}: {exc}）"
-    return "\\n".join([
+    return "\n".join([
         "Kaptia — 系統狀態",
         f"模型提供者：{provider_label}",
         f"對話模式：{'快速 Fast' if mode == 'fast' else '深度思考 Deep Thinking'}",
@@ -245,10 +245,14 @@ def main() -> int:
         if command == "/status":
             print(_status_text(mode, subagents_enabled, max_input_chars, max_history_chars, history))
             continue
-        if command.startswith("/") and command.split(maxsplit=1)[0] not in {
+        command_name = command.split(maxsplit=1)[0] if command else ""
+        if command.startswith("/") and command_name not in {
             "/exit", "/quit", "/mode", "/memory", "/forget", "/research"
         }:
-            print(f"[Kaptia] 未知指令：{command.split(maxsplit=1)[0]}。輸入 /help 查看可用指令。")
+            print(f"[Kaptia] 未知指令：{command_name}。輸入 /help 查看可用指令。")
+            continue
+        if command_name in {"/exit", "/quit"} and command not in {"/exit", "/quit"}:
+            print("[Kaptia] 用法：/exit")
             continue
         if command in {"/exit", "/quit", "exit", "quit"}:
             print("[Kaptia] 已結束。")
@@ -274,7 +278,10 @@ def main() -> int:
             except ValueError as exc:
                 print(f"[Kaptia] {exc}")
             continue
-        if command == "/memory":
+        if command_name == "/memory":
+            if command != "/memory":
+                print("[Kaptia] 用法：/memory")
+                continue
             try:
                 status = memory_status()
                 print(f"[Kaptia 本機記憶] {status['exchanges']} 段對話、{status['messages']} 則訊息")
@@ -283,7 +290,10 @@ def main() -> int:
             except Exception as exc:
                 print(f"[記憶讀取失敗] {type(exc).__name__}: {exc}", file=sys.stderr)
             continue
-        if command == "/forget":
+        if command_name == "/forget":
+            if command != "/forget":
+                print("[Kaptia] 用法：/forget")
+                continue
             confirm = input("這會刪除此使用者的 Kaptia 本機對話記憶。輸入 DELETE 確認：").strip()
             if confirm == "DELETE":
                 try:
