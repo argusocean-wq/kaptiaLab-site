@@ -333,6 +333,10 @@ class GitHubPlugin:
         if item["kind"] == "create_branch":
             result = self.create_branch(payload["branch"], payload["base_branch"], user_approved=True)
         elif item["kind"] == "write_file":
+            metadata = self._request("GET", f"/repos/{item['repository']}")
+            current_default = metadata.get("default_branch", "")
+            if current_default and payload["branch"] == current_default:
+                raise GitHubPluginError("Repository 預設分支已變更；拒絕直接寫入預設分支。")
             if payload["existing_sha"]:
                 current = self.read_file(payload["path"], payload["branch"])
                 if current["sha"] != payload["existing_sha"]:
