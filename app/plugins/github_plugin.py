@@ -30,7 +30,7 @@ class GitHubPlugin:
     """Narrow GitHub REST client with keyring credentials and approval-gated writes."""
 
     def __init__(self, *, keyring_module=None, opener: Callable | None = None):
-        self._keyring = keyring_module
+        self._keyring_module = keyring_module
         self._opener = opener or urllib.request.urlopen
         self._repository = ""
 
@@ -52,7 +52,7 @@ class GitHubPlugin:
             raise GitHubPluginError("Repository 檔案路徑無效。")
         return path
 
-    def _keyring(self):
+    def _get_keyring(self):
         if self._keyring is not None:
             return self._keyring
         try:
@@ -60,7 +60,7 @@ class GitHubPlugin:
             backend = keyring.get_keyring()
             if getattr(backend, "priority", 0) <= 0:
                 raise GitHubPluginError("目前沒有可用的作業系統憑證保存後端；拒絕明文保存 Token。")
-            self._keyring = keyring
+            self._keyring_module = keyring
             return keyring
         except GitHubPluginError:
             raise
@@ -73,14 +73,14 @@ class GitHubPlugin:
         # Verify the credential before persisting it.
         self._request("GET", "/user", token=token.strip())
         try:
-            self._keyring().set_password(SERVICE_NAME, "github-token", token.strip())
+            self._get_keyring().set_password(SERVICE_NAME, "github-token", token.strip())
         except Exception as exc:
             raise GitHubPluginError("無法安全保存 Token；未改用明文檔案保存。") from exc
         return {"ok": True, "connected": True, "storage": "OS Credential Manager"}
 
     def disconnect(self) -> dict[str, Any]:
         try:
-            self._keyring().delete_password(SERVICE_NAME, "github-token")
+            self._get_keyring().delete_password(SERVICE_NAME, "github-token")
         except Exception:
             pass
         self._repository = ""
@@ -92,7 +92,7 @@ class GitHubPlugin:
 
     def _token(self) -> str:
         try:
-            token = self._keyring().get_password(SERVICE_NAME, "github-token")
+            token = self._get_keyring().get_password(SERVICE_NAME, "github-token")
         except Exception as exc:
             raise GitHubPluginError("無法讀取 OS Credential Manager 中的 GitHub Token。") from exc
         if not token:
