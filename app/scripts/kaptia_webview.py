@@ -16,6 +16,8 @@ try:
     from kaptia_diagnostics import run_diagnostics
     from kaptia_memory_store import MemoryStore, default_memory_db_path
     from kaptia_agent_runtime import WorkspaceSandbox, create_agent_plan
+    from plugins.github_plugin import GitHubPlugin, GitHubPluginError
+    from plugins.memory_import import parse_memory_file, import_memory_file
 except ImportError:
     from scripts.kaptia_calendar import CalendarStore, default_calendar_path
     from scripts.kaptia_personal_memory import memory_status, load_recent_messages, append_exchange, list_conversation_archives, read_conversation_archive, search_conversation_archives, restore_conversation_archive
@@ -23,6 +25,8 @@ except ImportError:
     from scripts.kaptia_diagnostics import run_diagnostics
     from scripts.kaptia_memory_store import MemoryStore, default_memory_db_path
     from scripts.kaptia_agent_runtime import WorkspaceSandbox, create_agent_plan
+    from plugins.github_plugin import GitHubPlugin, GitHubPluginError
+    from plugins.memory_import import parse_memory_file, import_memory_file
 
 def _read_settings():
     try:
@@ -35,6 +39,8 @@ class Bridge:
     def __init__(self):
         self.store=CalendarStore(default_calendar_path())
         self.memory_store=MemoryStore(default_memory_db_path())
+        self.github_plugin=GitHubPlugin()
+        self.pending_memory_import=None
         self.workspace=WorkspaceSandbox()
         self.agent_plans={}
         saved_workspace=_read_settings().get("workspace_root")
@@ -112,6 +118,75 @@ class Bridge:
             return {"ok":True,"fact":fact,"status":self.memory_store.status()}
         except Exception as exc:
             return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def select_memory_import(self):
+        try:
+            if not webview.windows:return {"ok":False,"error":"桌面視窗尚未就緒"}
+            selected=webview.windows[0].create_file_dialog(
+                webview.OPEN_DIALOG,allow_multiple=False,
+                file_types=("Memory exports (*.json;*.jsonl;*.md;*.txt)", "All files (*.*)"))
+            if not selected:return {"ok":False,"cancelled":True}
+            path=str(selected[0] if isinstance(selected,(list,tuple)) else selected)
+            preview=parse_memory_file(path)
+            self.pending_memory_import=path
+            return {"ok":True,"preview":{k:v for k,v in preview.items() if k!="messages"}}
+        except Exception as exc:
+            self.pending_memory_import=None
+            return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def confirm_memory_import(self,user_confirmed=False):
+        if user_confirmed is not True:
+            return {"ok":False,"error":"必須在匯入預覽後明確確認。"}
+        if not self.pending_memory_import:
+            return {"ok":False,"error":"沒有待確認的記憶匯入。"}
+        path=self.pending_memory_import
+        try:
+            result=import_memory_file(path,locally_confirmed=True)
+            self.pending_memory_import=None
+            result["conversation"]=memory_status()
+            return result
+        except Exception as exc:
+            return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_connect(self,token):
+        try:return self.github_plugin.connect(str(token))
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_disconnect(self):
+        try:return self.github_plugin.disconnect()
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_repositories(self):
+        try:return {"ok":True,"repositories":self.github_plugin.list_repositories()}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_select_repository(self,repository):
+        try:return {"ok":True,**self.github_plugin.set_repository(str(repository))}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_branches(self):
+        try:return {"ok":True,"branches":self.github_plugin.list_branches()}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_read_file(self,path,branch=None):
+        try:return {"ok":True,**self.github_plugin.read_file(str(path),str(branch) if branch else None)}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_create_branch(self,branch,base_branch,user_approved=False):
+        try:return {"ok":True,"result":self.github_plugin.create_branch(str(branch),str(base_branch),user_approved=user_approved is True)}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_write_file(self,path,content,message,branch,existing_sha=None,user_approved=False):
+        try:return {"ok":True,"result":self.github_plugin.write_file(str(path),str(content),str(message),str(branch),existing_sha=str(existing_sha) if existing_sha else None,user_approved=user_approved is True)}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_create_pull_request(self,title,body,head,base,user_approved=False):
+        try:return {"ok":True,"result":self.github_plugin.create_pull_request(str(title),str(body),str(head),str(base),user_approved=user_approved is True)}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_workflow_runs(self,branch=None):
+        try:return {"ok":True,"runs":self.github_plugin.workflow_runs(str(branch) if branch else None)}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
     def resolve_memory_conflict(self,fact_id,decision):
         try:
