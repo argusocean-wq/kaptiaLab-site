@@ -43,6 +43,7 @@
  <button class="rail-btn active" title="對話" data-page="chat">◫</button>
  <button class="rail-btn" title="行事曆" data-page="calendar">▦</button>
  <button class="rail-btn" title="記憶" data-page="memory">◇</button>
+ <button class="rail-btn" title="GitHub 專案" data-page="github">⌘</button>
  <button class="rail-btn" title="Attach 桌面連線" data-page="attach">▣</button>
  <button class="rail-btn" title="Cloud Compute" data-page="cloud">☁</button>
  <button class="rail-btn" title="設定" data-page="settings">⚙</button>
@@ -53,6 +54,7 @@
  <button class="side-action active" data-page="chat"><span>＋</span> 新對話</button>
  <button class="side-action" data-page="calendar"><span>▦</span> 行事曆</button>
  <button class="side-action" data-page="memory"><span>◇</span> 個人記憶</button>
+ <button class="side-action" data-page="github"><span>⌘</span> GitHub 專案</button>
  <button class="side-action" data-page="attach"><span>▣</span> Attach 桌面連線</button>
  <button class="side-action" data-page="cloud"><span>☁</span> Cloud Compute</button>
  <button class="side-action" data-page="workspace"><span>⌘</span> 工作區 Agent</button>
@@ -86,8 +88,17 @@
  <section class="page" id="memory">
   <h2>個人記憶</h2><div class="page-intro">只有你確認保存的資訊會進入模型上下文。不同內容發生衝突時，Kaptia 會先等待你決定，不會自行覆蓋舊記憶。</div>
   <div class="settings-card"><h3>新增已確認記憶</h3><div class="field"><label>分類</label><select id="memory-category"><option value="preference">偏好</option><option value="project">專案</option><option value="workflow">工作流程</option><option value="profile">一般資訊</option><option value="knowledge">知識</option></select></div><div class="field"><label>記憶名稱</label><input id="memory-key" maxlength="120" placeholder="例如：主要開發工具"></div><div class="field"><label>記憶內容</label><textarea id="memory-value" maxlength="1000" rows="3" placeholder="例如：主要使用 VS Code"></textarea></div><div class="field"><label>適用範圍</label><input id="memory-scope" maxlength="100" value="global" placeholder="global 或專案名稱"></div><button class="primary" id="add-memory">保存記憶</button><div class="info-note">記憶會保存在此 Windows 使用者的本機 SQLite 資料庫，不會自動上傳。新增內容視為使用者確認資訊。</div></div>
+  <div class="settings-card"><h3>匯入其他 AI 的記憶</h3><p>支援 ChatGPT conversations.json、通用 JSON／JSONL、Markdown 與 TXT。匯入前會顯示預覽，確認後才寫入本機對話記憶。</p><button class="secondary" id="select-memory-import">選擇記憶檔案</button><div id="memory-import-preview" class="info-note" style="margin-top:10px">尚未選擇匯入檔案。</div><button class="primary" id="confirm-memory-import" style="display:none;margin-top:10px">確認匯入</button></div>
   <div class="settings-card"><h3>記憶清單</h3><div id="memory-count" class="info-note">載入中…</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button class="secondary" id="compact-memory">備份並最佳化資料庫</button><span id="memory-storage" class="info-note"></span></div><div id="memory-facts">正在載入記憶…</div></div>
   <div class="settings-card"><h3>歷史對話封存</h3><p>超出近期記憶容量的完整對話會保存在本機壓縮檔。你可以瀏覽、搜尋及查看封存內容。還原會先把目前近期對話另存為封存，再將選定封存載入近期記憶；原始封存檔會保留。</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><input id="archive-search" placeholder="搜尋封存對話內容…" maxlength="200" style="flex:1;min-width:180px;background:#191c1d;color:var(--text);border:1px solid #424849;border-radius:7px;padding:9px"><button class="secondary" id="archive-search-button">搜尋</button><button class="secondary" id="archive-list-button">顯示全部</button><button class="secondary" id="archive-prev">上一頁</button><button class="secondary" id="archive-next">下一頁</button></div><div id="archive-summary" class="info-note">載入封存清單…</div><div id="archive-list"></div><div id="archive-detail" style="margin-top:14px"></div></div>
+ </section>
+ <section class="page" id="github">
+  <h2>GitHub 專案</h2><div class="page-intro">讓 Kaptia 讀取並修改你授權的 Repository。所有寫入操作都必須逐次確認；預設只建立功能分支與 Draft Pull Request，不會自動合併。</div>
+  <div class="settings-card"><h3>連接 GitHub</h3><p>使用 Fine-grained Personal Access Token。建議只授權指定 Repository，權限包含 Metadata: Read、Contents: Read and write、Pull requests: Read and write；檢查 CI 另需 Actions: Read。Token 只保存於 Windows Credential Manager。</p><button class="secondary" id="install-github-plugin">安裝 GitHub 外掛元件</button><div class="field"><label>GitHub Token</label><input id="github-token" type="password" autocomplete="off" placeholder="貼上 Fine-grained Personal Access Token"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" id="github-connect">連接 GitHub</button><button class="secondary" id="github-disconnect">中斷連接</button></div><div id="github-status" class="info-note" style="margin-top:10px">尚未連接。</div></div>
+  <div class="settings-card"><h3>Repository</h3><div class="field"><label>已授權的 Repository</label><select id="github-repository"><option value="">請先連接 GitHub</option></select></div><div class="field"><label>目標 Branch</label><select id="github-branch"><option value="">請先選擇 Repository</option></select></div><div class="field"><label>新 Branch 名稱</label><input id="github-new-branch" placeholder="例如：feature/kaptia-update"></div><button class="secondary" id="github-create-branch">建立功能分支</button></div>
+  <div class="settings-card"><h3>讀取與編輯檔案</h3><div class="field"><label>Repository 相對路徑</label><input id="github-file-path" placeholder="例如：README.md"></div><button class="secondary" id="github-read-file">讀取檔案</button><div class="field"><label>檔案內容（UTF-8，最大 1 MB）</label><textarea id="github-file-content" rows="12" placeholder="讀取檔案後在此編輯；新增檔案也可直接輸入內容。"></textarea></div><div class="field"><label>Commit Message</label><input id="github-commit-message" value="Update project file"></div><button class="primary" id="github-save-file">確認並提交檔案修改</button><div id="github-file-status" class="info-note" style="margin-top:10px"></div></div>
+  <div class="settings-card"><h3>Draft Pull Request</h3><div class="field"><label>標題</label><input id="github-pr-title" placeholder="Describe the change"></div><div class="field"><label>內容</label><textarea id="github-pr-body" rows="3" placeholder="變更摘要、測試結果與風險"></textarea></div><div class="field"><label>Head Branch</label><input id="github-pr-head" placeholder="feature/..."></div><div class="field"><label>Base Branch</label><input id="github-pr-base" placeholder="main"></div><button class="secondary" id="github-create-pr">建立 Draft PR</button><div id="github-pr-status" class="info-note" style="margin-top:10px"></div></div>
+  <div class="settings-card"><h3>GitHub Actions</h3><button class="secondary" id="github-check-runs">檢查最近 CI</button><pre id="github-runs" style="white-space:pre-wrap;max-height:240px;overflow:auto;color:#cbd0d0"></pre></div>
  </section>
  <section class="page" id="workspace">
   <h2>工作區 Agent</h2><div class="page-intro">Agent 可以規劃任務、讀取你選定的工作區，以及提出檔案修改。讀取權限只在本次執行期間有效；每次寫入都必須預覽並由你確認。此版本不提供 Shell 或任意命令執行。</div>
@@ -154,7 +165,7 @@
 <script>
 const $=id=>document.getElementById(id);let busy=false;let activePage='chat';let archiveOffset=0,archiveTotal=0,archiveDetailId='',archiveDetailOffset=0;
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2600)}
-function switchPage(name){activePage=name;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===name));$('chat-layout').style.display=name==='chat'?'grid':'none';if(name==='workspace')loadWorkspaceStatus();if(name==='attach'){scanAttachApps();refreshAttachSessions();refreshAttachPending();refreshAttachVisionStatus();}document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===name));$('top-title').textContent=({chat:'新對話',calendar:'行事曆',memory:'個人記憶',workspace:'工作區 Agent',attach:'Attach 桌面連線',settings:'設定',about:'關於'})[name]||'Kaptia';if(name==='memory'){loadMemoryFacts();loadConversationArchives()}}
+function switchPage(name){activePage=name;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===name));$('chat-layout').style.display=name==='chat'?'grid':'none';if(name==='workspace')loadWorkspaceStatus();if(name==='attach'){scanAttachApps();refreshAttachSessions();refreshAttachPending();refreshAttachVisionStatus();}if(name==='github')loadGitHubRepositories();document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===name));$('top-title').textContent=({chat:'新對話',calendar:'行事曆',memory:'個人記憶',github:'GitHub 專案',workspace:'工作區 Agent',attach:'Attach 桌面連線',settings:'設定',about:'關於'})[name]||'Kaptia';if(name==='memory'){loadMemoryFacts();loadConversationArchives()}}
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.page)));
 document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{$('chat-input').value=b.dataset.prompt;$('chat-input').focus()}));
 const attachSessions=new Map();
@@ -186,6 +197,85 @@ $('workspace-read').onchange=async()=>{const r=await call('set_workspace_read',$
 function renderAgentPlan(plan){const root=$('agent-plan-list');root.textContent='';const heading=document.createElement('div');heading.className='info-value';heading.textContent='目標：'+plan.goal;root.append(heading);plan.steps.forEach(step=>{const card=document.createElement('div');card.className='event-row';card.style.flexDirection='column';card.style.alignItems='stretch';const title=document.createElement('strong');title.textContent=step.id+' · '+step.action;const reason=document.createElement('div');reason.textContent=step.reason;reason.style.color='#aeb5b6';const run=memoryButton('執行此步驟',async()=>{run.disabled=true;const r=await call('execute_agent_step',plan.plan_id,step.id);run.disabled=false;if(!r?.ok){toast(r?.error||'步驟執行失敗');return}const out=document.createElement('pre');out.style.whiteSpace='pre-wrap';out.style.maxHeight='260px';if(step.action==='propose_write'){out.textContent=r.result.preview||'沒有差異';const apply=memoryButton('確認並套用檔案修改',async()=>{if(!confirm('即將修改 '+r.result.path+'。已檢查檔案是否在預覽後變更，並會備份原始內容。確定套用？'))return;apply.disabled=true;const a=await call('apply_agent_change',r.result.change_id,true);apply.disabled=false;if(a?.ok){out.textContent+='\n\n已套用。SHA-256：'+a.sha256;apply.remove();}else toast(a?.error||'套用失敗')});card.append(title,reason,run,out,apply);return}out.textContent=JSON.stringify(r.result,null,2).slice(0,12000);card.append(title,reason,run,out)});card.append(title,reason,run);root.append(card)});const finish=memoryButton('整合目前執行結果',async()=>{finish.disabled=true;const r=await call('finish_agent_plan',plan.plan_id);finish.disabled=false;$('agent-result').textContent=r?.answer||r?.error||'整合失敗'});root.append(finish)}
 $('create-agent-plan').onclick=async()=>{const task=$('agent-task').value.trim();if(!task)return toast('請輸入任務目標');$('create-agent-plan').disabled=true;$('agent-plan-list').textContent='正在建立計畫…';const r=await call('create_agent_plan',task);$('create-agent-plan').disabled=false;if(!r?.ok){$('agent-plan-list').textContent=r?.error||'建立計畫失敗';return}renderAgentPlan(r.plan)};
 async function loadMemoryFacts(){const r=await call('list_memory_facts');if(!r?.ok){$('memory-facts').textContent=r?.error||'無法讀取記憶';return}const s=r.status||{};$('memory-count').textContent='已確認 '+(s.active||0)+' 條 · 待確認 '+(s.review||0)+' 條 · 已封存 '+(s.archived||0)+' 條';$('memory-state').textContent=(s.active||0)+' 條已確認記憶 · '+(s.review||0)+' 項待確認';const root=$('memory-facts');root.textContent='';if(!r.facts.length){root.textContent='尚未建立結構化記憶'}else r.facts.forEach(f=>{const card=document.createElement('div');card.className='event-row';card.style.alignItems='flex-start';card.style.flexDirection='column';card.style.gap='8px';const title=document.createElement('strong');title.textContent='['+f.category+'] '+f.fact_key+' · '+f.status;const value=document.createElement('div');value.textContent=f.fact_value+'（範圍：'+f.scope+'；來源：'+f.source+'）';value.style.color='#aeb5b6';card.append(title,value);if(f.status==='review'){const conflict=document.createElement('div');conflict.textContent='與既有記憶衝突：'+(f.conflict_key||'')+' → '+(f.conflict_value||'');conflict.style.color='#d6b98a';card.append(conflict);const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='8px';actions.append(memoryButton('採用新記憶',async()=>{const x=await call('resolve_memory_conflict',f.fact_id,'keep_new');toast(x?.ok?'已採用新記憶':x?.error||'處理失敗');loadMemoryFacts()}),memoryButton('保留舊記憶',async()=>{const x=await call('resolve_memory_conflict',f.fact_id,'keep_existing');toast(x?.ok?'已保留舊記憶':x?.error||'處理失敗');loadMemoryFacts()}));card.append(actions)}else if(f.status==='active'){card.append(memoryButton('封存',async()=>{const x=await call('archive_memory_fact',f.fact_id);toast(x?.ok?'已封存記憶':'封存失敗');loadMemoryFacts()}))}else if(f.status==='archived'||f.status==='superseded'){card.append(memoryButton('還原至活躍記憶',async()=>{const x=await call('restore_memory_fact',f.fact_id);toast(x?.ok?'已還原記憶':x?.error||'還原失敗');loadMemoryFacts()}))}root.append(card)});const conversation=r.conversation||{};$('memory-storage').textContent='SQLite '+formatBytes(s.bytes||0)+' · WAL '+formatBytes(s.wal_bytes||0)+' · 對話封存 '+(conversation.archive_files||0)+' 個 / '+formatBytes(conversation.archive_bytes||0)}
+async function selectMemoryImport(){
+ const preview=$('memory-import-preview'),confirmButton=$('confirm-memory-import');
+ confirmButton.style.display='none';preview.textContent='請選擇檔案…';
+ const r=await call('select_memory_import');
+ if(!r?.ok){preview.textContent=r?.cancelled?'已取消選擇':(r?.error||'無法預覽檔案');return}
+ const p=r.preview;preview.textContent='來源：'+p.source_name+'\nSHA-256：'+p.source_sha256+'\n訊息：'+p.count+'（使用者 '+p.user_messages+'／助理 '+p.assistant_messages+'）\n\n'+p.preview.map(x=>'['+x.role+'] '+x.content).join('\n\n');
+ confirmButton.style.display='inline-block';
+}
+$('select-memory-import').onclick=selectMemoryImport;
+$('confirm-memory-import').onclick=async()=>{
+ if(!window.confirm('確認將預覽中的對話匯入 Kaptia 本機記憶？匯入文字只會作為對話資料，不會成為系統指令。'))return;
+ const b=$('confirm-memory-import');b.disabled=true;
+ const r=await call('confirm_memory_import',true);b.disabled=false;
+ if(!r?.ok){toast(r?.error||'匯入失敗');return}
+ $('memory-import-preview').textContent='匯入完成：新增 '+r.imported+' 則，重複略過 '+r.duplicates+' 則。';
+ b.style.display='none';loadMemoryFacts();loadConversationArchives();toast('記憶匯入完成');
+};
+
+async function loadGitHubRepositories(){
+ const select=$('github-repository');const r=await call('github_repositories');
+ if(!r?.ok){$('github-status').textContent=r?.error||'尚未連接 GitHub';return}
+ select.textContent='';r.repositories.forEach(repo=>{const o=document.createElement('option');o.value=repo.full_name;o.textContent=repo.full_name+(repo.private?' · private':' · public');select.append(o)});
+ $('github-status').textContent='已連接；取得 '+r.repositories.length+' 個 Repository。';
+ if(r.repositories.length){await selectGitHubRepository();}else select.innerHTML='<option value="">此 Token 沒有可存取的 Repository</option>';
+}
+async function selectGitHubRepository(){
+ const name=$('github-repository').value;if(!name)return;
+ const selected=await call('github_select_repository',name);if(!selected?.ok){$('github-status').textContent=selected?.error||'Repository 選擇失敗';return}
+ const r=await call('github_branches');const select=$('github-branch');select.textContent='';
+ if(!r?.ok){$('github-status').textContent=r?.error||'無法讀取 Branch';return}
+ r.branches.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;select.append(o)});
+ $('github-pr-base').value=select.value||'main';$('github-status').textContent='目前 Repository：'+name+' · '+r.branches.length+' 個 Branch';
+}
+$('install-github-plugin').onclick=async()=>{
+ if(!window.confirm('安裝 GitHub 插件所需的 keyring 套件？套件將透過 pip 從 PyPI 下載。'))return;
+ const r=await call('github_install_dependencies',true);toast(r?.ok?'GitHub 外掛元件安裝完成':(r?.error||'安裝失敗'));
+};
+$('github-connect').onclick=async()=>{
+ const token=$('github-token').value.trim();if(!token)return toast('請輸入 GitHub Token');
+ const b=$('github-connect');b.disabled=true;$('github-status').textContent='正在驗證並安全保存 Token…';
+ const r=await call('github_connect',token);b.disabled=false;$('github-token').value='';
+ if(!r?.ok){$('github-status').textContent=r?.error||'連接失敗';return}
+ $('github-status').textContent='Token 已驗證並保存於 Windows Credential Manager。';await loadGitHubRepositories();
+};
+$('github-disconnect').onclick=async()=>{const r=await call('github_disconnect');$('github-status').textContent=r?.ok?'已中斷連接並移除保存的 Token。':(r?.error||'中斷失敗');$('github-repository').innerHTML='<option value="">請重新連接</option>';$('github-branch').innerHTML=''};
+$('github-repository').onchange=selectGitHubRepository;
+$('github-create-branch').onclick=async()=>{
+ const branch=$('github-new-branch').value.trim(),base=$('github-branch').value;if(!branch||!base)return toast('請輸入新 Branch 名稱並選擇基準 Branch');
+ if(!window.confirm('確認在 '+$('github-repository').value+' 建立 '+branch+'（基於 '+base+'）？'))return;
+ const r=await call('github_create_branch',branch,base,true);if(!r?.ok){toast(r?.error||'建立 Branch 失敗');return}
+ toast('功能分支已建立');await selectGitHubRepository();$('github-branch').value=branch;$('github-pr-head').value=branch;$('github-pr-base').value=base;
+};
+let githubCurrentFileSha=null;
+$('github-read-file').onclick=async()=>{
+ const path=$('github-file-path').value.trim(),branch=$('github-branch').value;if(!path||!branch)return toast('請輸入檔案路徑並選擇 Branch');
+ const r=await call('github_read_file',path,branch);if(!r?.ok){githubCurrentFileSha=null;$('github-file-status').textContent=r?.error||'讀取失敗';return}
+ githubCurrentFileSha=r.sha;$('github-file-content').value=r.content;$('github-file-status').textContent='已讀取 '+r.path+' · SHA '+r.sha;
+};
+$('github-save-file').onclick=async()=>{
+ const path=$('github-file-path').value.trim(),branch=$('github-branch').value,content=$('github-file-content').value,message=$('github-commit-message').value.trim();
+ if(!path||!branch||!message)return toast('請確認路徑、Branch 與 Commit Message');
+ if(!window.confirm('即將提交修改：\n'+$('github-repository').value+'\n'+branch+'\n'+path+'\n\n這會直接建立 Git Commit。確認？'))return;
+ const b=$('github-save-file');b.disabled=true;
+ const r=await call('github_write_file',path,content,message,branch,githubCurrentFileSha,true);b.disabled=false;
+ if(!r?.ok){$('github-file-status').textContent=r?.error||'提交失敗';return}
+ githubCurrentFileSha=r.result?.content?.sha||null;$('github-file-status').textContent='提交成功。Commit：'+(r.result?.commit?.sha||'已建立');toast('GitHub 檔案已更新');
+};
+$('github-create-pr').onclick=async()=>{
+ const title=$('github-pr-title').value.trim(),body=$('github-pr-body').value,head=$('github-pr-head').value.trim(),base=$('github-pr-base').value.trim();
+ if(!title||!head||!base)return toast('請填寫 PR 標題、Head 與 Base Branch');
+ if(!window.confirm('確認建立 Draft Pull Request？\n'+head+' → '+base))return;
+ const r=await call('github_create_pull_request',title,body,head,base,true);
+ $('github-pr-status').textContent=r?.ok?(r.result?.html_url||r.result?.url||'Draft PR 已建立'):(r?.error||'建立失敗');
+};
+$('github-check-runs').onclick=async()=>{
+ const r=await call('github_workflow_runs',$('github-branch').value||null);
+ $('github-runs').textContent=r?.ok?JSON.stringify(r.runs,null,2):(r?.error||'無法讀取 CI');
+};
+
 function formatBytes(n){if(n<1024)return n+' B';if(n<1024*1024)return (n/1024).toFixed(1)+' KB';return (n/1024/1024).toFixed(2)+' MB'}
 
 async function loadConversationArchives(offset=archiveOffset){
