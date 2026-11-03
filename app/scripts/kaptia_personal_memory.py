@@ -341,13 +341,13 @@ def import_messages(messages: list[dict], *, source_ref: str, locally_confirmed:
     path.parent.mkdir(parents=True, exist_ok=True)
     rows = _read_rows()
     known = {
-        hashlib.sha256((row["role"] + "\\0" + row["content"]).encode("utf-8")).hexdigest()
+        hashlib.sha256((row["role"] + "\0" + row["content"]).encode("utf-8")).hexdigest()
         for row in rows
     }
     now = datetime.now(timezone.utc).isoformat()
     added = []
     for item in incoming:
-        digest = hashlib.sha256((item["role"] + "\\0" + item["content"]).encode("utf-8")).hexdigest()
+        digest = hashlib.sha256((item["role"] + "\0" + item["content"]).encode("utf-8")).hexdigest()
         if digest in known:
             continue
         known.add(digest)
@@ -363,12 +363,12 @@ def import_messages(messages: list[dict], *, source_ref: str, locally_confirmed:
         overflow = rows[:2] if len(rows) >= 2 else rows[:]
         _archive_rows(overflow)
         rows = rows[len(overflow):]
-    encoded = "".join(json.dumps(row, ensure_ascii=False) + "\\n" for row in rows)
+    encoded = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows)
     while rows and len(encoded.encode("utf-8")) > MAX_FILE_BYTES:
         overflow = rows[:2] if len(rows) >= 2 else rows[:]
         _archive_rows(overflow)
         rows = rows[len(overflow):]
-        encoded = "".join(json.dumps(row, ensure_ascii=False) + "\\n" for row in rows)
+        encoded = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows)
     temp = path.with_suffix(".jsonl.tmp")
     temp.write_text(encoded, encoding="utf-8", newline="\n")
     temp.replace(path)
