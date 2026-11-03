@@ -31,9 +31,11 @@ class VerificationEngine:
                 detail = "輸出必須非空"
             elif kind == "contains_all":
                 values = spec.get("values")
-                valid = isinstance(values, list) and all(isinstance(x, str) and x for x in values)
+                valid = isinstance(values, list) and bool(values) and all(
+                    isinstance(x, str) and x for x in values
+                )
                 passed = valid and all(value in output for value in values)
-                detail = "輸出必須包含所有指定字串" if valid else "values 格式無效"
+                detail = "輸出必須包含所有指定字串" if valid else "values 必須是非空字串清單"
             elif kind == "max_chars":
                 limit = spec.get("value")
                 valid = isinstance(limit, int) and not isinstance(limit, bool) and 1 <= limit <= 200000
