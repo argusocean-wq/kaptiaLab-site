@@ -251,10 +251,10 @@ class GitHubPlugin:
                              payload={"title": title.strip(), "body": body, "head": head, "base": base, "draft": True})
 
     def _queue_proposal(self, kind: str, payload: dict[str, Any], preview: dict[str, Any]) -> dict[str, Any]:
-        if not self._repository:
-            raise GitHubPluginError("請先在 Desktop 選擇 Repository。")
         now = datetime.now(timezone.utc)
         with self._proposal_lock:
+            if not self._repository:
+                raise GitHubPluginError("請先在 Desktop 選擇 Repository。")
             for key in [k for k, v in self._pending_proposals.items()
                         if datetime.fromisoformat(v["expires_at"]) <= now and v["status"] == "pending"]:
                 del self._pending_proposals[key]
