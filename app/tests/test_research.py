@@ -49,6 +49,13 @@ class ResearchTests(unittest.TestCase):
         r=e.run("topic",budget=ResearchBudget(max_rounds=5,max_searches=1))
         self.assertEqual(r.stop_reason,"no_new_queries"); self.assertEqual(s.calls,["topic"])
     def test_invalid_budgets_rejected(self):
-        with self.assertRaises(ValueError): ResearchBudget(max_rounds=0)
+        for kwargs in ({"max_rounds":0},{"max_rounds":1.5},{"max_energy_wh":float("nan")}):
+            with self.assertRaises(ValueError): ResearchBudget(**kwargs)
+    def test_model_review_cannot_bypass_minimum_evidence(self):
+        url="https://alpha.example/a"
+        e,_=self.engine({"topic":[SearchHit("A",url)]},{url:mkpage(url,"A")},[ResearchReview(True)])
+        report=e.run("topic",min_sources=3,min_domains=2)
+        self.assertFalse(report.passed)
+        self.assertEqual(report.stop_reason,"insufficient_evidence_no_followups")
 
 if __name__=="__main__": unittest.main()
