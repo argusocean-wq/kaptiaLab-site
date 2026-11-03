@@ -100,6 +100,10 @@ def _research_query(user_text: str) -> str | None:
 
 def _run_research(generate, query: str) -> tuple[str, dict]:
     """Run the opt-in, bounded Qwen-backed web research pipeline."""
+    from pathlib import Path
+    app_root = str(Path(__file__).resolve().parents[1])
+    if app_root not in sys.path:
+        sys.path.insert(0, app_root)
     from core_foundation import ResearchBudget
     try:
         from kaptia_research_runtime import build_research_runtime
