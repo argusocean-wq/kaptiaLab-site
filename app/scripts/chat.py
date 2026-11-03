@@ -14,6 +14,54 @@ MAX_HISTORY_MESSAGES = 10
 DEFAULT_RESPONSE_TOKENS = 320
 DETAILED_RESPONSE_TOKENS = 768
 
+# Single source of truth for interactive CLI commands. Keep this list aligned
+# with the dispatch logic in main(); /help is generated from these entries.
+COMMANDS = (
+    ("/help", "顯示所有可用指令", "/help"),
+    ("/mode", "查看或切換快速／深度思考模式", "/mode [fast|deep]"),
+    ("/research", "啟動有預算限制的網路研究", "/research <研究問題>"),
+    ("/memory", "查看本機對話記憶狀態與儲存位置", "/memory"),
+    ("/forget", "清除本機永久對話記憶（需要確認）", "/forget"),
+    ("/clear", "清除目前工作階段的對話上下文，不刪除永久記憶", "/clear"),
+    ("/status", "查看目前執行設定與記憶狀態", "/status"),
+    ("/exit", "結束 Kaptia（/quit 同義）", "/exit"),
+)
+
+
+def _help_text() -> str:
+    """Render help from the central command registry."""
+    lines = ["Kaptia — 可用指令", ""]
+    for command, description, usage in COMMANDS:
+        lines.append(f"{command:<12} {description}")
+        if usage != command:
+            lines.append(f"{'':12} 用法：{usage}")
+    lines.extend(["", "提示：指令不區分大小寫；輸入未知的 / 指令時會提示查看 /help。"])
+    return "\\n".join(lines)
+
+
+def _status_text(mode: str, subagents_enabled: bool, max_input_chars: int,
+                 max_history_chars: int, history: list[dict[str, str]]) -> str:
+    """Build a truthful snapshot from current runtime configuration."""
+    provider = os.environ.get("KAPTIA_PROVIDER", "local").strip().lower()
+    provider_label = "OpenAI-compatible 外接 API" if provider in {
+        "api", "openai-compatible", "openai_compatible"
+    } else ("本機模型" if provider == "local" else f"未知設定（{provider}）")
+    try:
+        memory = memory_status()
+        memory_line = f"本機永久記憶：{memory['exchanges']} 段對話、{memory['messages']} 則訊息"
+    except Exception as exc:
+        memory_line = f"本機永久記憶：讀取失敗（{type(exc).__name__}: {exc}）"
+    return "\\n".join([
+        "Kaptia — 系統狀態",
+        f"模型提供者：{provider_label}",
+        f"對話模式：{'快速 Fast' if mode == 'fast' else '深度思考 Deep Thinking'}",
+        f"子代理：{'啟用' if subagents_enabled else '停用'}",
+        f"輸入上限：{max_input_chars:,} 字元",
+        f"歷史預算：{max_history_chars:,} 字元",
+        f"目前工作階段：{len(history)} 則訊息",
+        memory_line,
+    ])
+
 
 def _env_limit(name: str, default: int, minimum: int, maximum: int) -> int:
     """Read an integer environment setting safely and clamp it to documented bounds."""
@@ -165,7 +213,7 @@ def main() -> int:
         mode = normalize_mode(os.environ.get("KAPTIA_MODE", "fast"))
     except ValueError:
         mode = "fast"
-    print("[Kaptia] 已就緒。預設快速模式。輸入 /mode fast 或 /mode deep 切換；/exit 離開；/memory 查看本機記憶；/forget 清除本機對話記憶。")
+    print("[Kaptia] 已就緒。輸入 /help 查看所有可用指令。")
     print(
         f"[Kaptia] 輸入上限 {max_input_chars:,} 字元；"
         f"歷史預算 {max_history_chars:,} 字元；"
@@ -186,7 +234,22 @@ def main() -> int:
         except (EOFError, KeyboardInterrupt):
             print("\n[Kaptia] 已結束。")
             break
-        command = user_text.lower()
+        command = user_text.strip().lower()
+        if command == "/help":
+            print(_help_text())
+            continue
+        if command == "/clear":
+            history.clear()
+            print("[Kaptia] 目前工作階段的對話上下文已清除；本機永久記憶未變更。")
+            continue
+        if command == "/status":
+            print(_status_text(mode, subagents_enabled, max_input_chars, max_history_chars, history))
+            continue
+        if command.startswith("/") and command.split(maxsplit=1)[0] not in {
+            "/exit", "/quit", "/mode", "/memory", "/forget", "/research"
+        }:
+            print(f"[Kaptia] 未知指令：{command.split(maxsplit=1)[0]}。輸入 /help 查看可用指令。")
+            continue
         if command in {"/exit", "/quit", "exit", "quit"}:
             print("[Kaptia] 已結束。")
             break
@@ -195,11 +258,14 @@ def main() -> int:
             if not query:
                 print("[Kaptia] 用法：/research 你的研究問題")
                 continue
-        if command in {"/mode", "/mode fast", "/mode deep"}:
+        if command == "/mode" or command.startswith("/mode "):
             requested = command.split(maxsplit=1)[1] if " " in command else ""
             if not requested:
                 label = "快速 Fast" if mode == "fast" else "深度思考 Deep Thinking"
                 print(f"[Kaptia] 目前模式：{label}。使用 /mode fast 或 /mode deep 切換。")
+                continue
+            if requested not in {"fast", "deep"}:
+                print("[Kaptia] 用法：/mode fast 或 /mode deep")
                 continue
             try:
                 mode = normalize_mode(requested)
