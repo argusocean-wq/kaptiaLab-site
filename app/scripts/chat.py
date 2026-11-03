@@ -16,9 +16,49 @@ DETAILED_RESPONSE_TOKENS = 768
 
 # Single source of truth for interactive CLI commands. Keep this list aligned
 # with the dispatch logic in main(); /help is generated from these entries.
+SPECIALIST_PROFILES = {
+    "general": "一般助理",
+    "paper": "學術論文",
+    "code": "軟體工程",
+    "math": "數學與形式推理",
+    "data": "資料分析",
+}
+
+SPECIALIST_PROMPTS = {
+    "paper": (
+        "你目前處於「學術論文模式」。以學術研究與論文寫作標準工作：先釐清研究問題、"
+        "研究範圍、方法與讀者；使用正式、精確、可檢驗的學術語氣；區分已知事實、推論與假設；"
+        "提出清晰章節結構、論證鏈與研究限制。不得捏造文獻、作者、DOI、數據或引文；"
+        "未經查證的引用必須標示待查證，並建議使用 /research 搜尋來源。"
+    ),
+    "code": (
+        "你目前處於「軟體工程模式」。以資深軟體工程師標準工作：先確認需求、環境、"
+        "介面與限制，再提出最小可行設計；優先正確性、可維護性、安全性與可測試性；"
+        "提供可執行的完整程式碼或明確差異、檔案路徑、依賴、執行方式與測試案例。"
+        "不得假稱已執行程式、測試或部署；不確定的 API 與版本需明確標示並查證。"
+    ),
+    "math": (
+        "你目前處於「數學與形式推理模式」。先定義符號、條件與假設；逐步推導，"
+        "檢查邊界條件、單位與反例；區分嚴格證明、數值近似及直覺解釋。"
+        "不得跳過關鍵推理步驟或把未證明的猜想寫成定理。"
+    ),
+    "data": (
+        "你目前處於「資料分析模式」。先確認資料欄位、樣本範圍、缺失值與偏差；"
+        "說明清理、分析方法、指標與假設；避免把相關性描述成因果；"
+        "提供可重現的程式碼、驗證步驟及限制。"
+    ),
+}
+
+# Single source of truth for interactive CLI commands. Specialist commands
+# change the persistent task profile without changing fast/deep reasoning mode.
 COMMANDS = (
     ("/help", "顯示所有可用指令", "/help"),
     ("/mode", "查看或切換快速／深度思考模式", "/mode [fast|deep]"),
+    ("/paper", "切換至學術論文寫作模式", "/paper"),
+    ("/code", "切換至軟體工程與程式開發模式", "/code"),
+    ("/math", "切換至數學與形式推理模式", "/math"),
+    ("/data", "切換至資料分析模式", "/data"),
+    ("/general", "返回一般助理模式", "/general"),
     ("/research", "啟動有預算限制的網路研究", "/research <研究問題>"),
     ("/memory", "查看本機對話記憶狀態與儲存位置", "/memory"),
     ("/forget", "清除本機永久對話記憶（需要確認）", "/forget"),
@@ -40,7 +80,8 @@ def _help_text() -> str:
 
 
 def _status_text(mode: str, subagents_enabled: bool, max_input_chars: int,
-                 max_history_chars: int, history: list[dict[str, str]]) -> str:
+                 max_history_chars: int, history: list[dict[str, str]],
+                 profile: str = "general") -> str:
     """Build a truthful snapshot from current runtime configuration."""
     provider = os.environ.get("KAPTIA_PROVIDER", "local").strip().lower()
     provider_label = "OpenAI-compatible 外接 API" if provider in {
@@ -54,7 +95,8 @@ def _status_text(mode: str, subagents_enabled: bool, max_input_chars: int,
     return "\n".join([
         "Kaptia — 系統狀態",
         f"模型提供者：{provider_label}",
-        f"對話模式：{'快速 Fast' if mode == 'fast' else '深度思考 Deep Thinking'}",
+        f"思考模式：{'快速 Fast' if mode == 'fast' else '深度思考 Deep Thinking'}",
+        f"專業模式：{SPECIALIST_PROFILES.get(profile, SPECIALIST_PROFILES['general'])}",
         f"子代理：{'啟用' if subagents_enabled else '停用'}",
         f"輸入上限：{max_input_chars:,} 字元",
         f"歷史預算：{max_history_chars:,} 字元",
@@ -213,6 +255,7 @@ def main() -> int:
         mode = normalize_mode(os.environ.get("KAPTIA_MODE", "fast"))
     except ValueError:
         mode = "fast"
+    profile = "general"
     print("[Kaptia] 已就緒。輸入 /help 查看所有可用指令。")
     print(
         f"[Kaptia] 輸入上限 {max_input_chars:,} 字元；"
@@ -243,11 +286,12 @@ def main() -> int:
             print("[Kaptia] 目前工作階段的對話上下文已清除；本機永久記憶未變更。")
             continue
         if command == "/status":
-            print(_status_text(mode, subagents_enabled, max_input_chars, max_history_chars, history))
+            print(_status_text(mode, subagents_enabled, max_input_chars, max_history_chars, history, profile))
             continue
         command_name = command.split(maxsplit=1)[0] if command else ""
         if command.startswith("/") and command_name not in {
-            "/exit", "/quit", "/mode", "/memory", "/forget", "/research"
+            "/exit", "/quit", "/mode", "/memory", "/forget", "/research",
+            "/paper", "/code", "/math", "/data", "/general"
         }:
             print(f"[Kaptia] 未知指令：{command_name}。輸入 /help 查看可用指令。")
             continue
@@ -262,6 +306,13 @@ def main() -> int:
             if not query:
                 print("[Kaptia] 用法：/research 你的研究問題")
                 continue
+        if command_name in {"/paper", "/code", "/math", "/data", "/general"}:
+            if command != command_name:
+                print(f"[Kaptia] 用法：{command_name}")
+                continue
+            profile = "general" if command_name == "/general" else command_name[1:]
+            print(f"[Kaptia] 已切換至專業模式：{SPECIALIST_PROFILES[profile]}。思考模式維持不變。")
+            continue
         if command == "/mode" or command.startswith("/mode "):
             requested = command.split(maxsplit=1)[1] if " " in command else ""
             if not requested:
@@ -315,6 +366,10 @@ def main() -> int:
             continue
 
         _append_bounded_history(history, "user", user_text, max_history_chars)
+        specialist_text = (
+            SPECIALIST_PROMPTS[profile] + "\\n\\n使用者需求：\\n" + user_text
+            if profile != "general" else user_text
+        )
         try:
             research_query = _research_query(user_text)
             if research_query is not None:
@@ -326,17 +381,17 @@ def main() -> int:
                     answer, research_meta = _run_research(generate, research_query)
                     print(f"[Kaptia] 研究結束：通過={research_meta['passed']}，來源={research_meta['sources']}，耗時={research_meta['elapsed_seconds']:.1f}s。")
             elif mode == "deep":
-                answer, deep_meta = run_deep_workflow(generate, user_text, max_new_tokens=DETAILED_RESPONSE_TOKENS)
+                answer, deep_meta = run_deep_workflow(generate, specialist_text, max_new_tokens=DETAILED_RESPONSE_TOKENS)
                 print(f"[Kaptia] 深度流程完成：需求分析、基礎版本、測試拆分、細化；測試尚待外部執行 {deep_meta['pending']} 項。")
             elif subagents_enabled and len(user_text) >= 120:
                 # The current user turn is already appended; pass only prior turns as context.
                 answer, agent_meta = run_agent_workflow(
-                    generate, user_text, max_new_tokens=384, history=history[:-1]
+                    generate, specialist_text, max_new_tokens=384, history=history[:-1]
                 )
                 print(f"[Kaptia] 已拆分為 {len(agent_meta)} 個子任務。")
             else:
                 fast_history = list(history)
-                fast_history[-1] = {"role": "user", "content": fast_prompt(user_text)}
+                fast_history[-1] = {"role": "user", "content": fast_prompt(specialist_text)}
                 answer = generate(
                     fast_history,
                     max_new_tokens=_response_token_budget(user_text),
