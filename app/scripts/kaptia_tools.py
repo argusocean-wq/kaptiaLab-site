@@ -115,6 +115,25 @@ def dispatch_tool(name, arguments):
             "ingest_user_documents": lambda **kw: dispatch_extended_tool("ingest_user_documents", kw),
             "search_user_documents": lambda **kw: dispatch_extended_tool("search_user_documents", kw),
         })
+    # GitHub writes are never performed by the model. The model can only enqueue
+    # proposals; the Desktop UI must approve each proposal separately.
+    try:
+        from plugins.github_plugin import get_default_plugin
+        github = get_default_plugin()
+        registry.update({
+            "github_list_repositories": lambda **kw: {"ok": True, "repositories": github.list_repositories()},
+            "github_select_repository": lambda **kw: {"ok": True, **github.set_repository(kw["repository"])},
+            "github_list_branches": lambda **kw: {"ok": True, "branches": github.list_branches()},
+            "github_read_file": lambda **kw: {"ok": True, **github.read_file(kw["path"], kw["branch"] or None)},
+            "github_propose_branch": lambda **kw: github.propose_branch(kw["branch"], kw["base_branch"]),
+            "github_propose_file_write": lambda **kw: github.propose_file_write(
+                kw["path"], kw["content"], kw["message"], kw["branch"], kw["existing_sha"]),
+            "github_propose_pull_request": lambda **kw: github.propose_pull_request(
+                kw["title"], kw["body"], kw["head"], kw["base"]),
+            "github_list_workflow_runs": lambda **kw: {"ok": True, "runs": github.workflow_runs(kw["branch"] or None)},
+        })
+    except ImportError:
+        pass
     # Attach is a separate, explicit-consent capability family.
     try:
         try:
