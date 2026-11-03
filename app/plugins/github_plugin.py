@@ -100,6 +100,7 @@ class GitHubPlugin:
             raise GitHubPluginError("無法安全保存 Token；未改用明文檔案保存。") from exc
         self._repository = ""
         self._default_branch = ""
+        self._pending_proposals.clear()
         return {"ok": True, "connected": True, "storage": "OS Credential Manager"}
 
     def disconnect(self) -> dict[str, Any]:
@@ -116,6 +117,7 @@ class GitHubPlugin:
             raise GitHubPluginError("無法確認已從 OS Credential Manager 移除 Token。") from exc
         self._repository = ""
         self._default_branch = ""
+        self._pending_proposals.clear()
         return {"ok": True, "connected": False, "credential_removed": True}
 
     def set_repository(self, repository: str) -> dict[str, str]:
