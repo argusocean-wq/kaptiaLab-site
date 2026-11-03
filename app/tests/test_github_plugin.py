@@ -78,5 +78,11 @@ class GitHubPluginTests(unittest.TestCase):
         with self.assertRaises(GitHubPluginError):
             self.plugin.approve_proposal(proposal["proposal_id"], locally_confirmed=True)
 
+    def test_ai_file_proposal_cannot_target_default_branch(self):
+        self.plugin._request = Mock(return_value={"default_branch": "main"})
+        self.plugin.set_repository("owner/repo")
+        with self.assertRaises(GitHubPluginError):
+            self.plugin.propose_file_write("README.md", "updated", "update", "main")
+
 
 if __name__ == "__main__": unittest.main()
