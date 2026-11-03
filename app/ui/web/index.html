@@ -243,6 +243,7 @@ $('github-connect').onclick=async()=>{
 };
 $('github-disconnect').onclick=async()=>{const r=await call('github_disconnect');$('github-status').textContent=r?.ok?'已中斷連接並移除保存的 Token。':(r?.error||'中斷失敗');$('github-repository').innerHTML='<option value="">請重新連接</option>';$('github-branch').innerHTML=''};
 $('github-repository').onchange=selectGitHubRepository;
+$('github-branch').onchange=()=>{githubCurrentFileSha=null;$('github-pr-base').value=$('github-branch').value;};
 $('github-create-branch').onclick=async()=>{
  const branch=$('github-new-branch').value.trim(),base=$('github-branch').value;if(!branch||!base)return toast('請輸入新 Branch 名稱並選擇基準 Branch');
  if(!window.confirm('確認在 '+$('github-repository').value+' 建立 '+branch+'（基於 '+base+'）？'))return;
