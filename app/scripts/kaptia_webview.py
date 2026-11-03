@@ -148,6 +148,21 @@ class Bridge:
         except Exception as exc:
             return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
+    def github_install_dependencies(self,user_approved=False):
+        if user_approved is not True:return {"ok":False,"error":"安裝依賴必須由使用者確認。"}
+        requirements=APP_DIR/"requirements-github.txt"
+        if not requirements.is_file():return {"ok":False,"error":"找不到 requirements-github.txt"}
+        try:
+            proc=subprocess.run([PYTHON,"-m","pip","install","-r",str(requirements)],
+                cwd=str(APP_DIR),capture_output=True,text=True,encoding="utf-8",
+                errors="replace",timeout=600,shell=False,
+                creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
+            if proc.returncode:
+                output=((proc.stdout or "")+"\\n"+(proc.stderr or ""))[-2500:]
+                return {"ok":False,"error":"GitHub 外掛依賴安裝失敗："+output}
+            return {"ok":True,"message":"GitHub 外掛依賴安裝完成。"}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
     def github_connect(self,token):
         try:return self.github_plugin.connect(str(token))
         except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
