@@ -137,7 +137,7 @@ class GitHubPluginTests(unittest.TestCase):
 
     def test_token_rejects_embedded_newlines(self):
         with self.assertRaises(GitHubPluginError):
-            self.plugin.connect("ghp_" + "a" * 20 + "\\n" + "b" * 20)
+            self.plugin.connect("ghp_" + "a" * 20 + "\n" + "b" * 20)
 
 
 if __name__ == "__main__": unittest.main()
