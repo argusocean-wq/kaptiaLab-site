@@ -92,7 +92,7 @@ class GitHubPlugin:
             raise GitHubPluginError("無法載入 OS Credential Manager；請安裝 requirements-github.txt。") from exc
 
     def connect(self, token: str) -> dict[str, Any]:
-        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\\r\\n"):
+        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\r\n"):
             raise GitHubPluginError("GitHub Token 格式無效。")
         with self._proposal_lock:
             self._request("GET", "/user", token=token.strip())
