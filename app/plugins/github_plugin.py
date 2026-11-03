@@ -38,11 +38,16 @@ class GitHubPlugin:
     def _validate_repo(repository: str) -> str:
         if not isinstance(repository, str) or not _REPO_RE.fullmatch(repository):
             raise GitHubPluginError("Repository 必須使用 owner/repository 格式。")
+        owner, name = repository.split("/", 1)
+        if owner in {".", ".."} or name in {".", ".."}:
+            raise GitHubPluginError("Repository 名稱無效。")
         return repository
 
     @staticmethod
     def _validate_branch(branch: str) -> str:
-        if not isinstance(branch, str) or not _BRANCH_RE.fullmatch(branch) or ".." in branch or "//" in branch:
+        if (not isinstance(branch, str) or not _BRANCH_RE.fullmatch(branch)
+                or ".." in branch or "//" in branch or branch.endswith(("/", "."))
+                or branch.endswith(".lock") or "@{" in branch):
             raise GitHubPluginError("Branch 名稱格式無效。")
         return branch
 
@@ -50,6 +55,8 @@ class GitHubPlugin:
     def _validate_path(path: str) -> str:
         if not isinstance(path, str) or not _PATH_RE.fullmatch(path) or len(path) > 500:
             raise GitHubPluginError("Repository 檔案路徑無效。")
+        if any(part in {"", ".", ".."} for part in path.split("/")):
+            raise GitHubPluginError("Repository 檔案路徑含無效目錄片段。")
         return path
 
     def _get_keyring(self):
