@@ -16,7 +16,7 @@ try:
     from kaptia_diagnostics import run_diagnostics
     from kaptia_memory_store import MemoryStore, default_memory_db_path
     from kaptia_agent_runtime import WorkspaceSandbox, create_agent_plan
-    from plugins.github_plugin import GitHubPlugin, GitHubPluginError
+    from plugins.github_plugin import GitHubPlugin, GitHubPluginError, get_default_plugin
     from plugins.memory_import import parse_memory_file, import_memory_file
 except ImportError:
     from scripts.kaptia_calendar import CalendarStore, default_calendar_path
@@ -39,7 +39,7 @@ class Bridge:
     def __init__(self):
         self.store=CalendarStore(default_calendar_path())
         self.memory_store=MemoryStore(default_memory_db_path())
-        self.github_plugin=GitHubPlugin()
+        self.github_plugin=get_default_plugin()
         self.pending_memory_import=None
         self.pending_memory_import_digest=None
         self.workspace=WorkspaceSandbox()
@@ -210,6 +210,18 @@ class Bridge:
 
     def github_workflow_runs(self,branch=None):
         try:return {"ok":True,"runs":self.github_plugin.workflow_runs(str(branch) if branch else None)}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_pending_proposals(self):
+        try:return {"ok":True,"proposals":self.github_plugin.list_pending_proposals()}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_approve_proposal(self,proposal_id,user_confirmed=False):
+        try:return self.github_plugin.approve_proposal(str(proposal_id),locally_confirmed=user_confirmed is True)
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_reject_proposal(self,proposal_id,user_confirmed=False):
+        try:return self.github_plugin.reject_proposal(str(proposal_id),locally_confirmed=user_confirmed is True)
         except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
     def resolve_memory_conflict(self,fact_id,decision):
