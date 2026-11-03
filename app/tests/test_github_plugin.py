@@ -87,4 +87,57 @@ class GitHubPluginTests(unittest.TestCase):
             self.plugin.write_file("README.md", "updated", "update", "main", user_approved=True)
 
 
+    def test_device_flow_start_returns_user_code_and_keeps_device_code_private(self):
+        import os
+        from unittest.mock import patch
+        self.plugin._oauth_post = Mock(return_value={
+            "device_code": "device-secret-code", "user_code": "ABCD-EFGH",
+            "verification_uri": "https://github.com/login/device",
+            "expires_in": 900, "interval": 5,
+        })
+        with patch.dict(os.environ, {"KAPTIA_GITHUB_APP_CLIENT_ID": "Iv1.testclient"}):
+            result = self.plugin.device_flow_start()
+        self.assertEqual(result["user_code"], "ABCD-EFGH")
+        self.assertNotIn("device_code", result)
+        self.assertEqual(self.plugin._device_auth["device_code"], "device-secret-code")
+
+    def test_device_flow_poll_connects_and_saves_rotating_tokens(self):
+        import os, time
+        from unittest.mock import patch
+        self.plugin._device_auth = {
+            "device_code": "device-secret-code", "interval": 5,
+            "expires_at": time.monotonic() + 600, "next_poll_at": 0,
+        }
+        self.plugin._oauth_post = Mock(return_value={
+            "access_token": "ghu_" + "a" * 36,
+            "refresh_token": "ghr_" + "b" * 36,
+            "expires_in": 28800, "refresh_token_expires_in": 15897600,
+        })
+        with patch.dict(os.environ, {"KAPTIA_GITHUB_APP_CLIENT_ID": "Iv1.testclient"}):
+            result = self.plugin.device_flow_poll()
+        self.assertEqual(result["status"], "connected")
+        self.assertIsNone(self.plugin._device_auth)
+        self.assertTrue(self.kr.get_password("KaptiaLab.GitHub", "github-refresh-token").startswith("ghr_"))
+        self.assertTrue(self.kr.get_password("KaptiaLab.GitHub", "github-token-expires-at"))
+
+    def test_expired_access_token_is_refreshed_before_api_use(self):
+        import os, time
+        from unittest.mock import patch
+        self.kr.set_password("KaptiaLab.GitHub", "github-refresh-token", "ghr_" + "b" * 36)
+        self.kr.set_password("KaptiaLab.GitHub", "github-token-expires-at", str(int(time.time()) - 1))
+        self.kr.set_password("KaptiaLab.GitHub", "github-refresh-expires-at", str(int(time.time()) + 10000))
+        self.plugin._oauth_post = Mock(return_value={
+            "access_token": "ghu_" + "c" * 36, "refresh_token": "ghr_" + "d" * 36,
+            "expires_in": 28800, "refresh_token_expires_in": 15897600,
+        })
+        with patch.dict(os.environ, {"KAPTIA_GITHUB_APP_CLIENT_ID": "Iv1.testclient"}):
+            token = self.plugin._token()
+        self.assertTrue(token.startswith("ghu_"))
+        self.assertTrue(self.kr.get_password("KaptiaLab.GitHub", "github-refresh-token").startswith("ghr_"))
+
+    def test_token_rejects_embedded_newlines(self):
+        with self.assertRaises(GitHubPluginError):
+            self.plugin.connect("ghp_" + "a" * 20 + "\\n" + "b" * 20)
+
+
 if __name__ == "__main__": unittest.main()
