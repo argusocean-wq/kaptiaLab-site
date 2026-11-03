@@ -610,8 +610,12 @@ class Bridge:
                 contextual_text=(memory_context+"\n\n目前使用者需求：\n"+text) if memory_context else text
                 if self._github_task_requested(text):
                     self._js_chat({"status":"正在使用 GitHub 工具檢查 Repository；任何寫入都只會建立待批准提案。"})
-                    from kaptia_agent_loop import run_tool_loop
-                    from kaptia_tools import dispatch_tool
+                    try:
+                        from kaptia_agent_loop import run_tool_loop
+                        from kaptia_tools import dispatch_tool
+                    except ImportError:
+                        from scripts.kaptia_agent_loop import run_tool_loop
+                        from scripts.kaptia_tools import dispatch_tool
                     selected_repo=self.github_plugin.current_repository
                     tool_request=(f"Desktop 目前選取的 GitHub Repository：{selected_repo}\n" if selected_repo else "")+text
                     tool_result=run_tool_loop(self.generator,tool_request,dispatch_tool,max_steps=4)
