@@ -55,6 +55,6 @@ Imported messages are deduplicated against messages currently in the active conv
 ## Current limitations
 - No OAuth browser flow; users supply a fine-grained PAT themselves.
 - No GitHub Issues/Projects, release publishing, merge, deletion, binary-file editing, or automated conflict resolution.
-- The first version supports UTF-8 text files only.
+- The first version supports UTF-8 text files only. The AI tool loop reads at most 5,000 characters per file to prevent truncated source from being treated as a complete file; larger files can still be inspected and edited manually in the Desktop editor (up to 1 MB).
 - Import currently preserves conversation history rather than automatically distilling it into verified structured facts. Imported statements should be checked before being saved as confirmed personal/project facts.
 - External provider export formats other than the documented generic role/content JSON/JSONL and text formats may require an adapter.
