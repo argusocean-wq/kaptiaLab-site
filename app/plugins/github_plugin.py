@@ -53,8 +53,8 @@ class GitHubPlugin:
         return path
 
     def _get_keyring(self):
-        if self._keyring is not None:
-            return self._keyring
+        if self._keyring_module is not None:
+            return self._keyring_module
         try:
             import keyring
             backend = keyring.get_keyring()
