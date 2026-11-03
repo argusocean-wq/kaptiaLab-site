@@ -47,7 +47,7 @@ Import workflow:
 3. Confirm import locally.
 4. Kaptia appends messages to local conversation history and archives overflow using its existing bounded-history policy.
 
-Imported messages are deduplicated by role and exact content. Imported text is conversation data, not system instructions; it cannot change Kaptia's policy or grant permissions. Imported content remains on the local device and is not uploaded to GitHub.
+Imported messages are deduplicated against messages currently in the active conversation file by role and exact content (the compressed archive is not globally scanned for duplicates). Imported text is conversation data, not system instructions; it cannot change Kaptia's policy or grant permissions. The file's SHA-256 is checked again at confirmation so a file changed after preview must be previewed again. Imported content remains on the local device and is not uploaded to GitHub.
 
 ## Current limitations
 - No OAuth browser flow; users supply a fine-grained PAT themselves.
