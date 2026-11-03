@@ -1,32 +1,46 @@
-# External AI Delegation — MCP transport (Stage 2)
+# External AI Delegation — Desktop-only
 
-## Desktop MCP stdio server
+## Goal
+Let Claude, ChatGPT, or another compatible AI supervise work while Kaptia Desktop acts as the local execution agent. This capability is Desktop-only; the website and browser chat do not expose it.
 
+## Stage 1 — approval-gated inbox
+`app/desktop/external_ai_bridge.py` validates task envelopes, enforces expiry and action allowlists, and requires local confirmation before an approval state transition. It does not execute commands or modify files.
+
+## Stage 2 — MCP stdio transport
 Entry point: `python -m desktop.mcp_server` with `PYTHONPATH=app`.
 
 Required environment:
-- `KAPTIA_DESKTOP=1` — explicit Desktop-only gate.
-- `KAPTIA_DELEGATION_TOKEN` — random local pairing token, minimum 32 characters.
+- `KAPTIA_DESKTOP=1` — explicit Desktop-only process gate.
+- `KAPTIA_DELEGATION_TOKEN` — local enablement secret, minimum 32 characters. Keep it in the MCP client's process environment, not in prompts or tool arguments.
 - `KAPTIA_DELEGATION_DB` — optional SQLite queue path; defaults to `~/.kaptiaLab/delegation.sqlite3`.
 
-The process speaks newline-delimited JSON-RPC 2.0 over stdin/stdout and supports MCP initialize, ping, tools/list, and tools/call.
+The server uses newline-delimited JSON-RPC 2.0 over stdin/stdout and supports initialize, ping, tools/list, and tools/call.
 
-### Exposed tools
-- `submit_task`: validates and stores an external task in SQLite as `pending_approval`.
-- `get_task_status`: reads the request's pending state.
+### MCP tools
+- `submit_task`: validates and stores a task in SQLite as `pending_approval`.
+- `get_task_status`: reads the current state of a submitted task.
 
-The MCP process never approves, executes, writes project files, or runs shell commands. Approval and execution must be performed by the local Kaptia Desktop UI and its permission-aware executor. The external AI must never be able to invoke approval through MCP.
+The MCP tool schema does not expose the pairing secret to the model. The MCP process is launched by the user's explicitly configured local MCP client; the secret is a local process-start gate, not a substitute for operating-system account security.
 
-### Pairing
-Generate a cryptographically random token locally in Desktop and configure the same value as `KAPTIA_DELEGATION_TOKEN` in the MCP client process environment. Do not paste the token into prompts or commit it to configuration files. Rotate it if exposed.
+## Workflow and current boundary
+1. User enables delegation in Desktop and configures the local MCP client to launch the stdio server.
+2. External AI calls `submit_task`.
+3. The server writes a bounded, expiring task row to the local SQLite queue.
+4. Kaptia Desktop must read that same queue and show sender, task, requested actions, and target workspace.
+5. The user approves or rejects locally.
+6. Only the Desktop's permission-aware executor may perform approved work.
+7. Kaptia returns execution evidence and test results to the supervisor.
 
-### Current integration boundary
-This stage supplies the MCP stdio transport and durable SQLite inbox. The Desktop UI polling/approval view, automatic MCP client configuration generation, and post-approval execution adapter remain separate integration tasks. Until those are implemented, submitted tasks are safely queued but will not run automatically.
+**Not yet implemented:** Desktop UI polling/approval view, automatic MCP client configuration generation, post-approval executor integration, and result callback to the external AI. Until those stages exist, requests are safely queued but will not execute.
 
-## Security
-- No TCP listener, port exposure, or remote inbound network service.
-- Only allowlisted action names; no arbitrary shell/file/URL operation.
-- Bounded input size, task length, action count, expiry, and pending queue.
-- Pairing token checked with constant-time comparison.
-- External text is untrusted data, not privileged instructions.
-- SQLite queue is local; do not sync it to third-party cloud storage by default.
+## Security constraints
+- No TCP listener or remotely exposed inbound service; stdio only.
+- Only allowlisted action names; no arbitrary shell, unrestricted filesystem, credential access, arbitrary URL fetch, or self-modification.
+- Bounded input line size, task length, action count, queue size, and request expiry.
+- External task text is untrusted data, never system/developer instructions.
+- The MCP process cannot approve tasks; the external AI cannot alter user policy.
+- Keep the SQLite queue local and exclude it from cloud sync by default.
+- Do not log or commit the pairing secret; rotate it if exposed.
+
+## Acceptance tests
+Desktop process gate, startup secret validation, MCP initialize/tools discovery, SQLite persistence across process instances, duplicate ID rejection, expiry, allowlisted actions, and pending-by-default behavior.
