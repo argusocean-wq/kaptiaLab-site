@@ -6,9 +6,11 @@ keyword rules or a model-generated outline constitute semantic understanding.
 from __future__ import annotations
 
 from collections import defaultdict, deque
+from dataclasses import replace
 from typing import Any, Iterable, Mapping
+import uuid
 
-from .contracts import PlanValidationError, StepSpec, TaskPlan
+from .contracts import PlanValidationError, StepSpec, TaskPlan, utc_now
 
 MAX_STEPS = 100
 MAX_TITLE = 240
@@ -71,7 +73,11 @@ def build_plan(
     objective: str,
     steps: Iterable[StepSpec | Mapping[str, Any]],
 ) -> TaskPlan:
-    """Build a validated immutable task plan from explicit step specifications."""
+    """Build a validated immutable task plan from explicit step specifications.
+
+    Step identifiers are namespaced by task_id before persistence, so two
+    independent plans may safely use the same human-readable step keys.
+    """
     title = _required_text(title, "title", MAX_TITLE)
     objective = _required_text(objective, "objective", MAX_OBJECTIVE)
     raw_steps = list(steps)
@@ -80,42 +86,48 @@ def build_plan(
     normalized: list[StepSpec] = []
     for index, raw in enumerate(raw_steps, 1):
         if isinstance(raw, StepSpec):
-            step = raw
-        elif isinstance(raw, Mapping):
-            step_id = raw.get("step_id", f"step-{index:03d}")
-            step_title = _required_text(raw.get("title"), "step.title", MAX_TITLE)
-            step_objective = _required_text(raw.get("objective", step_title), "step.objective", MAX_STEP_TEXT)
-            classification = raw.get("data_classification", "private")
-            if classification not in {"local_only", "private", "public"}:
-                raise PlanValidationError("data_classification 必須是 local_only、private 或 public")
-            attempts = raw.get("max_attempts", 2)
-            if isinstance(attempts, bool) or not isinstance(attempts, int) or not 1 <= attempts <= MAX_ATTEMPTS:
-                raise PlanValidationError(f"max_attempts 必須介於 1 到 {MAX_ATTEMPTS}")
-            verification = raw.get("verification", ())
-            if not isinstance(verification, (list, tuple)) or len(verification) > 12:
-                raise PlanValidationError("verification 格式無效")
-            if any(not isinstance(item, Mapping) for item in verification):
-                raise PlanValidationError("verification 每個項目都必須是 object")
-            step = StepSpec(
-                step_id=_required_text(step_id, "step_id", 80),
-                title=step_title,
-                objective=step_objective,
-                depends_on=_string_tuple(raw.get("depends_on"), "depends_on", MAX_DEPENDENCIES),
-                agent_id=_required_text(raw.get("agent_id", "kaptia-director"), "agent_id", 100),
-                required_capabilities=_string_tuple(raw.get("required_capabilities"), "required_capabilities"),
-                data_classification=classification,
-                max_attempts=attempts,
-                verification=tuple(dict(item) for item in verification),
-            )
-        else:
+            raw = raw.to_dict()
+        if not isinstance(raw, Mapping):
             raise PlanValidationError("每個 step 必須是 StepSpec 或 mapping")
-        if not step.step_id or len(step.step_id) > 80:
-            raise PlanValidationError("step_id 無效")
-        if step.data_classification not in {"local_only", "private", "public"}:
-            raise PlanValidationError("data_classification 無效")
-        if isinstance(step.max_attempts, bool) or not isinstance(step.max_attempts, int) or not 1 <= step.max_attempts <= MAX_ATTEMPTS:
-            raise PlanValidationError("max_attempts 超出範圍")
-        normalized.append(step)
+        step_id = _required_text(raw.get("step_id", f"step-{index:03d}"), "step_id", 80)
+        step_title = _required_text(raw.get("title"), "step.title", MAX_TITLE)
+        step_objective = _required_text(raw.get("objective", step_title), "step.objective", MAX_STEP_TEXT)
+        classification = raw.get("data_classification", "private")
+        if classification not in {"local_only", "private", "public"}:
+            raise PlanValidationError("data_classification 必須是 local_only、private 或 public")
+        attempts = raw.get("max_attempts", 2)
+        if isinstance(attempts, bool) or not isinstance(attempts, int) or not 1 <= attempts <= MAX_ATTEMPTS:
+            raise PlanValidationError(f"max_attempts 必須介於 1 到 {MAX_ATTEMPTS}")
+        verification = raw.get("verification", ())
+        if not isinstance(verification, (list, tuple)) or len(verification) > 12:
+            raise PlanValidationError("verification 格式無效")
+        if any(not isinstance(item, Mapping) for item in verification):
+            raise PlanValidationError("verification 每個項目都必須是 object")
+        normalized.append(StepSpec(
+            step_id=step_id,
+            title=step_title,
+            objective=step_objective,
+            depends_on=_string_tuple(raw.get("depends_on"), "depends_on", MAX_DEPENDENCIES),
+            agent_id=_required_text(raw.get("agent_id", "kaptia-director"), "agent_id", 100),
+            required_capabilities=_string_tuple(raw.get("required_capabilities"), "required_capabilities"),
+            data_classification=classification,
+            max_attempts=attempts,
+            verification=tuple(dict(item) for item in verification),
+        ))
     result = tuple(normalized)
     _validate_dag(result)
-    return TaskPlan.create(title, objective, result)
+
+    task_id = uuid.uuid4().hex
+    id_map = {step.step_id: f"{task_id}:{step.step_id}" for step in result}
+    persisted_steps = tuple(
+        replace(
+            step,
+            step_id=id_map[step.step_id],
+            depends_on=tuple(id_map[item] for item in step.depends_on),
+        )
+        for step in result
+    )
+    return TaskPlan(
+        task_id=task_id, title=title, objective=objective,
+        steps=persisted_steps, created_at=utc_now(),
+    )
