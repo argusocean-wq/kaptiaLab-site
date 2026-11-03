@@ -57,7 +57,7 @@ class RepositoryTests(unittest.TestCase):
         self.repo.create_plan(plan)
         first = self.repo.claim_ready_steps("worker-a", limit=4)
         self.assertEqual([item["step_id"] for item in first], [plan.steps[0].step_id])
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(ValueError):
             self.repo.transition_step(plan.steps[0].step_id, "completed", "Skip verification",
                                       verification={"passed": True})
         self.repo.transition_step(plan.steps[0].step_id, "verifying", "Ready for verification")
