@@ -98,6 +98,7 @@
   <div class="settings-card"><h3>Repository</h3><div class="field"><label>已授權的 Repository</label><select id="github-repository"><option value="">請先連接 GitHub</option></select></div><div class="field"><label>目標 Branch</label><select id="github-branch"><option value="">請先選擇 Repository</option></select></div><div class="field"><label>新 Branch 名稱</label><input id="github-new-branch" placeholder="例如：feature/kaptia-update"></div><button class="secondary" id="github-create-branch">建立功能分支</button></div>
   <div class="settings-card"><h3>讀取與編輯檔案</h3><div class="field"><label>Repository 相對路徑</label><input id="github-file-path" placeholder="例如：README.md"></div><button class="secondary" id="github-read-file">讀取檔案</button><div class="field"><label>檔案內容（UTF-8，最大 1 MB）</label><textarea id="github-file-content" rows="12" placeholder="讀取檔案後在此編輯；新增檔案也可直接輸入內容。"></textarea></div><div class="field"><label>Commit Message</label><input id="github-commit-message" value="Update project file"></div><button class="primary" id="github-save-file">確認並提交檔案修改</button><div id="github-file-status" class="info-note" style="margin-top:10px"></div></div>
   <div class="settings-card"><h3>Draft Pull Request</h3><div class="field"><label>標題</label><input id="github-pr-title" placeholder="Describe the change"></div><div class="field"><label>內容</label><textarea id="github-pr-body" rows="3" placeholder="變更摘要、測試結果與風險"></textarea></div><div class="field"><label>Head Branch</label><input id="github-pr-head" placeholder="feature/..."></div><div class="field"><label>Base Branch</label><input id="github-pr-base" placeholder="main"></div><button class="secondary" id="github-create-pr">建立 Draft PR</button><div id="github-pr-status" class="info-note" style="margin-top:10px"></div></div>
+  <div class="settings-card"><h3>AI 待批准 GitHub 操作</h3><p>Kaptia 可以提出建立分支、修改檔案與建立 Draft PR；提案不會自動執行。請先檢查差異，再逐筆批准。</p><button class="secondary" id="github-refresh-proposals">重新整理待批准提案</button><div id="github-proposals" style="margin-top:12px">目前沒有待批准提案。</div></div>
   <div class="settings-card"><h3>GitHub Actions</h3><button class="secondary" id="github-check-runs">檢查最近 CI</button><pre id="github-runs" style="white-space:pre-wrap;max-height:240px;overflow:auto;color:#cbd0d0"></pre></div>
  </section>
  <section class="page" id="workspace">
@@ -165,7 +166,7 @@
 <script>
 const $=id=>document.getElementById(id);let busy=false;let activePage='chat';let archiveOffset=0,archiveTotal=0,archiveDetailId='',archiveDetailOffset=0;
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2600)}
-function switchPage(name){activePage=name;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===name));$('chat-layout').style.display=name==='chat'?'grid':'none';if(name==='workspace')loadWorkspaceStatus();if(name==='attach'){scanAttachApps();refreshAttachSessions();refreshAttachPending();refreshAttachVisionStatus();}if(name==='github')loadGitHubRepositories();document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===name));$('top-title').textContent=({chat:'新對話',calendar:'行事曆',memory:'個人記憶',github:'GitHub 專案',workspace:'工作區 Agent',attach:'Attach 桌面連線',settings:'設定',about:'關於'})[name]||'Kaptia';if(name==='memory'){loadMemoryFacts();loadConversationArchives()}}
+function switchPage(name){activePage=name;document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===name));$('chat-layout').style.display=name==='chat'?'grid':'none';if(name==='workspace')loadWorkspaceStatus();if(name==='attach'){scanAttachApps();refreshAttachSessions();refreshAttachPending();refreshAttachVisionStatus();}if(name==='github'){loadGitHubRepositories();loadGitHubProposals();}document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===name));$('top-title').textContent=({chat:'新對話',calendar:'行事曆',memory:'個人記憶',github:'GitHub 專案',workspace:'工作區 Agent',attach:'Attach 桌面連線',settings:'設定',about:'關於'})[name]||'Kaptia';if(name==='memory'){loadMemoryFacts();loadConversationArchives()}}
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.page)));
 document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>{$('chat-input').value=b.dataset.prompt;$('chat-input').focus()}));
 const attachSessions=new Map();
@@ -276,6 +277,37 @@ $('github-check-runs').onclick=async()=>{
  const r=await call('github_workflow_runs',$('github-branch').value||null);
  $('github-runs').textContent=r?.ok?JSON.stringify(r.runs,null,2):(r?.error||'無法讀取 CI');
 };
+
+async function loadGitHubProposals(){
+ const root=$('github-proposals');if(!root)return;root.textContent='正在載入待批准提案…';
+ const r=await call('github_pending_proposals');
+ if(!r?.ok){root.textContent=r?.error||'無法讀取提案';return}
+ root.textContent='';
+ if(!r.proposals.length){root.textContent='目前沒有待批准提案。';return}
+ r.proposals.forEach(item=>{
+  const card=document.createElement('div');card.className='event-row';card.style.display='block';
+  const p=item.preview||{};const title=document.createElement('strong');
+  title.textContent=item.repository+' · '+({write_file:'修改檔案',create_branch:'建立分支',create_pull_request:'建立 Draft PR'}[item.kind]||item.kind);
+  const detail=document.createElement('div');detail.className='info-note';
+  detail.textContent=(p.path||p.branch||p.title||'')+' · '+(p.branch||p.head||'')+' · 到期 '+item.expires_at;
+  card.append(title,detail);
+  if(p.diff){const diff=document.createElement('pre');diff.textContent=p.diff+(p.diff_truncated?'\n[差異預覽已截斷，請檢查完整檔案]':'');diff.style.whiteSpace='pre-wrap';diff.style.overflow='auto';diff.style.maxHeight='260px';diff.style.background='#171a1b';diff.style.padding='10px';card.append(diff)}
+  if(p.body_preview){const body=document.createElement('div');body.className='info-note';body.textContent=p.body_preview;card.append(body)}
+  const actions=document.createElement('div');actions.style.display='flex';actions.style.gap='8px';actions.style.marginTop='8px';
+  const approve=memoryButton('批准並執行',async()=>{
+   if(!window.confirm('確認執行這項 GitHub 操作？\n'+title.textContent+'\n'+detail.textContent+'\n\n此操作會對遠端 Repository 寫入。'))return;
+   approve.disabled=true;const result=await call('github_approve_proposal',item.proposal_id,true);approve.disabled=false;
+   if(!result?.ok){toast(result?.error||'執行失敗');return}
+   toast('GitHub 操作已完成');await loadGitHubProposals();if(item.kind==='write_file')githubCurrentFileSha=null;
+  });
+  const reject=memoryButton('拒絕',async()=>{
+   if(!window.confirm('拒絕這項 GitHub 提案？'))return;
+   const result=await call('github_reject_proposal',item.proposal_id,true);if(!result?.ok)toast(result?.error||'拒絕失敗');await loadGitHubProposals();
+  });
+  actions.append(approve,reject);card.append(actions);root.append(card);
+ });
+}
+$('github-refresh-proposals').onclick=loadGitHubProposals;
 
 function formatBytes(n){if(n<1024)return n+' B';if(n<1024*1024)return (n/1024).toFixed(1)+' KB';return (n/1024/1024).toFixed(2)+' MB'}
 
