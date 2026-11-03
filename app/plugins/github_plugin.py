@@ -45,6 +45,10 @@ class GitHubPlugin:
     def current_repository(self) -> str:
         return self._repository
 
+    @property
+    def default_branch(self) -> str:
+        return self._default_branch
+
     @staticmethod
     def _validate_repo(repository: str) -> str:
         if not isinstance(repository, str) or not _REPO_RE.fullmatch(repository):
