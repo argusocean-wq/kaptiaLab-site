@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -41,6 +42,22 @@ class MemoryImportTests(unittest.TestCase):
             result = import_memory_file(path, locally_confirmed=True)
         self.assertEqual(result["imported"], 1)
         fn.assert_called_once()
+
+    def test_import_appends_and_deduplicates_local_history(self):
+        path = self.root / "conversation.json"
+        path.write_text(json.dumps({"messages":[
+            {"role":"user","content":"project goal"},
+            {"role":"assistant","content":"project plan"}
+        ]}), encoding="utf-8")
+        with patch.dict(os.environ, {"KAPTIA_DATA_DIR": str(self.root / "data")}):
+            first = import_memory_file(path, locally_confirmed=True)
+            second = import_memory_file(path, locally_confirmed=True)
+            from kaptia_personal_memory import load_recent_messages
+            history = load_recent_messages(max_messages=10, max_chars=5000)
+        self.assertEqual(first["imported"], 2)
+        self.assertEqual(second["imported"], 0)
+        self.assertEqual(len(history), 2)
+        self.assertEqual(history[0]["content"], "project goal")
 
 
 if __name__ == "__main__": unittest.main()
