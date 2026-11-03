@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
-import uuid
 
 from .contracts import TaskPlan, utc_now
 
@@ -37,8 +37,22 @@ class TaskRepository:
         conn.execute("PRAGMA busy_timeout=15000")
         return conn
 
+    @contextmanager
+    def _session(self):
+        conn = self._connect()
+        try:
+            yield conn
+            if conn.in_transaction:
+                conn.commit()
+        except Exception:
+            if conn.in_transaction:
+                conn.rollback()
+            raise
+        finally:
+            conn.close()
+
     def _initialize(self) -> None:
-        with self._connect() as conn:
+        with self._session() as conn:
             conn.execute("PRAGMA journal_mode=WAL")
             conn.executescript("""
                 CREATE TABLE IF NOT EXISTS tasks (
@@ -115,7 +129,7 @@ class TaskRepository:
 
     def create_plan(self, plan: TaskPlan) -> dict[str, Any]:
         now = utc_now()
-        with self._connect() as conn:
+        with self._session() as conn:
             conn.execute("BEGIN IMMEDIATE")
             conn.execute(
                 "INSERT INTO tasks(task_id,title,objective,status,created_at,updated_at) VALUES(?,?,?,?,?,?)",
@@ -147,7 +161,7 @@ class TaskRepository:
         if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 16:
             raise ValueError("limit 必須介於 1 到 16")
         claimed = []
-        with self._connect() as conn:
+        with self._session() as conn:
             conn.execute("BEGIN IMMEDIATE")
             rows = conn.execute("""
                 SELECT s.* FROM task_steps s
@@ -183,7 +197,7 @@ class TaskRepository:
     ) -> dict[str, Any]:
         if not isinstance(detail, str) or not detail.strip() or len(detail) > 2000:
             raise ValueError("detail 必須是 1–2000 字元的非空字串")
-        with self._connect() as conn:
+        with self._session() as conn:
             conn.execute("BEGIN IMMEDIATE")
             row = conn.execute("SELECT * FROM task_steps WHERE step_id=?", (step_id,)).fetchone()
             if row is None:
@@ -215,7 +229,9 @@ class TaskRepository:
             return updated
 
     def retry_failed_step(self, step_id: str, detail: str = "受控重試") -> dict[str, Any]:
-        with self._connect() as conn:
+        if not isinstance(detail, str) or not detail.strip() or len(detail) > 2000:
+            raise ValueError("detail 必須是 1–2000 字元的非空字串")
+        with self._session() as conn:
             conn.execute("BEGIN IMMEDIATE")
             row = conn.execute("SELECT * FROM task_steps WHERE step_id=?", (step_id,)).fetchone()
             if row is None:
