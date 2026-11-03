@@ -234,6 +234,7 @@ class GitHubPlugin:
             self._repository = ""
             self._default_branch = ""
             self._pending_proposals.clear()
+            with self._device_lock: self._device_auth = None
             return {"ok": True, "connected": False, "credential_removed": True}
 
     def set_repository(self, repository: str) -> dict[str, str]:
@@ -260,12 +261,16 @@ class GitHubPlugin:
 
     def auth_status(self) -> dict[str, Any]:
         configured = bool(os.environ.get("KAPTIA_GITHUB_APP_CLIENT_ID", "").strip())
+        installed = False
+        connected = False
         try:
             keyring = self._get_keyring()
+            installed = True
             connected = bool(keyring.get_password(SERVICE_NAME, "github-token"))
-        except Exception: connected = False
-        return {"installed": self._keyring_module is not None or self._has_keyring(),
-                "app_configured": configured, "connected": connected,
+        except Exception:
+            # Treat a missing package or unusable OS credential backend as not installed.
+            installed = False
+        return {"installed": installed, "app_configured": configured, "connected": connected,
                 "auth_method": "GitHub App Device Flow" if connected else "GitHub App Device Flow / PAT fallback"}
 
     @staticmethod
