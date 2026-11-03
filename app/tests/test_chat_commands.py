@@ -1,6 +1,6 @@
 import unittest
 
-from chat import COMMANDS, SPECIALIST_PROMPTS, SPECIALIST_PROFILES, _help_text, _status_text
+from chat import (COMMANDS, SPECIALIST_PROMPTS, SPECIALIST_PROFILES, CODE_LANGUAGE_PROMPTS, CODE_LANGUAGE_LABELS, _help_text, _status_text)
 
 
 class ChatCommandTests(unittest.TestCase):
@@ -13,6 +13,7 @@ class ChatCommandTests(unittest.TestCase):
         rendered = _help_text()
         self.assertIn("/research <研究問題>", rendered)
         self.assertIn("/mode [fast|deep]", rendered)
+        self.assertIn("/code [python|c|lua|general]", rendered)
         for command in ("/paper", "/code", "/math", "/data", "/general"):
             self.assertIn(command, rendered)
         self.assertIn("未知的 / 指令", rendered)
@@ -30,6 +31,13 @@ class ChatCommandTests(unittest.TestCase):
         self.assertIn("軟體工程模式", SPECIALIST_PROMPTS["code"])
         self.assertIn("數學與形式推理模式", SPECIALIST_PROMPTS["math"])
         self.assertIn("資料分析模式", SPECIALIST_PROMPTS["data"])
+
+    def test_code_language_profiles_are_defined_and_distinct(self):
+        self.assertEqual(set(CODE_LANGUAGE_PROMPTS), {"python", "c", "lua"})
+        self.assertEqual(set(CODE_LANGUAGE_LABELS), {"python", "c", "lua"})
+        self.assertIn("PEP 8", CODE_LANGUAGE_PROMPTS["python"])
+        self.assertIn("未定義行為", CODE_LANGUAGE_PROMPTS["c"])
+        self.assertIn("Lua 版本", CODE_LANGUAGE_PROMPTS["lua"])
 
 
 if __name__ == "__main__":
