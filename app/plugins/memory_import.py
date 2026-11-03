@@ -13,6 +13,7 @@ from typing import Any
 MAX_IMPORT_BYTES = 4_000_000
 MAX_MESSAGES = 2000
 MAX_SOURCE_MESSAGES = 20_000
+MAX_CONVERSATIONS = 500
 MAX_MESSAGE_CHARS = 20_000
 SUPPORTED = {".json", ".jsonl", ".md", ".txt"}
 
@@ -136,6 +137,8 @@ def parse_memory_file(path: str | Path) -> dict:
             normalized_conversations.append(_make_conversation(
                 conversation.get("title", ""), normalized,
                 len(normalized_conversations) + 1, conversation.get("id")))
+    if len(normalized_conversations) > MAX_CONVERSATIONS:
+        raise MemoryImportError(f"來源對話超過 {MAX_CONVERSATIONS} 段安全預覽上限；請先分割匯出檔。")
     total = sum(len(item["messages"]) for item in normalized_conversations)
     if not total:
         raise MemoryImportError("檔案中沒有可匯入的 user/assistant 對話內容。")
