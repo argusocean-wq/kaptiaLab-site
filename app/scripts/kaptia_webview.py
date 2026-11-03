@@ -121,6 +121,8 @@ class Bridge:
             return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
     def select_memory_import(self):
+        self.pending_memory_import=None
+        self.pending_memory_import_digest=None
         try:
             if not webview.windows:return {"ok":False,"error":"桌面視窗尚未就緒"}
             selected=webview.windows[0].create_file_dialog(
