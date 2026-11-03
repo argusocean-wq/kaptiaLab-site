@@ -124,10 +124,13 @@ def parse_memory_file(path: str | Path) -> dict:
             "preview": [{"role": x["role"], "content": x["content"][:240]} for x in normalized[:6]]}
 
 
-def import_memory_file(path: str | Path, *, locally_confirmed: bool = False) -> dict:
+def import_memory_file(path: str | Path, *, locally_confirmed: bool = False,
+                      expected_sha256: str | None = None) -> dict:
     if locally_confirmed is not True:
         raise MemoryImportError("匯入前必須由使用者在 Kaptia Desktop 確認預覽內容。")
     parsed = parse_memory_file(path)
+    if expected_sha256 is not None and parsed["source_sha256"] != expected_sha256:
+        raise MemoryImportError("檔案在預覽後已變更；請重新預覽，再確認匯入。")
     try:
         from kaptia_personal_memory import import_messages
     except ImportError:
