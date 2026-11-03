@@ -125,7 +125,7 @@ class GitHubPlugin:
 
     def _app_client_id(self) -> str:
         value = os.environ.get("KAPTIA_GITHUB_APP_CLIENT_ID", "").strip()
-        if not value or len(value) > 128 or not re.fullmatch(r"[A-Za-z0-9_]+", value):
+        if not value or len(value) > 128 or not re.fullmatch(r"[A-Za-z0-9_.-]+", value):
             raise GitHubPluginError("尚未設定 KaptiaLab GitHub App Client ID；請先完成 GitHub App 註冊設定。")
         return value
 
