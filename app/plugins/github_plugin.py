@@ -14,6 +14,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+import threading
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
@@ -40,6 +41,7 @@ class GitHubPlugin:
         self._repository = ""
         self._default_branch = ""
         self._pending_proposals: dict[str, dict[str, Any]] = {}
+        self._proposal_lock = threading.RLock()
 
     @property
     def current_repository(self) -> str:
@@ -250,22 +252,23 @@ class GitHubPlugin:
         if not self._repository:
             raise GitHubPluginError("請先在 Desktop 選擇 Repository。")
         now = datetime.now(timezone.utc)
-        for key in [k for k, v in self._pending_proposals.items()
-                    if datetime.fromisoformat(v["expires_at"]) <= now and v["status"] == "pending"]:
-            del self._pending_proposals[key]
-        if len([v for v in self._pending_proposals.values() if v["status"] == "pending"]) >= MAX_PENDING_PROPOSALS:
-            raise GitHubPluginError("待批准 GitHub 操作已達上限；請先處理既有提案。")
-        proposal_id = uuid.uuid4().hex
-        item = {
-            "proposal_id": proposal_id, "kind": kind, "repository": self._repository,
-            "payload": payload, "preview": preview, "status": "pending",
-            "created_at": now.isoformat(),
-            "expires_at": (now + timedelta(minutes=PROPOSAL_TTL_MINUTES)).isoformat(),
-        }
-        self._pending_proposals[proposal_id] = item
-        return {"ok": True, "proposal_id": proposal_id, "status": "pending_approval",
-                "repository": self._repository, "kind": kind, "preview": preview,
-                "message": "已建立提案；尚未修改 GitHub。請在 Kaptia Desktop 的 GitHub 待批准清單確認。"}
+        with self._proposal_lock:
+            for key in [k for k, v in self._pending_proposals.items()
+                        if datetime.fromisoformat(v["expires_at"]) <= now and v["status"] == "pending"]:
+                del self._pending_proposals[key]
+            if len([v for v in self._pending_proposals.values() if v["status"] == "pending"]) >= MAX_PENDING_PROPOSALS:
+                raise GitHubPluginError("待批准 GitHub 操作已達上限；請先處理既有提案。")
+            proposal_id = uuid.uuid4().hex
+            item = {
+                "proposal_id": proposal_id, "kind": kind, "repository": self._repository,
+                "payload": payload, "preview": preview, "status": "pending",
+                "created_at": now.isoformat(),
+                "expires_at": (now + timedelta(minutes=PROPOSAL_TTL_MINUTES)).isoformat(),
+            }
+            self._pending_proposals[proposal_id] = item
+            return {"ok": True, "proposal_id": proposal_id, "status": "pending_approval",
+                    "repository": self._repository, "kind": kind, "preview": preview,
+                    "message": "已建立提案；尚未修改 GitHub。請在 Kaptia Desktop 的 GitHub 待批准清單確認。"}
 
     def propose_branch(self, branch: str, base_branch: str) -> dict[str, Any]:
         branch, base_branch = self._validate_branch(branch), self._validate_branch(base_branch)
@@ -315,59 +318,62 @@ class GitHubPlugin:
 
     def list_pending_proposals(self) -> list[dict[str, Any]]:
         now = datetime.now(timezone.utc)
-        result = []
-        for item in self._pending_proposals.values():
-            if item["status"] != "pending":
-                continue
-            if datetime.fromisoformat(item["expires_at"]) <= now:
-                item["status"] = "expired"
-                continue
-            result.append({k: item[k] for k in (
-                "proposal_id", "kind", "repository", "preview", "created_at", "expires_at", "status"
-            )})
-        return result
+        with self._proposal_lock:
+            result = []
+            for item in self._pending_proposals.values():
+                if item["status"] != "pending":
+                    continue
+                if datetime.fromisoformat(item["expires_at"]) <= now:
+                    item["status"] = "expired"
+                    continue
+                result.append({k: item[k] for k in (
+                    "proposal_id", "kind", "repository", "preview", "created_at", "expires_at", "status"
+                )})
+            return result
 
     def approve_proposal(self, proposal_id: str, *, locally_confirmed: bool = False) -> dict[str, Any]:
         self._require_approval(locally_confirmed)
-        item = self._pending_proposals.get(str(proposal_id))
-        if not item or item["status"] != "pending":
-            raise GitHubPluginError("提案不存在、已處理或已過期。")
-        if datetime.fromisoformat(item["expires_at"]) <= datetime.now(timezone.utc):
-            item["status"] = "expired"
-            raise GitHubPluginError("提案已過期，請重新提出。")
-        if item["repository"] != self._repository:
-            raise GitHubPluginError("目前選取的 Repository 已變更；請重新選擇原 Repository 後再批准。")
-        payload = item["payload"]
-        if item["kind"] == "create_branch":
-            result = self.create_branch(payload["branch"], payload["base_branch"], user_approved=True)
-        elif item["kind"] == "write_file":
-            metadata = self._request("GET", f"/repos/{item['repository']}")
-            current_default = metadata.get("default_branch", "")
-            if current_default and payload["branch"] == current_default:
-                raise GitHubPluginError("Repository 預設分支已變更；拒絕直接寫入預設分支。")
-            if payload["existing_sha"]:
-                current = self.read_file(payload["path"], payload["branch"])
-                if current["sha"] != payload["existing_sha"]:
-                    raise GitHubPluginError("檔案在提案後又被修改；拒絕覆蓋，請重新讀取並產生提案。")
-            result = self.write_file(payload["path"], payload["content"], payload["message"],
-                payload["branch"], existing_sha=payload["existing_sha"], user_approved=True)
-        elif item["kind"] == "create_pull_request":
-            result = self.create_pull_request(payload["title"], payload["body"], payload["head"],
-                payload["base"], user_approved=True)
-        else:
-            raise GitHubPluginError("未知的提案類型。")
-        item["status"] = "approved"
-        item["result"] = result
-        return {"ok": True, "proposal_id": item["proposal_id"], "status": "completed",
-                "kind": item["kind"], "result": result}
+        with self._proposal_lock:
+            item = self._pending_proposals.get(str(proposal_id))
+            if not item or item["status"] != "pending":
+                raise GitHubPluginError("提案不存在、已處理或已過期。")
+            if datetime.fromisoformat(item["expires_at"]) <= datetime.now(timezone.utc):
+                item["status"] = "expired"
+                raise GitHubPluginError("提案已過期，請重新提出。")
+            if item["repository"] != self._repository:
+                raise GitHubPluginError("目前選取的 Repository 已變更；請重新選擇原 Repository 後再批准。")
+            payload = item["payload"]
+            if item["kind"] == "create_branch":
+                result = self.create_branch(payload["branch"], payload["base_branch"], user_approved=True)
+            elif item["kind"] == "write_file":
+                metadata = self._request("GET", f"/repos/{item['repository']}")
+                current_default = metadata.get("default_branch", "")
+                if current_default and payload["branch"] == current_default:
+                    raise GitHubPluginError("Repository 預設分支已變更；拒絕直接寫入預設分支。")
+                if payload["existing_sha"]:
+                    current = self.read_file(payload["path"], payload["branch"])
+                    if current["sha"] != payload["existing_sha"]:
+                        raise GitHubPluginError("檔案在提案後又被修改；拒絕覆蓋，請重新讀取並產生提案。")
+                result = self.write_file(payload["path"], payload["content"], payload["message"],
+                    payload["branch"], existing_sha=payload["existing_sha"], user_approved=True)
+            elif item["kind"] == "create_pull_request":
+                result = self.create_pull_request(payload["title"], payload["body"], payload["head"],
+                    payload["base"], user_approved=True)
+            else:
+                raise GitHubPluginError("未知的提案類型。")
+            item["status"] = "approved"
+            item["result"] = result
+            return {"ok": True, "proposal_id": item["proposal_id"], "status": "completed",
+                    "kind": item["kind"], "result": result}
 
     def reject_proposal(self, proposal_id: str, *, locally_confirmed: bool = False) -> dict[str, Any]:
         self._require_approval(locally_confirmed)
-        item = self._pending_proposals.get(str(proposal_id))
-        if not item or item["status"] != "pending":
-            raise GitHubPluginError("提案不存在、已處理或已過期。")
-        item["status"] = "rejected"
-        return {"ok": True, "proposal_id": item["proposal_id"], "status": "rejected"}
+        with self._proposal_lock:
+            item = self._pending_proposals.get(str(proposal_id))
+            if not item or item["status"] != "pending":
+                raise GitHubPluginError("提案不存在、已處理或已過期。")
+            item["status"] = "rejected"
+            return {"ok": True, "proposal_id": item["proposal_id"], "status": "rejected"}
 
     def workflow_runs(self, branch: str | None = None) -> list[dict[str, Any]]:
         query = "?per_page=20"
