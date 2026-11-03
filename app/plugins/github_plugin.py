@@ -80,11 +80,18 @@ class GitHubPlugin:
 
     def disconnect(self) -> dict[str, Any]:
         try:
-            self._get_keyring().delete_password(SERVICE_NAME, "github-token")
-        except Exception:
-            pass
+            keyring = self._get_keyring()
+            try:
+                keyring.delete_password(SERVICE_NAME, "github-token")
+            except Exception as exc:
+                errors = getattr(keyring, "errors", None)
+                missing = getattr(errors, "PasswordDeleteError", ())
+                if not missing or not isinstance(exc, missing):
+                    raise
+        except Exception as exc:
+            raise GitHubPluginError("無法確認已從 OS Credential Manager 移除 Token。") from exc
         self._repository = ""
-        return {"ok": True, "connected": False}
+        return {"ok": True, "connected": False, "credential_removed": True}
 
     def set_repository(self, repository: str) -> dict[str, str]:
         self._repository = self._validate_repo(repository)
