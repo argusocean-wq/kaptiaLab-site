@@ -10,13 +10,19 @@ from core_foundation import (
 
 
 class PlannerTests(unittest.TestCase):
-    def test_builds_valid_dag(self):
+    def test_builds_valid_dag_and_namespaces_step_ids(self):
         plan = build_plan("Build core", "Create the first core slice", [
             {"step_id": "design", "title": "Design", "objective": "Define contracts"},
             {"step_id": "test", "title": "Test", "objective": "Add tests", "depends_on": ["design"]},
         ])
         self.assertEqual(len(plan.steps), 2)
-        self.assertEqual(plan.steps[1].depends_on, ("design",))
+        self.assertTrue(plan.steps[0].step_id.endswith(":design"))
+        self.assertEqual(plan.steps[1].depends_on, (plan.steps[0].step_id,))
+
+    def test_two_plans_can_reuse_human_step_keys(self):
+        first = build_plan("First", "First plan", [{"step_id": "build", "title": "Build"}])
+        second = build_plan("Second", "Second plan", [{"step_id": "build", "title": "Build"}])
+        self.assertNotEqual(first.steps[0].step_id, second.steps[0].step_id)
 
     def test_rejects_cycle_and_missing_dependency(self):
         with self.assertRaises(PlanValidationError):
@@ -50,15 +56,15 @@ class RepositoryTests(unittest.TestCase):
         ])
         self.repo.create_plan(plan)
         first = self.repo.claim_ready_steps("worker-a", limit=4)
-        self.assertEqual([item["step_id"] for item in first], ["one"])
+        self.assertEqual([item["step_id"] for item in first], [plan.steps[0].step_id])
         with self.assertRaises(PermissionError):
-            self.repo.transition_step("one", "completed", "Skip verification",
+            self.repo.transition_step(plan.steps[0].step_id, "completed", "Skip verification",
                                       verification={"passed": True})
-        self.repo.transition_step("one", "verifying", "Ready for verification")
-        self.repo.transition_step("one", "completed", "Verified",
+        self.repo.transition_step(plan.steps[0].step_id, "verifying", "Ready for verification")
+        self.repo.transition_step(plan.steps[0].step_id, "completed", "Verified",
                                   verification={"passed": True})
         second = self.repo.claim_ready_steps("worker-a", limit=4)
-        self.assertEqual([item["step_id"] for item in second], ["two"])
+        self.assertEqual([item["step_id"] for item in second], [plan.steps[1].step_id])
 
     def test_claiming_is_persistent_and_task_status_updates(self):
         plan = build_plan("Single", "One task", [{"title": "Do", "objective": "Do it"}])
