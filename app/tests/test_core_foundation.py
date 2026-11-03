@@ -108,6 +108,14 @@ class ModelRouterTests(unittest.TestCase):
                                               data_classification="local_only"))
         self.assertEqual(result["provider_id"], "local")
 
+    def test_private_data_never_routes_to_third_party_external(self):
+        router = ModelRouter(policy="cloud_first")
+        router.register("external", self.Provider("external answer"), location="external", capabilities={"chat"})
+        router.register("user-cloud", self.Provider("user cloud answer"), location="user_cloud", capabilities={"chat"})
+        result = router.generate(ModelRequest("private prompt", required_capabilities=("chat",),
+                                              data_classification="private"))
+        self.assertEqual(result["provider_id"], "user-cloud")
+
     def test_fallback_is_explicit_and_capability_filtered(self):
         router = ModelRouter()
         router.register("broken-local", self.Provider(error=RuntimeError("offline")),
@@ -125,6 +133,14 @@ class VerificationAndOrchestratorTests(unittest.TestCase):
     def test_unknown_check_fails_closed(self):
         result = VerificationEngine().verify("output", [{"type": "arbitrary_python"}])
         self.assertFalse(result.passed)
+
+    def test_empty_contains_all_check_fails_closed(self):
+        result = VerificationEngine().verify("anything", [{"type": "contains_all", "values": []}])
+        self.assertFalse(result.passed)
+
+    def test_execution_result_rejects_non_text_output(self):
+        with self.assertRaises(TypeError):
+            ExecutionResult(None)
 
     def test_verification_blocks_task_completion(self):
         with tempfile.TemporaryDirectory() as tmp:
