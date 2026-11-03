@@ -7,16 +7,21 @@ per-call user_approved=True decision from the Desktop UI.
 from __future__ import annotations
 
 import base64
+import difflib
 import json
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
 API = "https://api.github.com"
 SERVICE_NAME = "KaptiaLab.GitHub"
 MAX_FILE_BYTES = 1_000_000
+MAX_PENDING_PROPOSALS = 20
+PROPOSAL_TTL_MINUTES = 30
 _REPO_RE = re.compile(r"^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$")
 _BRANCH_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/-]{0,180}$")
 _PATH_RE = re.compile(r"^(?!/)(?!.*(?:^|/)\.\.(?:/|$))[A-Za-z0-9_.@/-]{1,500}$")
@@ -33,6 +38,11 @@ class GitHubPlugin:
         self._keyring_module = keyring_module
         self._opener = opener or urllib.request.urlopen
         self._repository = ""
+        self._pending_proposals: dict[str, dict[str, Any]] = {}
+
+    @property
+    def current_repository(self) -> str:
+        return self._repository
 
     @staticmethod
     def _validate_repo(repository: str) -> str:
@@ -218,6 +228,121 @@ class GitHubPlugin:
         return self._request("POST", self._repo_path("/pulls"),
                              payload={"title": title.strip(), "body": body, "head": head, "base": base, "draft": True})
 
+    def _queue_proposal(self, kind: str, payload: dict[str, Any], preview: dict[str, Any]) -> dict[str, Any]:
+        if not self._repository:
+            raise GitHubPluginError("請先在 Desktop 選擇 Repository。")
+        now = datetime.now(timezone.utc)
+        for key in [k for k, v in self._pending_proposals.items()
+                    if datetime.fromisoformat(v["expires_at"]) <= now and v["status"] == "pending"]:
+            del self._pending_proposals[key]
+        if len([v for v in self._pending_proposals.values() if v["status"] == "pending"]) >= MAX_PENDING_PROPOSALS:
+            raise GitHubPluginError("待批准 GitHub 操作已達上限；請先處理既有提案。")
+        proposal_id = uuid.uuid4().hex
+        item = {
+            "proposal_id": proposal_id, "kind": kind, "repository": self._repository,
+            "payload": payload, "preview": preview, "status": "pending",
+            "created_at": now.isoformat(),
+            "expires_at": (now + timedelta(minutes=PROPOSAL_TTL_MINUTES)).isoformat(),
+        }
+        self._pending_proposals[proposal_id] = item
+        return {"ok": True, "proposal_id": proposal_id, "status": "pending_approval",
+                "repository": self._repository, "kind": kind, "preview": preview,
+                "message": "已建立提案；尚未修改 GitHub。請在 Kaptia Desktop 的 GitHub 待批准清單確認。"}
+
+    def propose_branch(self, branch: str, base_branch: str) -> dict[str, Any]:
+        branch, base_branch = self._validate_branch(branch), self._validate_branch(base_branch)
+        return self._queue_proposal("create_branch", {"branch": branch, "base_branch": base_branch},
+                                    {"branch": branch, "base_branch": base_branch})
+
+    def propose_file_write(self, path: str, content: str, message: str, branch: str,
+                           existing_sha: str = "") -> dict[str, Any]:
+        path, branch = self._validate_path(path), self._validate_branch(branch)
+        if not isinstance(content, str) or len(content.encode("utf-8")) > MAX_FILE_BYTES:
+            raise GitHubPluginError("新檔案內容必須是 UTF-8 文字且不超過 1 MB。")
+        if not isinstance(message, str) or not message.strip() or len(message) > 200:
+            raise GitHubPluginError("Commit message 必須為 1–200 字元。")
+        if existing_sha and not re.fullmatch(r"[0-9a-f]{40}", existing_sha):
+            raise GitHubPluginError("既有檔案 SHA 格式無效。")
+        old_content = ""
+        if existing_sha:
+            current = self.read_file(path, branch)
+            if current["sha"] != existing_sha:
+                raise GitHubPluginError("檔案已在讀取後變更；請重新讀取再提出修改。")
+            old_content = current["content"]
+        diff = "\n".join(difflib.unified_diff(
+            old_content.splitlines(), content.splitlines(),
+            fromfile="a/" + path if existing_sha else "/dev/null",
+            tofile="b/" + path, lineterm="",
+        ))
+        preview = {"path": path, "branch": branch, "message": message.strip(),
+                   "existing_sha": existing_sha or None, "diff": diff[:12000],
+                   "diff_truncated": len(diff) > 12000, "new_bytes": len(content.encode("utf-8"))}
+        payload = {"path": path, "content": content, "message": message.strip(),
+                   "branch": branch, "existing_sha": existing_sha or None}
+        return self._queue_proposal("write_file", payload, preview)
+
+    def propose_pull_request(self, title: str, body: str, head: str, base: str) -> dict[str, Any]:
+        head, base = self._validate_branch(head), self._validate_branch(base)
+        if not isinstance(title, str) or not title.strip() or len(title) > 200:
+            raise GitHubPluginError("Pull Request 標題必須為 1–200 字元。")
+        if not isinstance(body, str) or len(body) > 10000:
+            raise GitHubPluginError("Pull Request 描述不得超過 10,000 字元。")
+        return self._queue_proposal("create_pull_request",
+            {"title": title.strip(), "body": body, "head": head, "base": base},
+            {"title": title.strip(), "head": head, "base": base, "body_preview": body[:1500]})
+
+    def list_pending_proposals(self) -> list[dict[str, Any]]:
+        now = datetime.now(timezone.utc)
+        result = []
+        for item in self._pending_proposals.values():
+            if item["status"] != "pending":
+                continue
+            if datetime.fromisoformat(item["expires_at"]) <= now:
+                item["status"] = "expired"
+                continue
+            result.append({k: item[k] for k in (
+                "proposal_id", "kind", "repository", "preview", "created_at", "expires_at", "status"
+            )})
+        return result
+
+    def approve_proposal(self, proposal_id: str, *, locally_confirmed: bool = False) -> dict[str, Any]:
+        self._require_approval(locally_confirmed)
+        item = self._pending_proposals.get(str(proposal_id))
+        if not item or item["status"] != "pending":
+            raise GitHubPluginError("提案不存在、已處理或已過期。")
+        if datetime.fromisoformat(item["expires_at"]) <= datetime.now(timezone.utc):
+            item["status"] = "expired"
+            raise GitHubPluginError("提案已過期，請重新提出。")
+        if item["repository"] != self._repository:
+            raise GitHubPluginError("目前選取的 Repository 已變更；請重新選擇原 Repository 後再批准。")
+        payload = item["payload"]
+        if item["kind"] == "create_branch":
+            result = self.create_branch(payload["branch"], payload["base_branch"], user_approved=True)
+        elif item["kind"] == "write_file":
+            if payload["existing_sha"]:
+                current = self.read_file(payload["path"], payload["branch"])
+                if current["sha"] != payload["existing_sha"]:
+                    raise GitHubPluginError("檔案在提案後又被修改；拒絕覆蓋，請重新讀取並產生提案。")
+            result = self.write_file(payload["path"], payload["content"], payload["message"],
+                payload["branch"], existing_sha=payload["existing_sha"], user_approved=True)
+        elif item["kind"] == "create_pull_request":
+            result = self.create_pull_request(payload["title"], payload["body"], payload["head"],
+                payload["base"], user_approved=True)
+        else:
+            raise GitHubPluginError("未知的提案類型。")
+        item["status"] = "approved"
+        item["result"] = result
+        return {"ok": True, "proposal_id": item["proposal_id"], "status": "completed",
+                "kind": item["kind"], "result": result}
+
+    def reject_proposal(self, proposal_id: str, *, locally_confirmed: bool = False) -> dict[str, Any]:
+        self._require_approval(locally_confirmed)
+        item = self._pending_proposals.get(str(proposal_id))
+        if not item or item["status"] != "pending":
+            raise GitHubPluginError("提案不存在、已處理或已過期。")
+        item["status"] = "rejected"
+        return {"ok": True, "proposal_id": item["proposal_id"], "status": "rejected"}
+
     def workflow_runs(self, branch: str | None = None) -> list[dict[str, Any]]:
         query = "?per_page=20"
         if branch:
@@ -227,3 +352,12 @@ class GitHubPlugin:
                  "conclusion": x.get("conclusion"), "html_url": x.get("html_url"),
                  "head_branch": x.get("head_branch"), "head_sha": x.get("head_sha")}
                 for x in data.get("workflow_runs", []) if isinstance(x, dict)]
+
+_DEFAULT_PLUGIN: GitHubPlugin | None = None
+
+def get_default_plugin() -> GitHubPlugin:
+    """Return the process-wide Desktop GitHub plugin shared by UI and AI tools."""
+    global _DEFAULT_PLUGIN
+    if _DEFAULT_PLUGIN is None:
+        _DEFAULT_PLUGIN = GitHubPlugin()
+    return _DEFAULT_PLUGIN
