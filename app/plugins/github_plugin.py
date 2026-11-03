@@ -92,43 +92,45 @@ class GitHubPlugin:
             raise GitHubPluginError("無法載入 OS Credential Manager；請安裝 requirements-github.txt。") from exc
 
     def connect(self, token: str) -> dict[str, Any]:
-        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\r\n"):
+        if not isinstance(token, str) or len(token.strip()) < 20 or any(c in token for c in "\\r\\n"):
             raise GitHubPluginError("GitHub Token 格式無效。")
-        # Verify the credential before persisting it.
-        self._request("GET", "/user", token=token.strip())
-        try:
-            self._get_keyring().set_password(SERVICE_NAME, "github-token", token.strip())
-        except Exception as exc:
-            raise GitHubPluginError("無法安全保存 Token；未改用明文檔案保存。") from exc
-        self._repository = ""
-        self._default_branch = ""
-        self._pending_proposals.clear()
-        return {"ok": True, "connected": True, "storage": "OS Credential Manager"}
+        with self._proposal_lock:
+            self._request("GET", "/user", token=token.strip())
+            try:
+                self._get_keyring().set_password(SERVICE_NAME, "github-token", token.strip())
+            except Exception as exc:
+                raise GitHubPluginError("無法安全保存 Token；未改用明文檔案保存。") from exc
+            self._repository = ""
+            self._default_branch = ""
+            self._pending_proposals.clear()
+            return {"ok": True, "connected": True, "storage": "OS Credential Manager"}
 
     def disconnect(self) -> dict[str, Any]:
-        try:
-            keyring = self._get_keyring()
+        with self._proposal_lock:
             try:
-                keyring.delete_password(SERVICE_NAME, "github-token")
+                keyring = self._get_keyring()
+                try:
+                    keyring.delete_password(SERVICE_NAME, "github-token")
+                except Exception as exc:
+                    errors = getattr(keyring, "errors", None)
+                    missing = getattr(errors, "PasswordDeleteError", ())
+                    if not missing or not isinstance(exc, missing):
+                        raise
             except Exception as exc:
-                errors = getattr(keyring, "errors", None)
-                missing = getattr(errors, "PasswordDeleteError", ())
-                if not missing or not isinstance(exc, missing):
-                    raise
-        except Exception as exc:
-            raise GitHubPluginError("無法確認已從 OS Credential Manager 移除 Token。") from exc
-        self._repository = ""
-        self._default_branch = ""
-        self._pending_proposals.clear()
-        return {"ok": True, "connected": False, "credential_removed": True}
+                raise GitHubPluginError("無法確認已從 OS Credential Manager 移除 Token。") from exc
+            self._repository = ""
+            self._default_branch = ""
+            self._pending_proposals.clear()
+            return {"ok": True, "connected": False, "credential_removed": True}
 
     def set_repository(self, repository: str) -> dict[str, str]:
         repository = self._validate_repo(repository)
-        metadata = self._request("GET", f"/repos/{repository}")
-        default_branch = metadata.get("default_branch", "")
-        self._repository = repository
-        self._default_branch = default_branch if isinstance(default_branch, str) else ""
-        return {"repository": self._repository, "default_branch": self._default_branch}
+        with self._proposal_lock:
+            metadata = self._request("GET", f"/repos/{repository}")
+            default_branch = metadata.get("default_branch", "")
+            self._repository = repository
+            self._default_branch = default_branch if isinstance(default_branch, str) else ""
+            return {"repository": self._repository, "default_branch": self._default_branch}
 
     def _token(self) -> str:
         try:
