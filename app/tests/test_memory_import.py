@@ -36,6 +36,13 @@ class MemoryImportTests(unittest.TestCase):
         path = self.root / "x.txt"; path.write_text("context", encoding="utf-8")
         with self.assertRaises(MemoryImportError): import_memory_file(path)
 
+    def test_changed_file_after_preview_is_rejected(self):
+        path = self.root / "x.txt"; path.write_text("original", encoding="utf-8")
+        preview = parse_memory_file(path)
+        path.write_text("changed after preview", encoding="utf-8")
+        with self.assertRaises(MemoryImportError):
+            import_memory_file(path, locally_confirmed=True, expected_sha256=preview["source_sha256"])
+
     def test_commit_calls_local_import(self):
         path = self.root / "x.txt"; path.write_text("context", encoding="utf-8")
         with patch("kaptia_personal_memory.import_messages", return_value={"imported":1}) as fn:
