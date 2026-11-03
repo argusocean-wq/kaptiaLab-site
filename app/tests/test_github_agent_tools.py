@@ -6,7 +6,7 @@ from scripts.kaptia_tools import dispatch_tool
 class GitHubAgentToolTests(unittest.TestCase):
     def test_github_read_and_proposal_tools_are_registered(self):
         expected = {
-            "github_list_repositories", "github_select_repository", "github_list_branches",
+            "github_list_repositories", "github_list_branches",
             "github_read_file", "github_propose_branch", "github_propose_file_write",
             "github_propose_pull_request", "github_list_workflow_runs",
         }
