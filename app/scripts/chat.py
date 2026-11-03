@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import sys
+import re
 from kaptia_agents import run_agent_workflow
 from kaptia_personal_memory import append_exchange, clear_memory, load_recent_messages, memory_status
 from kaptia_modes import normalize_mode, run_deep_workflow, fast_prompt
@@ -79,6 +80,70 @@ def _load_generator():
     tokenizer, model = load_language_engine()
     return build_generator(tokenizer, model)
 
+
+def _research_query(user_text: str) -> str | None:
+    """Return a query only for explicit web-research intent."""
+    text = user_text.strip()
+    if text.lower().startswith("/research "):
+        return text[len("/research "):].strip() or None
+    if text.lower() == "/research":
+        return ""
+    patterns = (
+        r"上網搜尋", r"網路搜尋", r"上網查", r"查最新(?:資料|資訊|消息)?",
+        r"搜尋網路", r"幫我研究", r"做資料研究", r"查證(?:一下)?",
+        r"research online", r"search the web", r"look up online",
+    )
+    if any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in patterns):
+        return text
+    return None
+
+
+def _run_research(generate, query: str) -> tuple[str, dict]:
+    """Run the opt-in, bounded Qwen-backed web research pipeline."""
+    from core_foundation import ResearchBudget
+    try:
+        from kaptia_research_runtime import build_research_runtime
+    except ImportError:
+        from scripts.kaptia_research_runtime import build_research_runtime
+    def env_int(name: str, default: int, low: int, high: int) -> int:
+        try:
+            value = int(os.environ.get(name, str(default)))
+        except (TypeError, ValueError):
+            value = default
+        return max(low, min(high, value))
+    try:
+        seconds = float(os.environ.get("KAPTIA_RESEARCH_MAX_SECONDS", "300"))
+    except (TypeError, ValueError):
+        seconds = 300.0
+    seconds = max(10.0, min(seconds, 1800.0))
+    budget = ResearchBudget(
+        max_rounds=env_int("KAPTIA_RESEARCH_MAX_ROUNDS", 4, 1, 10),
+        max_searches=env_int("KAPTIA_RESEARCH_MAX_SEARCHES", 12, 1, 40),
+        max_sources=env_int("KAPTIA_RESEARCH_MAX_SOURCES", 30, 1, 80),
+        max_wall_seconds=seconds,
+    )
+    engine, archive, _ = build_research_runtime(generate, budget=budget)
+    report = engine.run(query, budget=budget, archive=archive)
+    lines = [report.answer or "目前沒有足夠來源產生可靠答案。", "",
+             f"研究狀態：{'通過品質門檻' if report.passed else '未通過品質門檻'}",
+             f"品質覆蓋分數：{report.quality_score:.2f}（不是正確率）",
+             f"研究輪次：{report.rounds}；搜尋次數：{report.searches}；來源數：{len(report.sources)}",
+             f"耗時：{report.elapsed_seconds:.1f} 秒"]
+    if report.energy_wh is not None:
+        lines.append(f"估測耗電：{report.energy_wh:.3f} Wh")
+    lines.extend(["", "來源："])
+    for index, source in enumerate(report.sources, 1):
+        lines.append(f"[{index}] {source.title} — {source.url}（{source.domain}）")
+    if report.issues:
+        lines.extend(["", "限制／未解決問題：", *[f"- {item}" for item in report.issues]])
+    return "\n".join(lines), {
+        "passed": report.passed, "quality_score": report.quality_score,
+        "sources": len(report.sources), "rounds": report.rounds,
+        "searches": report.searches, "elapsed_seconds": report.elapsed_seconds,
+        "stop_reason": report.stop_reason,
+    }
+
+
 def main() -> int:
     max_history_chars = _env_limit("KAPTIA_MAX_HISTORY_CHARS", DEFAULT_HISTORY_CHARS, 4_000, 40_000)
     max_input_chars = min(
@@ -121,6 +186,11 @@ def main() -> int:
         if command in {"/exit", "/quit", "exit", "quit"}:
             print("[Kaptia] 已結束。")
             break
+        if command == "/research" or command.startswith("/research "):
+            query = _research_query(user_text)
+            if not query:
+                print("[Kaptia] 用法：/research 你的研究問題")
+                continue
         if command in {"/mode", "/mode fast", "/mode deep"}:
             requested = command.split(maxsplit=1)[1] if " " in command else ""
             if not requested:
@@ -166,7 +236,16 @@ def main() -> int:
 
         _append_bounded_history(history, "user", user_text, max_history_chars)
         try:
-            if mode == "deep":
+            research_query = _research_query(user_text)
+            if research_query is not None:
+                if not research_query:
+                    answer = "請提供研究問題，例如：/research 比較近三年本地 AI 推論框架。"
+                    research_meta = {}
+                else:
+                    print("[Kaptia] 已啟動網路研究：會搜尋、擷取來源、交叉審查；達到時間或搜尋預算即停止。")
+                    answer, research_meta = _run_research(generate, research_query)
+                    print(f"[Kaptia] 研究結束：通過={research_meta['passed']}，來源={research_meta['sources']}，耗時={research_meta['elapsed_seconds']:.1f}s。")
+            elif mode == "deep":
                 answer, deep_meta = run_deep_workflow(generate, user_text, max_new_tokens=DETAILED_RESPONSE_TOKENS)
                 print(f"[Kaptia] 深度流程完成：需求分析、基礎版本、測試拆分、細化；測試尚待外部執行 {deep_meta['pending']} 項。")
             elif subagents_enabled and len(user_text) >= 120:
