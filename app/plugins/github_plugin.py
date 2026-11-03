@@ -220,7 +220,7 @@ class GitHubPlugin:
         self._require_approval(user_approved)
         path, branch = self._validate_path(path), self._validate_branch(branch)
         if self._default_branch and branch == self._default_branch:
-            raise GitHubPluginError("AI 提案不得直接修改 Repository 預設分支；請先建立功能分支。")
+            raise GitHubPluginError("不得直接修改 Repository 預設分支；請先建立功能分支。")
         if not isinstance(content, str) or len(content.encode("utf-8")) > MAX_FILE_BYTES:
             raise GitHubPluginError("新檔案內容必須是 UTF-8 文字且不超過 1 MB。")
         if not isinstance(message, str) or not message.strip() or len(message) > 200:
@@ -277,6 +277,8 @@ class GitHubPlugin:
     def propose_file_write(self, path: str, content: str, message: str, branch: str,
                            existing_sha: str = "") -> dict[str, Any]:
         path, branch = self._validate_path(path), self._validate_branch(branch)
+        if self._default_branch and branch == self._default_branch:
+            raise GitHubPluginError("AI 提案不得直接修改 Repository 預設分支；請先建立功能分支。")
         if not isinstance(content, str) or len(content.encode("utf-8")) > MAX_FILE_BYTES:
             raise GitHubPluginError("新檔案內容必須是 UTF-8 文字且不超過 1 MB。")
         if not isinstance(message, str) or not message.strip() or len(message) > 200:
