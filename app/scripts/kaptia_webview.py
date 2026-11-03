@@ -642,7 +642,7 @@ class Bridge:
                 if self._github_task_requested(text):
                     auth=self.github_plugin.auth_status()
                     if not auth.get("connected"):
-                        self._js_chat({"answer":"這項工作需要先連接 GitHub。請開啟「GitHub 專案」頁面，完成插件依賴安裝與 GitHub App 授權；授權完成後再送出這項工作。若尚未設定 KaptiaLab GitHub App，需先完成一次 App Client ID 設定。","thinking":False})
+                        self._js_chat({"answer":"這項工作需要先連接 GitHub。我已開啟 GitHub 專案設定，請依畫面提示安裝必要元件並完成 GitHub 帳號授權。授權成功後，再送出這項工作。","thinking":False,"github_setup_required":True})
                         return
                     self._js_chat({"status":"正在使用 GitHub 工具檢查 Repository；任何寫入都只會建立待批准提案。"})
                     try:
