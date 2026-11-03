@@ -367,7 +367,7 @@ def main() -> int:
 
         _append_bounded_history(history, "user", user_text, max_history_chars)
         specialist_text = (
-            SPECIALIST_PROMPTS[profile] + "\\n\\n使用者需求：\\n" + user_text
+            SPECIALIST_PROMPTS[profile] + "\n\n使用者需求：\n" + user_text
             if profile != "general" else user_text
         )
         try:
