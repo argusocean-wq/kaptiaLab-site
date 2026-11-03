@@ -94,7 +94,7 @@
  </section>
  <section class="page" id="github">
   <h2>GitHub 專案</h2><div class="page-intro">讓 Kaptia 讀取並修改你授權的 Repository。所有寫入操作都必須逐次確認；預設只建立功能分支與 Draft Pull Request，不會自動合併。</div>
-  <div class="settings-card"><h3>連接 GitHub</h3><p>使用 Fine-grained Personal Access Token。建議只授權指定 Repository，權限包含 Metadata: Read、Contents: Read and write、Pull requests: Read and write；檢查 CI 另需 Actions: Read。Token 只保存於 Windows Credential Manager。</p><button class="secondary" id="install-github-plugin">安裝 GitHub 外掛元件</button><div class="field"><label>GitHub Token</label><input id="github-token" type="password" autocomplete="off" placeholder="貼上 Fine-grained Personal Access Token"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="primary" id="github-connect">連接 GitHub</button><button class="secondary" id="github-disconnect">中斷連接</button></div><div id="github-status" class="info-note" style="margin-top:10px">尚未連接。</div></div>
+  <div class="settings-card"><h3>GitHub 帳號連線</h3><p>Kaptia 使用 GitHub App Device Flow。你只需在 GitHub 官方授權頁面確認登入，不需要手動建立或貼上 Personal Access Token。憑證會保存於 Windows Credential Manager，並在到期前自動更新。</p><div class="field"><label>GitHub App Client ID（由 KaptiaLab 產品設定提供）</label><input id="github-app-client-id" autocomplete="off" placeholder="GitHub App Client ID"></div><button class="secondary" id="github-save-client-id">保存 App 設定</button><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="secondary" id="install-github-plugin">檢查／安裝 GitHub 外掛</button><button class="primary" id="github-device-login">使用 GitHub 帳號授權</button><button class="secondary" id="github-disconnect">中斷連接</button></div><div id="github-device-panel" class="info-note" style="display:none;margin-top:10px"><div>請在 GitHub 官方頁面輸入此代碼：</div><div id="github-device-code" style="font-size:24px;font-weight:700;letter-spacing:2px;margin:8px 0"></div><a id="github-device-link" href="https://github.com/login/device" target="_blank" rel="noopener noreferrer">開啟 GitHub 裝置授權頁面</a><div id="github-device-status" style="margin-top:8px">等待你完成授權…</div></div><div id="github-status" class="info-note" style="margin-top:10px">尚未連接。</div><details style="margin-top:12px"><summary>進階：使用 Fine-grained Token（備援）</summary><p>只在 GitHub App 尚未完成註冊設定時使用。建議只授權指定 Repository；權限依需求限制為 Metadata: Read、Contents: Read and write、Pull requests: Read and write、Actions: Read。</p><div class="field"><label>Fine-grained Personal Access Token</label><input id="github-token" type="password" autocomplete="off" placeholder="貼上 Token"></div><button class="secondary" id="github-connect">使用 Token 連接</button></details></div>
   <div class="settings-card"><h3>Repository</h3><div class="field"><label>已授權的 Repository</label><select id="github-repository"><option value="">請先連接 GitHub</option></select></div><div class="field"><label>目標 Branch</label><select id="github-branch"><option value="">請先選擇 Repository</option></select></div><div class="field"><label>新 Branch 名稱</label><input id="github-new-branch" placeholder="例如：feature/kaptia-update"></div><button class="secondary" id="github-create-branch">建立功能分支</button></div>
   <div class="settings-card"><h3>讀取與編輯檔案</h3><p>所有 Kaptia 檔案寫入都必須使用非預設功能分支；預設分支受到保護。先建立功能分支，再讀取與修改檔案。</p><div class="field"><label>Repository 相對路徑</label><input id="github-file-path" placeholder="例如：README.md"></div><button class="secondary" id="github-read-file">讀取檔案</button><div class="field"><label>檔案內容（UTF-8，最大 1 MB）</label><textarea id="github-file-content" rows="12" placeholder="讀取檔案後在此編輯；新增檔案也可直接輸入內容。"></textarea></div><div class="field"><label>Commit Message</label><input id="github-commit-message" value="Update project file"></div><button class="primary" id="github-save-file">確認並提交檔案修改</button><div id="github-file-status" class="info-note" style="margin-top:10px"></div></div>
   <div class="settings-card"><h3>Draft Pull Request</h3><div class="field"><label>標題</label><input id="github-pr-title" placeholder="Describe the change"></div><div class="field"><label>內容</label><textarea id="github-pr-body" rows="3" placeholder="變更摘要、測試結果與風險"></textarea></div><div class="field"><label>Head Branch</label><input id="github-pr-head" placeholder="feature/..."></div><div class="field"><label>Base Branch</label><input id="github-pr-base" placeholder="main"></div><button class="secondary" id="github-create-pr">建立 Draft PR</button><div id="github-pr-status" class="info-note" style="margin-top:10px"></div></div>
@@ -245,18 +245,51 @@ async function selectGitHubRepository(){
  if(selected.default_branch)select.value=selected.default_branch;
  $('github-pr-base').value=selected.default_branch||select.value||'main';$('github-status').textContent='目前 Repository：'+name+' · 預設分支 '+(selected.default_branch||'未知')+' · '+r.branches.length+' 個 Branch';
 }
+async function refreshGitHubPluginStatus(){
+ const s=await call('github_plugin_status');if(!s?.ok){$('github-status').textContent=s?.error||'無法檢查 GitHub 外掛狀態';return}
+ $('github-status').textContent=!s.installed?'尚未安裝安全憑證依賴；請按「檢查／安裝 GitHub 外掛」。':(!s.app_configured?'外掛已就緒，但尚未設定 KaptiaLab GitHub App Client ID。':(s.connected?'GitHub 已連接。':'外掛已就緒，尚未連接 GitHub。'));
+ if(s.connected)await loadGitHubRepositories();
+}
 $('install-github-plugin').onclick=async()=>{
- if(!window.confirm('安裝 GitHub 插件所需的 keyring 套件？套件將透過 pip 從 PyPI 下載。'))return;
- const r=await call('github_install_dependencies',true);toast(r?.ok?'GitHub 外掛元件安裝完成':(r?.error||'安裝失敗'));
+ const s=await call('github_plugin_status');if(s?.installed){toast('GitHub 外掛依賴已安裝');return}
+ if(!window.confirm('安裝 GitHub 外掛所需的安全憑證套件 keyring？將透過 pip 從 PyPI 下載。'))return;
+ const b=$('install-github-plugin');b.disabled=true;const r=await call('github_install_dependencies',true);b.disabled=false;
+ toast(r?.ok?'GitHub 外掛元件安裝完成':(r?.error||'安裝失敗'));await refreshGitHubPluginStatus();
+};
+$('github-save-client-id').onclick=async()=>{
+ const id=$('github-app-client-id').value.trim();if(!id)return toast('請輸入 KaptiaLab GitHub App Client ID');
+ const r=await call('github_configure_app',id);if(!r?.ok){$('github-status').textContent=r?.error||'設定失敗';return}
+ $('github-app-client-id').value='';toast('GitHub App 設定已保存');await refreshGitHubPluginStatus();
+};
+let githubDevicePollTimer=null;
+$('github-device-login').onclick=async()=>{
+ const status=await call('github_plugin_status');
+ if(!status?.installed){$('github-status').textContent='請先安裝 GitHub 外掛依賴。';return toast('請先安裝 GitHub 外掛依賴')}
+ if(!status?.app_configured){$('github-status').textContent='尚未設定 GitHub App Client ID。';return toast('KaptiaLab 尚未完成 GitHub App 註冊設定')}
+ const b=$('github-device-login');b.disabled=true;$('github-status').textContent='正在向 GitHub 申請一次性授權碼…';
+ const r=await call('github_device_start');b.disabled=false;
+ if(!r?.ok){$('github-status').textContent=r?.error||'無法開始授權';return}
+ $('github-device-panel').style.display='block';$('github-device-code').textContent=r.user_code;
+ $('github-device-link').href=r.verification_uri;$('github-device-status').textContent='授權碼約 '+Math.ceil(r.expires_in/60)+' 分鐘內有效。請完成授權；Kaptia 會自動檢查結果。';
+ if(githubDevicePollTimer)clearTimeout(githubDevicePollTimer);
+ const poll=async()=>{
+  const p=await call('github_device_poll');if(!p?.ok){$('github-device-status').textContent=p?.error||'授權失敗';return}
+  if(p.status==='connected'){$('github-device-status').textContent='GitHub 授權成功，憑證已安全保存。';$('github-status').textContent='GitHub App 已連接；正在載入 Repository…';await loadGitHubRepositories();return}
+  $('github-device-status').textContent='等待 GitHub 授權確認…';githubDevicePollTimer=setTimeout(poll,Math.max(3,p.retry_after||5)*1000);
+ };githubDevicePollTimer=setTimeout(poll,Math.max(5,r.interval||5)*1000);
 };
 $('github-connect').onclick=async()=>{
- const token=$('github-token').value.trim();if(!token)return toast('請輸入 GitHub Token');
+ const token=$('github-token').value.trim();if(!token)return toast('請輸入 Fine-grained Token');
  const b=$('github-connect');b.disabled=true;$('github-status').textContent='正在驗證並安全保存 Token…';
  const r=await call('github_connect',token);b.disabled=false;$('github-token').value='';
  if(!r?.ok){$('github-status').textContent=r?.error||'連接失敗';return}
  $('github-status').textContent='Token 已驗證並保存於 Windows Credential Manager。';await loadGitHubRepositories();
 };
-$('github-disconnect').onclick=async()=>{const r=await call('github_disconnect');$('github-status').textContent=r?.ok?'已中斷連接並移除保存的 Token。':(r?.error||'中斷失敗');$('github-repository').innerHTML='<option value="">請重新連接</option>';$('github-branch').innerHTML=''};
+$('github-disconnect').onclick=async()=>{
+ if(githubDevicePollTimer)clearTimeout(githubDevicePollTimer);
+ const r=await call('github_disconnect');$('github-status').textContent=r?.ok?'已中斷連接並移除所有 GitHub 憑證。':(r?.error||'中斷失敗');
+ $('github-repository').innerHTML='<option value="">請重新連接</option>';$('github-branch').innerHTML='';$('github-device-panel').style.display='none';
+};
 $('github-repository').onchange=selectGitHubRepository;
 $('github-branch').onchange=()=>{githubCurrentFileSha=null;$('github-pr-base').value=$('github-branch').value;};
 $('github-create-branch').onclick=async()=>{
@@ -438,6 +471,6 @@ $('cloud-disconnect').onclick=async()=>{
  $('cloud-capabilities').textContent='尚未取得 Worker 能力資訊。';
 };
 $('save-model').onclick=async()=>{const id=$('model-id').value.trim(),q=$('quantization').value;if(!id)return toast('模型識別碼不可空白');const r=await call('save_model_settings',id,q);toast(r?.ok?'模型設定已儲存，重新啟動後生效':(r?.error||'儲存失敗'))};
-window.addEventListener('pywebviewready',()=>{refresh();loadEvents();loadCloudCompute();switchPage('chat');setInterval(()=>call('poll_reminders'),60000)});
+window.addEventListener('pywebviewready',()=>{refresh();loadEvents();loadCloudCompute();refreshGitHubPluginStatus();switchPage('chat');setInterval(()=>call('poll_reminders'),60000)});
 </script>
 </body></html>
