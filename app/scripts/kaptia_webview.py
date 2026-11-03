@@ -40,6 +40,9 @@ class Bridge:
         self.store=CalendarStore(default_calendar_path())
         self.memory_store=MemoryStore(default_memory_db_path())
         self.github_plugin=get_default_plugin()
+        saved_github_client_id=_read_settings().get("github_app_client_id","")
+        if isinstance(saved_github_client_id,str) and saved_github_client_id.strip():
+            os.environ["KAPTIA_GITHUB_APP_CLIENT_ID"]=saved_github_client_id.strip()
         self.pending_memory_import=None
         self.pending_memory_import_digest=None
         self.workspace=WorkspaceSandbox()
@@ -171,6 +174,32 @@ class Bridge:
                 output=((proc.stdout or "")+"\\n"+(proc.stderr or ""))[-2500:]
                 return {"ok":False,"error":"GitHub 外掛依賴安裝失敗："+output}
             return {"ok":True,"message":"GitHub 外掛依賴安裝完成。"}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_plugin_status(self):
+        try:return {"ok":True,**self.github_plugin.auth_status()}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_configure_app(self,client_id):
+        value=str(client_id or "").strip()
+        if not value or len(value)>128 or not __import__("re").fullmatch(r"[A-Za-z0-9_]+",value):
+            return {"ok":False,"error":"GitHub App Client ID 格式無效。"}
+        try:
+            data=_read_settings();data["github_app_client_id"]=value
+            ROOT.mkdir(parents=True,exist_ok=True)
+            temp=SETTINGS_PATH.with_suffix(".tmp")
+            temp.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding="utf-8")
+            temp.replace(SETTINGS_PATH)
+            os.environ["KAPTIA_GITHUB_APP_CLIENT_ID"]=value
+            return {"ok":True,"message":"GitHub App Client ID 已保存；此值不是密碼。"}
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_device_start(self):
+        try:return self.github_plugin.device_flow_start()
+        except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
+
+    def github_device_poll(self):
+        try:return self.github_plugin.device_flow_poll()
         except Exception as exc:return {"ok":False,"error":f"{type(exc).__name__}: {exc}"}
 
     def github_connect(self,token):
@@ -611,6 +640,10 @@ class Bridge:
                 memory_context=self.memory_store.build_context(max_chars=2200, query_text=text)
                 contextual_text=(memory_context+"\n\n目前使用者需求：\n"+text) if memory_context else text
                 if self._github_task_requested(text):
+                    auth=self.github_plugin.auth_status()
+                    if not auth.get("connected"):
+                        self._js_chat({"answer":"這項工作需要先連接 GitHub。請開啟「GitHub 專案」頁面，完成插件依賴安裝與 GitHub App 授權；授權完成後再送出這項工作。若尚未設定 KaptiaLab GitHub App，需先完成一次 App Client ID 設定。","thinking":False})
+                        return
                     self._js_chat({"status":"正在使用 GitHub 工具檢查 Repository；任何寫入都只會建立待批准提案。"})
                     try:
                         from kaptia_agent_loop import run_tool_loop
