@@ -27,7 +27,7 @@ jobs:
       - name: Test M1 Core Foundation
         env:
           PYTHONPATH: app:app/scripts
-        run: python -m pytest -q app/tests/test_core_foundation.py app/tests/test_research.py app/tests/test_research_runtime.py app/tests/test_chat_research_intent.py
+        run: python -m pytest -q app/tests/test_core_foundation.py app/tests/test_research.py app/tests/test_research_runtime.py app/tests/test_chat_research_intent.py app/tests/test_chat_commands.py
       - name: Test Cloud Compute worker API
         env:
           PYTHONPATH: app
