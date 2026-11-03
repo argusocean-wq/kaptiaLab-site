@@ -1,8 +1,8 @@
-"""Capability-aware hybrid model routing with local-only data enforcement."""
+"""Capability-aware hybrid model routing with data-classification enforcement."""
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from .contracts import ModelRequest, DATA_CLASSIFICATIONS
 
@@ -21,7 +21,11 @@ class ModelRegistration:
 
 
 class ModelRouter:
-    """Routes requests across local, user-cloud and explicitly configured external models."""
+    """Routes requests across local, user-cloud and explicitly configured external models.
+
+    Private prompts may use local or user-owned cloud providers. Third-party external
+    providers are eligible only for public data. local_only never leaves the device.
+    """
 
     def __init__(self, policy: str = "local_first"):
         if policy not in {"local_first", "cloud_first", "balanced"}:
@@ -37,6 +41,10 @@ class ModelRouter:
             raise ValueError("provider_id 無效")
         if location not in {"local", "user_cloud", "external"}:
             raise ValueError("location 必須是 local、user_cloud 或 external")
+        if not isinstance(capabilities, (set, frozenset)) or any(
+            not isinstance(item, str) or not item.strip() for item in capabilities
+        ):
+            raise ValueError("capabilities 必須是非空字串集合")
         if not callable(getattr(adapter, "generate", None)):
             raise TypeError("adapter 必須實作 generate(request)")
         if isinstance(priority, bool) or not isinstance(priority, int):
@@ -57,6 +65,7 @@ class ModelRouter:
             item for item in self._providers.values()
             if required.issubset(item.capabilities)
             and not (request.data_classification == "local_only" and item.location != "local")
+            and not (request.data_classification == "private" and item.location == "external")
         ]
         if request.preferred_provider_id:
             rows.sort(key=lambda item: (item.provider_id != request.preferred_provider_id, item.priority))
