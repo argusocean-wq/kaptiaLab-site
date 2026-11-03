@@ -217,9 +217,10 @@ $('confirm-memory-import').onclick=async()=>{
 };
 
 async function loadGitHubRepositories(){
- const select=$('github-repository');const r=await call('github_repositories');
+ const select=$('github-repository'),previous=select.value;const r=await call('github_repositories');
  if(!r?.ok){$('github-status').textContent=r?.error||'尚未連接 GitHub';return}
  select.textContent='';r.repositories.forEach(repo=>{const o=document.createElement('option');o.value=repo.full_name;o.textContent=repo.full_name+(repo.private?' · private':' · public');select.append(o)});
+ if(previous&&r.repositories.some(repo=>repo.full_name===previous))select.value=previous;
  $('github-status').textContent='已連接；取得 '+r.repositories.length+' 個 Repository。';
  if(r.repositories.length){await selectGitHubRepository();}else select.innerHTML='<option value="">此 Token 沒有可存取的 Repository</option>';
 }
