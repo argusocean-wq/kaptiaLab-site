@@ -28,6 +28,25 @@ class MemoryImportTests(unittest.TestCase):
         self.assertEqual(result["count"], 1)
         self.assertEqual(result["messages"][0]["role"], "user")
 
+    def test_chatgpt_export_allows_selecting_one_conversation(self):
+        def conv(identifier, title, user_text, assistant_text):
+            return {"id":identifier,"title":title,"mapping":{
+                "u":{"message":{"author":{"role":"user"},"create_time":1,"content":{"parts":[user_text]}}},
+                "a":{"message":{"author":{"role":"assistant"},"create_time":2,"content":{"parts":[assistant_text]}}}
+            }}
+        path = self.root / "conversations.json"
+        path.write_text(json.dumps([conv("one","Project A","A question","A answer"),
+                                    conv("two","Project B","B question","B answer")]), encoding="utf-8")
+        preview = parse_memory_file(path)
+        self.assertEqual(preview["conversation_count"], 2)
+        selected_id = next(x["id"] for x in preview["conversations"] if x["title"] == "Project B")
+        with patch("kaptia_personal_memory.import_messages", return_value={"imported":2,"duplicates":0,"total_messages":2}) as fn:
+            result = import_memory_file(path, locally_confirmed=True,
+                expected_sha256=preview["source_sha256"], selected_conversation_ids=[selected_id])
+        imported = fn.call_args.args[0]
+        self.assertEqual([x["content"] for x in imported], ["B question", "B answer"])
+        self.assertEqual(result["selected_conversations"], ["Project B"])
+
     def test_invalid_format_rejected(self):
         path = self.root / "x.csv"; path.write_text("x", encoding="utf-8")
         with self.assertRaises(MemoryImportError): parse_memory_file(path)
