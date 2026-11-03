@@ -38,6 +38,7 @@ class GitHubPlugin:
         self._keyring_module = keyring_module
         self._opener = opener or urllib.request.urlopen
         self._repository = ""
+        self._default_branch = ""
         self._pending_proposals: dict[str, dict[str, Any]] = {}
 
     @property
@@ -111,8 +112,12 @@ class GitHubPlugin:
         return {"ok": True, "connected": False, "credential_removed": True}
 
     def set_repository(self, repository: str) -> dict[str, str]:
-        self._repository = self._validate_repo(repository)
-        return {"repository": self._repository}
+        repository = self._validate_repo(repository)
+        metadata = self._request("GET", f"/repos/{repository}")
+        default_branch = metadata.get("default_branch", "")
+        self._repository = repository
+        self._default_branch = default_branch if isinstance(default_branch, str) else ""
+        return {"repository": self._repository, "default_branch": self._default_branch}
 
     def _token(self) -> str:
         try:
@@ -205,6 +210,8 @@ class GitHubPlugin:
                    existing_sha: str | None = None, user_approved: bool = False) -> dict:
         self._require_approval(user_approved)
         path, branch = self._validate_path(path), self._validate_branch(branch)
+        if self._default_branch and branch == self._default_branch:
+            raise GitHubPluginError("AI 提案不得直接修改 Repository 預設分支；請先建立功能分支。")
         if not isinstance(content, str) or len(content.encode("utf-8")) > MAX_FILE_BYTES:
             raise GitHubPluginError("新檔案內容必須是 UTF-8 文字且不超過 1 MB。")
         if not isinstance(message, str) or not message.strip() or len(message) > 200:
@@ -221,6 +228,8 @@ class GitHubPlugin:
                             user_approved: bool = False) -> dict:
         self._require_approval(user_approved)
         head, base = self._validate_branch(head), self._validate_branch(base)
+        if head == base:
+            raise GitHubPluginError("Pull Request 的 Head 與 Base 必須不同。")
         if not isinstance(title, str) or not title.strip() or len(title) > 200:
             raise GitHubPluginError("Pull Request 標題必須為 1–200 字元。")
         if not isinstance(body, str) or len(body) > 10000:
@@ -251,6 +260,8 @@ class GitHubPlugin:
 
     def propose_branch(self, branch: str, base_branch: str) -> dict[str, Any]:
         branch, base_branch = self._validate_branch(branch), self._validate_branch(base_branch)
+        if branch == base_branch:
+            raise GitHubPluginError("新 Branch 必須與基準 Branch 不同。")
         return self._queue_proposal("create_branch", {"branch": branch, "base_branch": base_branch},
                                     {"branch": branch, "base_branch": base_branch})
 
