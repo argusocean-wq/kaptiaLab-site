@@ -21,7 +21,7 @@ The integration is exposed only through Kaptia Desktop's Python bridge. It uses 
 - Create or update a file on a selected branch.
 - Open a draft Pull Request.
 - Inspect recent GitHub Actions workflow runs.
-- Kaptia's AI tool loop can list/select repositories, inspect branches/files, inspect CI, and propose branch/file/PR operations. AI write tools only enqueue a proposal; they cannot execute it.
+- Kaptia's AI tool loop can list accessible repositories, inspect branches/files in the Repository explicitly selected in Desktop, inspect CI, and propose branch/file/PR operations. Repository selection remains a local user action. AI write tools only enqueue a proposal; they cannot execute it.
 - Desktop shows the proposed file diff and operation metadata. The user must approve or reject each proposal in the GitHub page. AI proposals are blocked from writing directly to the Repository's default branch; create and approve a feature branch first.
 
 ### Write safety
