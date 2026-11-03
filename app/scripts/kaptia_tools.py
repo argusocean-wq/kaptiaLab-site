@@ -129,7 +129,8 @@ def dispatch_tool(name, arguments):
             return {"ok": True, **result}
         registry.update({
             "github_list_repositories": lambda **kw: {"ok": True, "repositories": github.list_repositories()},
-            "github_list_branches": lambda **kw: {"ok": True, "branches": github.list_branches()},
+            "github_list_branches": lambda **kw: {"ok": True, "branches": github.list_branches(),
+                                                       "default_branch": github.default_branch},
             "github_read_file": github_read_for_agent,
             "github_propose_branch": lambda **kw: github.propose_branch(kw["branch"], kw["base_branch"]),
             "github_propose_file_write": lambda **kw: github.propose_file_write(
