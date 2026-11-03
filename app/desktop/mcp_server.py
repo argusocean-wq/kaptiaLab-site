@@ -128,7 +128,7 @@ def main():
             message=json.loads(raw.decode("utf-8"))
             response=service.handle(message)
             if response is not None:
-                sys.stdout.write(json.dumps(response,ensure_ascii=False)+"\\n"); sys.stdout.flush()
+                sys.stdout.write(json.dumps(response,ensure_ascii=False)+"\n"); sys.stdout.flush()
         except (UnicodeDecodeError,json.JSONDecodeError,MCPProtocolError):
             continue
     return 0
