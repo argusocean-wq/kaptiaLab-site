@@ -229,7 +229,8 @@ async function selectGitHubRepository(){
  const r=await call('github_branches');const select=$('github-branch');select.textContent='';
  if(!r?.ok){$('github-status').textContent=r?.error||'無法讀取 Branch';return}
  r.branches.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;select.append(o)});
- $('github-pr-base').value=select.value||'main';$('github-status').textContent='目前 Repository：'+name+' · '+r.branches.length+' 個 Branch';
+ if(selected.default_branch)select.value=selected.default_branch;
+ $('github-pr-base').value=selected.default_branch||select.value||'main';$('github-status').textContent='目前 Repository：'+name+' · 預設分支 '+(selected.default_branch||'未知')+' · '+r.branches.length+' 個 Branch';
 }
 $('install-github-plugin').onclick=async()=>{
  if(!window.confirm('安裝 GitHub 插件所需的 keyring 套件？套件將透過 pip 從 PyPI 下載。'))return;
