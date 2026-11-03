@@ -14,6 +14,27 @@ MAX_HISTORY_MESSAGES = 10
 DEFAULT_RESPONSE_TOKENS = 320
 DETAILED_RESPONSE_TOKENS = 768
 
+CODE_LANGUAGE_PROMPTS = {
+    "python": (
+        "目前程式語言配置為 Python。遵循 PEP 8 與 Python 慣用設計；優先使用標準函式庫，"
+        "必要時說明第三方依賴與版本；使用型別註記、明確例外處理及可測試的函式邊界；"
+        "提供 pytest 或 unittest 測試，注意虛擬環境、跨平台路徑與資源管理。"
+    ),
+    "c": (
+        "目前程式語言配置為 C。先確認 C 標準版本、編譯器與目標平台；明確管理記憶體"
+        "所有權與生命週期，檢查指標、陣列邊界、整數溢位、格式字串及錯誤回傳；"
+        "避免未定義行為；提供嚴格警告編譯命令與測試案例。"
+    ),
+    "lua": (
+        "目前程式語言配置為 Lua。先確認 Lua 版本（5.1、5.2、5.3、5.4 或 LuaJIT）"
+        "及宿主環境；注意 table 語義、nil、metatable、作用域與模組載入差異；"
+        "若涉及遊戲或嵌入式 API，先確認宿主提供的介面，不虛構 API；"
+        "提供可執行範例與相容性說明。"
+    ),
+}
+CODE_LANGUAGE_LABELS = {"python": "Python", "c": "C", "lua": "Lua"}
+
+
 # Single source of truth for interactive CLI commands. Keep this list aligned
 # with the dispatch logic in main(); /help is generated from these entries.
 SPECIALIST_PROFILES = {
@@ -55,7 +76,7 @@ COMMANDS = (
     ("/help", "顯示所有可用指令", "/help"),
     ("/mode", "查看或切換快速／深度思考模式", "/mode [fast|deep]"),
     ("/paper", "切換至學術論文寫作模式", "/paper"),
-    ("/code", "切換至軟體工程與程式開發模式", "/code"),
+    ("/code", "切換至軟體工程模式，可指定 Python／C／Lua", "/code [python|c|lua|general]"),
     ("/math", "切換至數學與形式推理模式", "/math"),
     ("/data", "切換至資料分析模式", "/data"),
     ("/general", "返回一般助理模式", "/general"),
@@ -81,7 +102,7 @@ def _help_text() -> str:
 
 def _status_text(mode: str, subagents_enabled: bool, max_input_chars: int,
                  max_history_chars: int, history: list[dict[str, str]],
-                 profile: str = "general") -> str:
+                 profile: str = "general", code_language: str | None = None) -> str:
     """Build a truthful snapshot from current runtime configuration."""
     provider = os.environ.get("KAPTIA_PROVIDER", "local").strip().lower()
     provider_label = "OpenAI-compatible 外接 API" if provider in {
@@ -97,6 +118,7 @@ def _status_text(mode: str, subagents_enabled: bool, max_input_chars: int,
         f"模型提供者：{provider_label}",
         f"思考模式：{'快速 Fast' if mode == 'fast' else '深度思考 Deep Thinking'}",
         f"專業模式：{SPECIALIST_PROFILES.get(profile, SPECIALIST_PROFILES['general'])}",
+        f"Code 語言配置：{CODE_LANGUAGE_LABELS.get(code_language, '通用／未限定') if profile == 'code' else '不適用'}",
         f"子代理：{'啟用' if subagents_enabled else '停用'}",
         f"輸入上限：{max_input_chars:,} 字元",
         f"歷史預算：{max_history_chars:,} 字元",
@@ -256,6 +278,7 @@ def main() -> int:
     except ValueError:
         mode = "fast"
     profile = "general"
+    code_language = None
     print("[Kaptia] 已就緒。輸入 /help 查看所有可用指令。")
     print(
         f"[Kaptia] 輸入上限 {max_input_chars:,} 字元；"
@@ -286,7 +309,7 @@ def main() -> int:
             print("[Kaptia] 目前工作階段的對話上下文已清除；本機永久記憶未變更。")
             continue
         if command == "/status":
-            print(_status_text(mode, subagents_enabled, max_input_chars, max_history_chars, history, profile))
+            print(_status_text(mode, subagents_enabled, max_input_chars, max_history_chars, history, profile, code_language))
             continue
         command_name = command.split(maxsplit=1)[0] if command else ""
         if command.startswith("/") and command_name not in {
@@ -306,11 +329,22 @@ def main() -> int:
             if not query:
                 print("[Kaptia] 用法：/research 你的研究問題")
                 continue
-        if command_name in {"/paper", "/code", "/math", "/data", "/general"}:
+        if command_name == "/code":
+            parts = command.split()
+            if len(parts) > 2 or (len(parts) == 2 and parts[1] not in {"python", "c", "lua", "general"}):
+                print("[Kaptia] 用法：/code [python|c|lua|general]")
+                continue
+            profile = "code"
+            code_language = parts[1] if len(parts) == 2 and parts[1] != "general" else None
+            language_label = CODE_LANGUAGE_LABELS.get(code_language, "通用／未限定")
+            print(f"[Kaptia] 已切換至軟體工程模式；語言配置：{language_label}。思考模式維持不變。")
+            continue
+        if command_name in {"/paper", "/math", "/data", "/general"}:
             if command != command_name:
                 print(f"[Kaptia] 用法：{command_name}")
                 continue
             profile = "general" if command_name == "/general" else command_name[1:]
+            code_language = None
             print(f"[Kaptia] 已切換至專業模式：{SPECIALIST_PROFILES[profile]}。思考模式維持不變。")
             continue
         if command == "/mode" or command.startswith("/mode "):
@@ -366,9 +400,12 @@ def main() -> int:
             continue
 
         _append_bounded_history(history, "user", user_text, max_history_chars)
+        specialist_instructions = SPECIALIST_PROMPTS.get(profile, "")
+        if profile == "code" and code_language:
+            specialist_instructions += "\n" + CODE_LANGUAGE_PROMPTS[code_language]
         specialist_text = (
-            SPECIALIST_PROMPTS[profile] + "\n\n使用者需求：\n" + user_text
-            if profile != "general" else user_text
+            specialist_instructions + "\n\n使用者需求：\n" + user_text
+            if specialist_instructions else user_text
         )
         try:
             research_query = _research_query(user_text)
