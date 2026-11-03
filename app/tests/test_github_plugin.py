@@ -52,5 +52,31 @@ class GitHubPluginTests(unittest.TestCase):
         self.assertTrue(result["draft"])
         self.assertTrue(self.plugin._request.call_args.kwargs["payload"]["draft"])
 
+    def test_ai_file_write_is_only_a_pending_proposal(self):
+        self.plugin.set_repository("owner/repo")
+        proposal = self.plugin.propose_file_write("README.md", "new content", "update", "feature/a")
+        self.assertEqual(proposal["status"], "pending_approval")
+        self.assertEqual(len(self.plugin.list_pending_proposals()), 1)
+        self.plugin._request = Mock(return_value={"commit": {"sha": "abc"}})
+        with self.assertRaises(GitHubPluginError):
+            self.plugin.approve_proposal(proposal["proposal_id"], locally_confirmed=False)
+        self.assertEqual(self.plugin.list_pending_proposals()[0]["proposal_id"], proposal["proposal_id"])
+
+    def test_local_approval_executes_queued_file_write(self):
+        self.plugin.set_repository("owner/repo")
+        proposal = self.plugin.propose_file_write("README.md", "new content", "update", "feature/a")
+        self.plugin._request = Mock(return_value={"commit": {"sha": "abc"}, "content": {"sha": "def"}})
+        result = self.plugin.approve_proposal(proposal["proposal_id"], locally_confirmed=True)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(self.plugin._request.call_args.args[0], "PUT")
+        self.assertEqual(self.plugin._request.call_args.kwargs["payload"]["branch"], "feature/a")
+
+    def test_proposal_bound_to_repository(self):
+        self.plugin.set_repository("owner/repo")
+        proposal = self.plugin.propose_branch("feature/a", "main")
+        self.plugin.set_repository("owner/other")
+        with self.assertRaises(GitHubPluginError):
+            self.plugin.approve_proposal(proposal["proposal_id"], locally_confirmed=True)
+
 
 if __name__ == "__main__": unittest.main()
