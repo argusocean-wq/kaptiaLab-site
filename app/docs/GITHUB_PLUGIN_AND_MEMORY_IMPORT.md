@@ -42,7 +42,7 @@ The Memory page supports preview-first import of:
 - Generic JSON or JSONL with `role` and `content` fields.
 - Markdown and plain-text notes.
 
-Limits: 4 MB per file, 2,000 messages, 20,000 characters per message. Unsupported roles (system/tool) are excluded. Markdown/TXT is imported as one user reference message.
+Limits: 4 MB per file, up to 20,000 source messages for preview, up to 2,000 selected messages per import, and 20,000 characters per message. For ChatGPT exports containing many conversations, Kaptia displays conversation titles/counts and lets the user select only the conversations relevant to the current project. Unsupported roles (system/tool) are excluded. Markdown/TXT is imported as one user reference message.
 
 Import workflow:
 1. Select a file.
