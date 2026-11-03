@@ -298,7 +298,7 @@ async function loadGitHubProposals(){
    if(!window.confirm('確認執行這項 GitHub 操作？\n'+title.textContent+'\n'+detail.textContent+'\n\n此操作會對遠端 Repository 寫入。'))return;
    approve.disabled=true;const result=await call('github_approve_proposal',item.proposal_id,true);approve.disabled=false;
    if(!result?.ok){toast(result?.error||'執行失敗');return}
-   toast('GitHub 操作已完成');await loadGitHubProposals();if(item.kind==='write_file')githubCurrentFileSha=null;
+   toast('GitHub 操作已完成');await loadGitHubProposals();if(item.kind==='write_file')githubCurrentFileSha=null;if(item.kind==='create_branch')await selectGitHubRepository();
   });
   const reject=memoryButton('拒絕',async()=>{
    if(!window.confirm('拒絕這項 GitHub 提案？'))return;
