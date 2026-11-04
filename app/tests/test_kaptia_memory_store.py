@@ -1,10 +1,13 @@
 """Tests for Kaptia structured local memory and explicit conflict review."""
 from __future__ import annotations
 
+import sqlite3
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
+from scripts import kaptia_memory_store as memory_module
 from scripts.kaptia_memory_store import MemoryStore
 
 
@@ -86,6 +89,37 @@ class MemoryStoreTests(unittest.TestCase):
         self.assertTrue(Path(result["backup"]).is_file())
         self.assertIn("Asia/Taipei", self.store.build_context())
         self.assertEqual(self.store.status()["active"], 1)
+
+    def test_compaction_failure_preserves_completed_backup(self):
+        self.store.add_fact("profile", "timezone", "Asia/Taipei")
+        real_connect = sqlite3.connect
+
+        class FailingVacuumConnection(sqlite3.Connection):
+            def execute(self, sql, *args, **kwargs):
+                if sql.strip().upper() == "VACUUM":
+                    raise sqlite3.OperationalError("injected VACUUM failure")
+                return super().execute(sql, *args, **kwargs)
+
+        def failing_connect(*args, **kwargs):
+            kwargs["factory"] = FailingVacuumConnection
+            return real_connect(*args, **kwargs)
+
+        with mock.patch.object(memory_module.sqlite3, "connect", side_effect=failing_connect):
+            with self.assertRaisesRegex(sqlite3.OperationalError, "injected VACUUM failure"):
+                self.store.compact_storage()
+
+        backups = list((self.store.path.parent / "backups").glob("facts-*.sqlite3"))
+        self.assertEqual(len(backups), 1)
+        backup = real_connect(str(backups[0]))
+        try:
+            integrity = backup.execute("PRAGMA integrity_check").fetchone()[0]
+            fact = backup.execute(
+                "SELECT fact_value FROM facts WHERE fact_key='timezone'"
+            ).fetchone()[0]
+        finally:
+            backup.close()
+        self.assertEqual(integrity, "ok")
+        self.assertEqual(fact, "Asia/Taipei")
 
     def test_validation_rejects_empty_or_oversized_values(self):
         with self.assertRaises(ValueError):
