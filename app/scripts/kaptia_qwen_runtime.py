@@ -6,6 +6,11 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 try:
+    from kaptia_runtime_config import validate_runtime_config
+except ImportError:
+    from scripts.kaptia_runtime_config import validate_runtime_config
+
+try:
     from kaptia_identity import KAPTIA_NAME, SYSTEM_PROMPT
 except ImportError:
     from scripts.kaptia_identity import KAPTIA_NAME, SYSTEM_PROMPT
@@ -21,11 +26,11 @@ def load_language_engine():
     if quantization not in {"4bit", "none"}:
         raise ValueError("KAPTIA_QUANTIZATION 僅支援 4bit 或 none。")
     cuda_available = torch.cuda.is_available()
-    if not cuda_available and os.environ.get("KAPTIA_ALLOW_CPU", "0") != "1":
-        raise RuntimeError(
-            "沒有偵測到可用的 NVIDIA CUDA GPU。Qwen3-8B 本機模式需要相容的 NVIDIA GPU；"
-            "若要在 CPU 上嘗試低速推論，請明確設定 KAPTIA_ALLOW_CPU=1，並確認系統 RAM 足夠。"
-        )
+    backend = validate_runtime_config(
+        cuda_available=cuda_available,
+        quantization=quantization,
+        allow_cpu=os.environ.get("KAPTIA_ALLOW_CPU", "0") == "1",
+    )
 
     model_kwargs = {"low_cpu_mem_usage": True, "trust_remote_code": False}
     if cuda_available:
@@ -49,11 +54,9 @@ def load_language_engine():
                 bnb_4bit_use_double_quant=True,
                 bnb_4bit_compute_dtype=model_kwargs["torch_dtype"],
             )
-    else:
+    elif backend == "cpu":
         model_kwargs["device_map"] = {"": "cpu"}
         model_kwargs["torch_dtype"] = torch.float32
-        if quantization == "4bit":
-            print("[Kaptia] CPU 模式不使用 bitsandbytes 4-bit，改用 FP32；記憶體需求會大幅增加。")
 
     print(f"[{KAPTIA_NAME}] 載入語言模型：{model_id}（量化：{quantization}）")
     try:
