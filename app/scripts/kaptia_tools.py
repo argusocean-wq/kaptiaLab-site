@@ -115,6 +115,32 @@ def dispatch_tool(name, arguments):
             "ingest_user_documents": lambda **kw: dispatch_extended_tool("ingest_user_documents", kw),
             "search_user_documents": lambda **kw: dispatch_extended_tool("search_user_documents", kw),
         })
+    # GitHub writes are never performed by the model. The model can only enqueue
+    # proposals; the Desktop UI must approve each proposal separately.
+    try:
+        from plugins.github_plugin import get_default_plugin
+        github = get_default_plugin()
+        def github_read_for_agent(**kw):
+            result = github.read_file(kw["path"], kw["branch"] or None)
+            if len(result["content"]) > 5000:
+                return _result("github_read_file", False,
+                    error="檔案超過 AI 工具單次讀取 5,000 字元上限；請使用 Desktop 檔案編輯器分段檢查，避免模型以截斷內容覆蓋完整檔案。",
+                    path=result["path"], sha=result["sha"], characters=len(result["content"]))
+            return {"ok": True, **result}
+        registry.update({
+            "github_list_repositories": lambda **kw: {"ok": True, "repositories": github.list_repositories()},
+            "github_list_branches": lambda **kw: {"ok": True, "branches": github.list_branches(),
+                                                       "default_branch": github.default_branch},
+            "github_read_file": github_read_for_agent,
+            "github_propose_branch": lambda **kw: github.propose_branch(kw["branch"], kw["base_branch"]),
+            "github_propose_file_write": lambda **kw: github.propose_file_write(
+                kw["path"], kw["content"], kw["message"], kw["branch"], kw["existing_sha"]),
+            "github_propose_pull_request": lambda **kw: github.propose_pull_request(
+                kw["title"], kw["body"], kw["head"], kw["base"]),
+            "github_list_workflow_runs": lambda **kw: {"ok": True, "runs": github.workflow_runs(kw["branch"] or None)},
+        })
+    except ImportError:
+        pass
     # Attach is a separate, explicit-consent capability family.
     try:
         try:

@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: app
         run: |
           python -m compileall -q app
-          python -m pytest -q app/cloud_worker/test_app.py
+          python -m pytest -q app/cloud_worker/test_app.py app/tests/test_installer_imports.py
 
       - name: Create root-relative, commit-pinned application archive
         shell: pwsh
@@ -101,9 +101,15 @@ jobs:
         run: >
           python -m PyInstaller --noconfirm --clean --onefile --windowed
           --name Kaptia-Setup
+          --paths app
           --collect-all webview
           --collect-all clr
+          --collect-submodules installer
+          --collect-submodules scripts
           --hidden-import webview.platforms.edgechromium
+          --hidden-import installer.webview_installer
+          --hidden-import installer.hardware_profile
+          --hidden-import scripts.kaptia_locale
           --add-data "app/dist/kaptia-core-source.zip;payload"
           --add-data "app/ui;ui"
           app/installer/windows_installer.py
@@ -123,6 +129,9 @@ jobs:
           "$hash  Kaptia-Setup.exe" | Set-Content "dist/Kaptia-Setup.exe.sha256" -Encoding ascii
           Write-Output "EXE bytes: $($exe.Length)"
           Write-Output "SHA-256: $hash"
+          $smoke = Start-Process -FilePath $exe.FullName -ArgumentList "--self-test-imports" -Wait -PassThru
+          if ($smoke.ExitCode -ne 0) { throw "Frozen installer import smoke test failed (exit code $($smoke.ExitCode))." }
+          Write-Output "Frozen installer import smoke test: PASS"
 
       - name: Upload pull request build artifact
         if: github.event_name == 'pull_request'
