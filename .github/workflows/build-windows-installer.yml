@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: app
         run: |
           python -m compileall -q app
-          python -m pytest -q app/cloud_worker/test_app.py
+          python -m pytest -q app/cloud_worker/test_app.py app/tests/test_installer_imports.py
 
       - name: Create root-relative, commit-pinned application archive
         shell: pwsh
