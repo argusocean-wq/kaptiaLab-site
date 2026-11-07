@@ -7,15 +7,12 @@ import webview
 REPO_ROOT=Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:sys.path.insert(0,str(REPO_ROOT))
 HTML_PATH=Path(getattr(sys,"_MEIPASS",REPO_ROOT))/"ui"/"web"/"installer.html"
+from installer.hardware_profile import detect_hardware
+from scripts.kaptia_locale import get_language, set_language
 try:
- from hardware_profile import detect_hardware
- from kaptia_locale import get_language,set_language
+ from installer.build_info import BUILD_NUMBER, BUILD_TAG, SOURCE_COMMIT, SOURCE_SHA256
 except ImportError:
- from installer.hardware_profile import detect_hardware
- from scripts.kaptia_locale import get_language,set_language
-try:
- from build_info import BUILD_NUMBER,BUILD_TAG,SOURCE_COMMIT,SOURCE_SHA256
-except ImportError: BUILD_NUMBER,BUILD_TAG,SOURCE_COMMIT,SOURCE_SHA256=0,"development","",""
+ BUILD_NUMBER, BUILD_TAG, SOURCE_COMMIT, SOURCE_SHA256 = 0, "development", "", ""
 ROOT=Path(os.environ.get("LOCALAPPDATA",str(Path.home())))/"Kaptia"
 PAYLOAD_ROOT=Path(getattr(sys,"_MEIPASS",REPO_ROOT))/"payload"
 EMBEDDED_CORE_ZIP=PAYLOAD_ROOT/"kaptia-core-source.zip"
