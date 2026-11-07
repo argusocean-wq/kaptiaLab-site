@@ -1,0 +1,1 @@
+"""KaptiaLab application scripts package."""
