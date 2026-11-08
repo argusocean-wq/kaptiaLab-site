@@ -38,7 +38,7 @@ jobs:
       - name: Install installer build and test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pyinstaller pywebview pythonnet fastapi pydantic httpx pytest
+          python -m pip install pyinstaller pywebview pythonnet fastapi pydantic httpx pytest pillow cairosvg
 
       - name: Compile application and run portable API tests
         env:
@@ -97,10 +97,16 @@ jobs:
           Write-Output "Source commit: $commit"
           Write-Output "Core SHA-256: $hash"
 
+      - name: Generate multi-resolution Windows icon
+        run: |
+          python -c "import cairosvg; cairosvg.svg2png(url='app/installer/assets/kaptialab.svg', write_to='app/installer/assets/kaptialab-icon.png', output_width=256, output_height=256)"
+          python -c "from PIL import Image; im=Image.open('app/installer/assets/kaptialab-icon.png').convert('RGBA'); im.save('app/installer/assets/kaptialab.ico', format='ICO', sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
+
       - name: Build self-contained Setup executable
         run: >
           python -m PyInstaller --noconfirm --clean --onefile --windowed
           --name Kaptia-Setup
+          --icon app/installer/assets/kaptialab.ico
           --paths app
           --collect-all webview
           --collect-all clr
