@@ -290,7 +290,7 @@ function appendMessage(role,content,error){$('welcome')?.remove();const row=docu
 function suggestContextualTool(userText){
  const q=String(userText||'').toLowerCase();
  const rules=[
-  {page:'github',terms:['github','repository','repo','pull request','branch','commit','程式庫','儲存庫','版本庫','pr','git'],title:'可使用 GitHub 專案功能',desc:'連接 Repository，檢視程式碼、整理問題或規劃變更。'},
+  {page:'github',terms:['github','repository','repo','pull request','branch','commit','程式庫','儲存庫' ,'版本庫','git'],title:'可使用 GitHub 專案功能',desc:'連接 Repository，檢視程式碼、整理問題或規劃變更。'},
   {page:'attach',terms:['attach','桌面連線','桌面應用程式','桌面軟體','控制桌面','操作軟體','視窗操作','blender','photoshop','visual studio','vscode'],title:'可使用 Attach 桌面連線',desc:'連接目前正在執行的桌面應用程式，再由 Kaptia 協助操作。'},
   {page:'cloud',terms:['cloud compute','雲端運算','外接伺服器','雲端伺服器','自己的伺服器','遠端算力'],title:'可設定 Cloud Compute',desc:'連接你自行部署的運算伺服器，分擔本機工作負載。'},
   {page:'workspace',terms:['工作區 agent','workspace agent','智能體','代理人','多步驟任務','自主執行','幫我完成整個專案','端到端完成'],title:'可使用工作區 Agent',desc:'將任務拆解成步驟，交由工作區 Agent 協調執行。'}
