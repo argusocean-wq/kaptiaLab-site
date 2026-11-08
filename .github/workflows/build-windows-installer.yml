@@ -47,6 +47,11 @@ jobs:
           python -m compileall -q app
           python -m pytest -q app/cloud_worker/test_app.py app/tests/test_installer_imports.py
 
+      - name: Generate multi-resolution Windows icon before packaging core
+        run: |
+          python -c "import cairosvg; cairosvg.svg2png(url='app/installer/assets/kaptialab.svg', write_to='app/installer/assets/kaptialab-icon.png', output_width=256, output_height=256)"
+          python -c "from PIL import Image; im=Image.open('app/installer/assets/kaptialab-icon.png').convert('RGBA'); im.save('app/installer/assets/kaptialab.ico', format='ICO', sizes=[(16,16),(24,24),(32,32),(48,48),(64,64),(128,128),(256,256)])"
+
       - name: Create root-relative, commit-pinned application archive
         shell: pwsh
         run: |
@@ -81,6 +86,7 @@ jobs:
                   f"{archive_root.as_posix()}/README.md",
                   f"{archive_root.as_posix()}/scripts/chat.py",
                   f"{archive_root.as_posix()}/requirements.txt",
+                  f"{archive_root.as_posix()}/installer/assets/kaptialab.ico",
               }
               missing = sorted(required - names)
               if missing:
