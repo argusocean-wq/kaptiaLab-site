@@ -760,7 +760,14 @@ class Bridge:
 def main():
     api=Bridge()
     ui_path=APP_DIR/"ui"/"web"/"index.html"
-    webview.create_window("Kaptia · Personal Assistant",str(ui_path),js_api=api,width=1440,height=900,min_size=(1050,680),background_color="#1b1d1e")
+    window=webview.create_window("Kaptia · Personal Assistant",str(ui_path),js_api=api,width=1440,height=900,min_size=(1050,680),background_color="#1b1d1e")
+    if os.name == "nt":
+        try:
+            from kaptia_windows_icon import apply_windows_window_icon
+            icon_path=APP_DIR/"installer"/"assets"/"kaptialab.ico"
+            window.events.shown += lambda: apply_windows_window_icon(window,icon_path)
+        except Exception:
+            pass
     webview.start(debug=False)
 
 if __name__=="__main__":
