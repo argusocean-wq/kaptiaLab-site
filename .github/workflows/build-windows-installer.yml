@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: app
         run: |
           python -m compileall -q app
-          python -m pytest -q app/cloud_worker/test_app.py app/tests/test_installer_imports.py
+          python -m pytest -q app/cloud_worker/test_app.py app/tests/test_installer_imports.py app/tests/test_kaptia_windows_icon.py
 
       - name: Generate multi-resolution Windows icon before packaging core
         run: |
