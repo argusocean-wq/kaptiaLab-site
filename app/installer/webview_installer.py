@@ -16,6 +16,50 @@ except ImportError:
 ROOT=Path(os.environ.get("LOCALAPPDATA",str(Path.home())))/"Kaptia"
 PAYLOAD_ROOT=Path(getattr(sys,"_MEIPASS",REPO_ROOT))/"payload"
 EMBEDDED_CORE_ZIP=PAYLOAD_ROOT/"kaptia-core-source.zip"
+def _create_app_shortcuts(pythonw: Path, app_dir: Path, icon_path: Path):
+    """Create branded per-user Desktop and Start Menu shortcuts on Windows."""
+    if os.name != "nt":
+        return False
+    if not icon_path.is_file():
+        raise FileNotFoundError(f"Kaptia application icon is missing: {icon_path}")
+    powershell = shutil.which("powershell.exe") or shutil.which("powershell")
+    if not powershell:
+        raise RuntimeError("找不到 PowerShell，無法建立 Kaptia 捷徑。")
+    payload = json.dumps({
+        "target": str(pythonw.resolve()),
+        "script": str((app_dir / "scripts" / "kaptia_webview.py").resolve()),
+        "working": str(app_dir.resolve()),
+        "icon": str(icon_path.resolve()),
+    }, ensure_ascii=False).encode("utf-8")
+    payload_b64 = __import__("base64").b64encode(payload).decode("ascii")
+    script = r"""
+$raw = [Convert]::FromBase64String('__PAYLOAD__')
+$cfg = [Text.Encoding]::UTF8.GetString($raw) | ConvertFrom-Json
+$shell = New-Object -ComObject WScript.Shell
+$desktop = [Environment]::GetFolderPath('Desktop')
+$programs = Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs'
+New-Item -ItemType Directory -Force -Path $programs | Out-Null
+foreach ($folder in @($desktop, $programs)) {
+  $shortcut = $shell.CreateShortcut((Join-Path $folder 'KaptiaLab.lnk'))
+  $shortcut.TargetPath = $cfg.target
+  $shortcut.Arguments = '"' + $cfg.script + '"'
+  $shortcut.WorkingDirectory = $cfg.working
+  $shortcut.IconLocation = $cfg.icon + ',0'
+  $shortcut.Description = 'KaptiaLab Personal Assistant'
+  $shortcut.Save()
+}
+""".replace("__PAYLOAD__", payload_b64)
+    encoded = __import__("base64").b64encode(script.encode("utf-16le")).decode("ascii")
+    result = subprocess.run(
+        [powershell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
+    )
+    if result.returncode:
+        detail = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError("建立 Kaptia 捷徑失敗：" + detail[-1200:])
+    return True
+
+
 def _python_candidates():
  candidates=[]
  launcher=shutil.which('py')
@@ -210,6 +254,13 @@ class InstallerAPI:
    try:subprocess.run([str(vp),str(app/"scripts"/"kaptia_context_menu.py"),"--install-menu"],cwd=app,capture_output=True,text=True,timeout=20)
    except Exception as e:self._js({"log":"右鍵選單註冊未完成："+str(e)})
    env=os.environ.copy();env.pop("KAPTIA_SCRATCH_CHECKPOINT",None);env.update({"HF_HOME":str(ROOT/"model-cache"),"KAPTIA_LANG":self.language,"KAPTIA_MODEL_ID":"Qwen/Qwen3-8B","KAPTIA_QUANTIZATION":"4bit","KAPTIA_PROVIDER":"local"})
+   # Create branded Desktop and Start Menu shortcuts from the installed icon asset.
+   try:
+    icon_path=app/"installer"/"assets"/"kaptialab.ico"
+    gui=vp.with_name("pythonw.exe");gui=gui if gui.exists() else vp
+    _create_app_shortcuts(gui,app,icon_path)
+    self._js({"log":"已建立 KaptiaLab 桌面與開始功能表捷徑，並套用品牌圖標。"})
+   except Exception as e:self._js({"log":"KaptiaLab 捷徑建立未完成："+str(e)})
    # Register a per-user scheduled update check only when the saved preference allows it.
    try:
     saved=json.loads(settings.read_text(encoding="utf-8"))
