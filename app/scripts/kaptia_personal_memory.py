@@ -275,7 +275,7 @@ def restore_conversation_archive(archive_id: str) -> dict:
     backup_archive = _archive_rows(current) if current else None
     temp = path.with_suffix(".jsonl.restore.tmp")
     try:
-        temp.write_text(encoded, encoding="utf-8", newline="\\n")
+        temp.write_text(encoded, encoding="utf-8", newline="\n")
         temp.replace(path)
     except Exception:
         temp.unlink(missing_ok=True)
@@ -317,3 +317,60 @@ def memory_status() -> dict[str, object]:
         "archive_bytes": sum(item.stat().st_size for item in archives),
         "storage": "local-only",
     }
+
+
+def import_messages(messages: list[dict], *, source_ref: str, locally_confirmed: bool = False) -> dict:
+    """Append reviewed external conversation records without duplicating existing messages."""
+    import hashlib
+
+    if locally_confirmed is not True:
+        raise ValueError("匯入記憶必須先經使用者確認。")
+    if not isinstance(messages, list) or not 1 <= len(messages) <= MAX_STORED_MESSAGES:
+        raise ValueError(f"匯入訊息數量必須介於 1 到 {MAX_STORED_MESSAGES}。")
+    if not isinstance(source_ref, str) or not source_ref or len(source_ref) > 128:
+        raise ValueError("來源識別無效。")
+    incoming = []
+    for item in messages:
+        if not isinstance(item, dict) or item.get("role") not in {"user", "assistant"}:
+            raise ValueError("匯入訊息角色只允許 user 或 assistant。")
+        content = item.get("content")
+        if not isinstance(content, str) or not content.strip() or len(content) > MAX_MESSAGE_CHARS:
+            raise ValueError("匯入訊息內容為空或超過單則訊息上限。")
+        incoming.append({"role": item["role"], "content": content.strip()})
+    path = memory_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = _read_rows()
+    known = {
+        hashlib.sha256((row["role"] + "\0" + row["content"]).encode("utf-8")).hexdigest()
+        for row in rows
+    }
+    now = datetime.now(timezone.utc).isoformat()
+    added = []
+    for item in incoming:
+        digest = hashlib.sha256((item["role"] + "\0" + item["content"]).encode("utf-8")).hexdigest()
+        if digest in known:
+            continue
+        known.add(digest)
+        added.append({
+            "schema_version": SCHEMA_VERSION, "timestamp_utc": now,
+            "role": item["role"], "content": item["content"],
+            "source": "external_import", "source_ref": source_ref,
+        })
+    if not added:
+        return {"ok": True, "imported": 0, "duplicates": len(incoming), "total_messages": len(rows)}
+    rows.extend(added)
+    while len(rows) > MAX_STORED_MESSAGES:
+        overflow = rows[:2] if len(rows) >= 2 else rows[:]
+        _archive_rows(overflow)
+        rows = rows[len(overflow):]
+    encoded = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows)
+    while rows and len(encoded.encode("utf-8")) > MAX_FILE_BYTES:
+        overflow = rows[:2] if len(rows) >= 2 else rows[:]
+        _archive_rows(overflow)
+        rows = rows[len(overflow):]
+        encoded = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows)
+    temp = path.with_suffix(".jsonl.tmp")
+    temp.write_text(encoded, encoding="utf-8", newline="\n")
+    temp.replace(path)
+    return {"ok": True, "imported": len(added), "duplicates": len(incoming) - len(added),
+            "total_messages": len(rows), "source_ref": source_ref}

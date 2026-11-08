@@ -12,18 +12,34 @@ permissions:
   contents: read
 
 jobs:
-  syntax-and-cloud-worker-tests:
+  syntax-and-core-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - name: Install isolated test dependencies
         run: python -m pip install --upgrade pytest fastapi pydantic httpx
       - name: Compile all application Python files
         run: python -m compileall -q app
+      - name: Validate Desktop UI JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path("app/ui/web/index.html").read_text(encoding="utf-8")
+          scripts = re.findall(r"<script>(.*?)</script>", html, flags=re.S)
+          if not scripts:
+              raise SystemExit("No inline JavaScript found")
+          Path("/tmp/kaptia-inline.js").write_text("\\n".join(scripts), encoding="utf-8")
+          PY
+          node --check /tmp/kaptia-inline.js
+      - name: Test M1 Core Foundation
+        env:
+          PYTHONPATH: app:app/scripts
+        run: python -m pytest -q app/tests/test_core_foundation.py app/tests/test_research.py app/tests/test_research_runtime.py app/tests/test_chat_research_intent.py app/tests/test_chat_commands.py app/tests/test_external_ai_bridge.py app/tests/test_mcp_server.py app/tests/test_github_plugin.py app/tests/test_memory_import.py app/tests/test_github_agent_tools.py app/tests/test_kaptia_runtime_config.py app/tests/test_kaptia_memory_store.py app/tests/test_kaptia_diagnostics.py app/tests/test_hardware_profile.py
       - name: Test Cloud Compute worker API
         env:
           PYTHONPATH: app

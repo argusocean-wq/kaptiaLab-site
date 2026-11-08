@@ -1,0 +1,1 @@
+"""KaptiaLab Windows installer package."""

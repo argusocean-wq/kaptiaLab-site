@@ -137,7 +137,10 @@ def detect_hardware() -> HardwareReport:
         notes.append("NVIDIA GPU and VRAM were read from nvidia-smi.")
     if not gpus:
         notes.append("No reliable discrete-GPU telemetry found; selecting a conservative CPU-compatible profile.")
-    max_vram = max((g.get("vram_mb") or 0 for g in gpus), default=0)
+    # Only NVIDIA telemetry is eligible for CUDA model profiles. Windows CIM may
+    # report large shared/system memory for Intel or AMD display adapters; that is
+    # not dedicated CUDA VRAM and must never promote the machine to a GPU profile.
+    max_vram = max((g.get("vram_mb") or 0 for g in gpus if g.get("vendor") == "NVIDIA"), default=0)
     ram_value = ram or 0
     if max_vram >= 12 * 1024 and ram_value >= 24:
         profile_id, label = "gpu_high", "High GPU profile"

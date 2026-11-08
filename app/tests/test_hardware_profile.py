@@ -36,6 +36,18 @@ class HardwareProfileTests(unittest.TestCase):
         self.assertEqual(report.profile_id, "cpu_safe")
         self.assertTrue(report.notes)
 
+    def test_non_nvidia_adapter_memory_does_not_enable_cuda_profile(self):
+        with mock.patch.object(hp, "_nvidia_gpus", return_value=[]), \
+             mock.patch.object(hp, "_windows_display_adapters", return_value=[{
+                 "name": "Integrated Display Adapter", "vendor": "Unknown",
+                 "vram_mb": 16384, "driver_version": "test",
+                 "source": "Windows CIM"
+             }]), \
+             mock.patch.object(hp, "_ram_total_gb", return_value=64):
+            report = hp.detect_hardware()
+        self.assertEqual(report.profile_id, "cpu_safe")
+        self.assertEqual(report.gpus[0]["name"], "Integrated Display Adapter")
+
     def test_hardware_report_contains_detected_gpu_and_ram(self):
         with mock.patch.object(hp, "_nvidia_gpus", return_value=[{
             "name": "Test GPU", "vendor": "NVIDIA", "vram_mb": 4096,

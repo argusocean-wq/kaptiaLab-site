@@ -252,21 +252,32 @@ class MemoryStore:
         backup_path = backup_dir / f"facts-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}.sqlite3"
         with self._lock:
             db = self._connect()
+            backup_completed = False
             try:
                 db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 backup = sqlite3.connect(str(backup_path))
                 try:
                     db.backup(backup)
+                    backup_completed = True
+                    backup_check = backup.execute("PRAGMA integrity_check").fetchone()[0]
+                    if backup_check != "ok":
+                        raise RuntimeError(f"記憶備份完整性檢查失敗：{backup_check}；備份檔已保留供診斷。")
                 finally:
                     backup.close()
                 check = db.execute("PRAGMA integrity_check").fetchone()[0]
                 if check != "ok":
-                    backup_path.unlink(missing_ok=True)
-                    raise RuntimeError(f"資料庫完整性檢查失敗：{check}")
+                    raise RuntimeError(
+                        f"原始記憶資料庫完整性檢查失敗：{check}；"
+                        f"操作前備份已保留於 {backup_path}。"
+                    )
                 db.execute("VACUUM")
                 db.execute("PRAGMA optimize")
             except Exception:
-                backup_path.unlink(missing_ok=True)
+                # Once a complete backup exists, never delete it because a later
+                # integrity check or maintenance operation failed. It may be the
+                # only recoverable copy for diagnosis or manual restoration.
+                if not backup_completed:
+                    backup_path.unlink(missing_ok=True)
                 raise
             finally:
                 db.close()
