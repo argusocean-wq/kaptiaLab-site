@@ -37,7 +37,7 @@ $raw = [Convert]::FromBase64String('__PAYLOAD__')
 $cfg = [Text.Encoding]::UTF8.GetString($raw) | ConvertFrom-Json
 $shell = New-Object -ComObject WScript.Shell
 $desktop = [Environment]::GetFolderPath('Desktop')
-$programs = Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs'
+$programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
 New-Item -ItemType Directory -Force -Path $programs | Out-Null
 foreach ($folder in @($desktop, $programs)) {
   $shortcut = $shell.CreateShortcut((Join-Path $folder 'KaptiaLab.lnk'))
