@@ -21,7 +21,7 @@ def apply_windows_window_icon(window, icon_path: str | Path) -> bool:
     shell32 = ctypes.WinDLL("shell32", use_last_error=True)
     set_app_id = shell32.SetCurrentProcessExplicitAppUserModelID
     set_app_id.argtypes = [wintypes.LPCWSTR]
-    set_app_id.restype = ctypes.HRESULT
+    set_app_id.restype = ctypes.c_long
     if set_app_id("KaptiaLab.Desktop") < 0:
         return False
 
@@ -35,7 +35,7 @@ def apply_windows_window_icon(window, icon_path: str | Path) -> bool:
     load_image.restype = wintypes.HANDLE
     send_message = user32.SendMessageW
     send_message.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
-    send_message.restype = wintypes.LRESULT
+    send_message.restype = ctypes.c_ssize_t
 
     title = str(getattr(window, "title", "Kaptia · Personal Assistant"))
     hwnd = find_window(None, title)
