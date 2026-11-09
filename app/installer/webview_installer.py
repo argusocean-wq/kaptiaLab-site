@@ -1,7 +1,7 @@
 # Test artifact builds are uploaded only to Actions and are not published as releases.
 """PyWebView bootstrapper with pinned-payload verification."""
 from __future__ import annotations
-import hashlib,json,os,re,shutil,subprocess,sys,threading,zipfile
+import ctypes,hashlib,json,locale,os,re,shutil,subprocess,sys,threading,zipfile
 from pathlib import Path
 import webview
 REPO_ROOT=Path(__file__).resolve().parent.parent
@@ -179,6 +179,29 @@ class InstallerAPI:
    if v is not None:d[k]=v
   if busy:d["thinking"]=status or "Kaptia 正在處理…"
   self._js(d)
+ def system_language(self):
+  """Resolve the Windows user locale to one of Kaptia's supported UI languages."""
+  candidates=[]
+  if os.name=="nt":
+   try:
+    buffer=ctypes.create_unicode_buffer(85)
+    if ctypes.windll.kernel32.GetUserDefaultLocaleName(buffer,85):
+     candidates.append(buffer.value)
+   except Exception:pass
+  try:
+   candidates.extend([locale.getlocale()[0] or "",os.environ.get("LANG","")])
+  except Exception:pass
+  language="en"
+  for value in candidates:
+   tag=str(value).replace("_","-").lower()
+   if tag.startswith("zh"):
+    language="zh-CN" if tag in ("zh-cn","zh-sg") else "zh-TW"
+    break
+   if tag.startswith("ja"):language="ja";break
+   if tag.startswith("ko"):language="ko";break
+   if tag.startswith("en"):language="en";break
+  labels={"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어"}
+  return {"language":language,"label":labels[language]}
  def python_status(self):
   found=_python_candidates()
   return {'installed':bool(found),'version':'Python 3.10 / 3.11 已就緒' if found else '未找到 Python 3.10 / 3.11','can_auto_install':bool(_winget_path())}
@@ -215,11 +238,11 @@ class InstallerAPI:
    gpu=", ".join(f"{g.get('name')} ({g.get('vram_mb') or '?'} MB)" for g in r.gpus) or "GPU telemetry unavailable"
    return {"summary":f"{r.os_name} · {r.architecture} · {r.cpu_logical_cores} CPU threads · RAM {r.ram_total_gb} GB · {gpu} · {r.profile_label}"}
   except Exception as e:return {"summary":f"掃描失敗，使用安全預設：{type(e).__name__}: {e}"}
- def start_install(self,language="zh-TW",create_desktop_shortcut=True):
+ def start_install(self,create_desktop_shortcut=True):
   with self.lock:
    if self.busy:return {"ok":False,"error":"安裝程序已在執行"}
    self.busy=True
-  self.language=language if language in ("zh-TW","zh-CN","en","ja","ko") else "zh-TW"
+  self.language=self.system_language()["language"]
   self.create_desktop_shortcut=bool(create_desktop_shortcut)
   os.environ["KAPTIA_LANG"]=self.language
   try:set_language(self.language)
