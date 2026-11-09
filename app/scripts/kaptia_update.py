@@ -101,23 +101,33 @@ def latest_release_manifest():
     }
 
 
-def download(url, path, limit):
+def download(url, path, limit, expected_size=0):
+    """Download to a temporary file; never expose a partial installer as complete."""
     req = urllib.request.Request(url, headers={"User-Agent": UA})
+    partial = path.with_suffix(path.suffix + ".part")
     total = 0
-    with urllib.request.urlopen(req, timeout=90) as response, path.open("wb") as output:
-        declared = int(response.headers.get("Content-Length", "0") or 0)
-        if declared > limit:
-            raise RuntimeError("Update asset exceeds size limit")
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            total += len(chunk)
-            if total > limit:
-                raise RuntimeError("Update asset exceeds size limit")
-            output.write(chunk)
-    if not total:
-        raise RuntimeError("Downloaded update is empty")
+    try:
+        with urllib.request.urlopen(req, timeout=90) as response, partial.open("wb") as output:
+            declared = int(response.headers.get("Content-Length", "0") or 0)
+            if declared > limit or (expected_size and declared and declared != expected_size):
+                raise RuntimeError("Update asset size does not match the release manifest")
+            while True:
+                chunk = response.read(1024 * 1024)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > limit:
+                    raise RuntimeError("Update asset exceeds size limit")
+                output.write(chunk)
+            output.flush()
+            os.fsync(output.fileno())
+        if not total or (expected_size and total != expected_size):
+            raise RuntimeError("Downloaded update size does not match the release manifest")
+        partial.replace(path)
+        return total
+    except Exception:
+        partial.unlink(missing_ok=True)
+        raise
 
 
 def sha256_file(path):
@@ -159,7 +169,10 @@ def offer_update(manifest):
     update_dir.mkdir(parents=True, exist_ok=True)
     installer = update_dir / f"Kaptia-Setup-{number}.exe"
     try:
-        download(url, installer, 250 * 1024 * 1024)
+        download(url, installer, 250 * 1024 * 1024, int(setup_meta.get("size_bytes", 0) or 0))
+        with installer.open("rb") as executable:
+            if executable.read(2) != b"MZ":
+                raise RuntimeError("Downloaded update is not a valid Windows executable")
         actual = sha256_file(installer)
         if actual != expected:
             raise RuntimeError("SHA-256 mismatch; refusing to launch the installer")
@@ -201,14 +214,21 @@ def main():
     try:
         current = read_json(VERSION_PATH, {})
         current_number = int(current.get("build_number", 0) or 0)
+        state = read_json(STATE_PATH, {})
+        now = int(time.time())
+        # Avoid redundant GitHub API requests if the checker is started repeatedly.
+        last_check = int(state.get("last_check_at", 0) or 0)
+        if now - last_check < 5 * 60 * 60:
+            print("[Kaptia updater] Recent successful check is still fresh.")
+            return 0
         manifest = latest_release_manifest()
+        state["last_check_at"] = now
+        save_state(state)
         number = manifest["build_number"]
         tag = manifest["tag"]
         if number <= current_number:
             print(f"[Kaptia updater] Up to date (build {current_number}).")
             return 0
-        state = read_json(STATE_PATH, {})
-        now = int(time.time())
         if int(state.get("defer_until", 0) or 0) > now:
             return 0
         if state.get("last_notified_tag") == tag and now - int(state.get("last_notified_at", 0) or 0) < 21600:

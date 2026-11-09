@@ -16,7 +16,7 @@ except ImportError:
 ROOT=Path(os.environ.get("LOCALAPPDATA",str(Path.home())))/"Kaptia"
 PAYLOAD_ROOT=Path(getattr(sys,"_MEIPASS",REPO_ROOT))/"payload"
 EMBEDDED_CORE_ZIP=PAYLOAD_ROOT/"kaptia-core-source.zip"
-def _create_app_shortcuts(pythonw: Path, app_dir: Path, icon_path: Path):
+def _create_app_shortcuts(pythonw: Path, app_dir: Path, icon_path: Path, create_desktop: bool = True):
     """Create branded per-user Desktop and Start Menu shortcuts on Windows."""
     if os.name != "nt":
         return False
@@ -30,6 +30,7 @@ def _create_app_shortcuts(pythonw: Path, app_dir: Path, icon_path: Path):
         "script": str((app_dir / "scripts" / "kaptia_webview.py").resolve()),
         "working": str(app_dir.resolve()),
         "icon": str(icon_path.resolve()),
+        "create_desktop": bool(create_desktop),
     }, ensure_ascii=False).encode("utf-8")
     payload_b64 = __import__("base64").b64encode(payload).decode("ascii")
     script = r"""
@@ -39,7 +40,9 @@ $shell = New-Object -ComObject WScript.Shell
 $desktop = [Environment]::GetFolderPath('Desktop')
 $programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
 New-Item -ItemType Directory -Force -Path $programs | Out-Null
-foreach ($folder in @($desktop, $programs)) {
+$folders = @($programs)
+if ($cfg.create_desktop) { $folders = @($desktop, $programs) }
+foreach ($folder in $folders) {
   $shortcut = $shell.CreateShortcut((Join-Path $folder 'KaptiaLab.lnk'))
   $shortcut.TargetPath = $cfg.target
   $shortcut.Arguments = '"' + $cfg.script + '"'
@@ -165,7 +168,7 @@ def _winget_path():
  return str(candidate) if candidate.is_file() else None
 
 class InstallerAPI:
- def __init__(self): self.lock=threading.RLock();self.busy=False;self.language="zh-TW";self.hardware=None
+ def __init__(self): self.lock=threading.RLock();self.busy=False;self.language="zh-TW";self.hardware=None;self.create_desktop_shortcut=True
  def _js(self,d):
   try:
    if webview.windows:webview.windows[0].evaluate_js("update("+json.dumps(d,ensure_ascii=False)+")")
@@ -212,11 +215,12 @@ class InstallerAPI:
    gpu=", ".join(f"{g.get('name')} ({g.get('vram_mb') or '?'} MB)" for g in r.gpus) or "GPU telemetry unavailable"
    return {"summary":f"{r.os_name} · {r.architecture} · {r.cpu_logical_cores} CPU threads · RAM {r.ram_total_gb} GB · {gpu} · {r.profile_label}"}
   except Exception as e:return {"summary":f"掃描失敗，使用安全預設：{type(e).__name__}: {e}"}
- def start_install(self,language="zh-TW"):
+ def start_install(self,language="zh-TW",create_desktop_shortcut=True):
   with self.lock:
    if self.busy:return {"ok":False,"error":"安裝程序已在執行"}
    self.busy=True
   self.language=language if language in ("zh-TW","zh-CN","en","ja","ko") else "zh-TW"
+  self.create_desktop_shortcut=bool(create_desktop_shortcut)
   os.environ["KAPTIA_LANG"]=self.language
   try:set_language(self.language)
   except Exception:pass
@@ -258,8 +262,8 @@ class InstallerAPI:
    try:
     icon_path=app/"installer"/"assets"/"kaptialab.ico"
     gui=vp.with_name("pythonw.exe");gui=gui if gui.exists() else vp
-    _create_app_shortcuts(gui,app,icon_path)
-    self._js({"log":"已建立 KaptiaLab 桌面與開始功能表捷徑，並套用品牌圖標。"})
+    _create_app_shortcuts(gui,app,icon_path,self.create_desktop_shortcut)
+    self._js({"log":("已建立 KaptiaLab 桌面捷徑" if self.create_desktop_shortcut else "依使用者選擇略過桌面捷徑")+"；開始功能表捷徑已建立，並套用品牌圖標。"})
    except Exception as e:self._js({"log":"KaptiaLab 捷徑建立未完成："+str(e)})
    # Register a per-user scheduled update check only when the saved preference allows it.
    try:
