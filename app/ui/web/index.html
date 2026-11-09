@@ -35,6 +35,13 @@
 @media(max-width:1050px){.workspace-body{grid-template-columns:minmax(0,1fr)}.right-panel{display:none}}
 @media(max-width:760px){.app{grid-template-columns:48px 190px minmax(0,1fr)}.sidebar{padding:12px 8px}.topbar{padding:0 12px}.messages{padding:20px 14px}.composer-wrap{padding:10px}.suggestions{grid-template-columns:1fr}.page{padding:22px 16px}}
 
+/* Contextual tool discovery: advanced tools are absent from persistent navigation. */
+.context-tool-hint{width:min(760px,calc(100% - 56px));margin:0 auto 10px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid #e4e2db;border-radius:12px;background:#fff;color:#45453f}
+.context-tool-hint strong{display:block;font-size:12px;font-weight:600;margin-bottom:4px}
+.context-tool-hint span{display:block;font-size:11px;line-height:1.55;color:#85847d}
+.context-tool-open{flex:0 0 auto;border:1px solid #e3e1da;background:#f7f6f2;color:#55554f;border-radius:8px;padding:8px 11px;font-size:11px}
+.context-tool-open:hover{background:#eeede7}
+@media(max-width:640px){.context-tool-hint{width:calc(100% - 30px);align-items:flex-start;flex-direction:column}.context-tool-open{align-self:flex-end}}
 /* Kaptia Desktop — Claude-inspired, original implementation */
 :root{
  color-scheme:light;
@@ -144,9 +151,8 @@ html,body{background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI",sy
  <button class="rail-btn active" title="對話" data-page="chat">◫</button>
  <button class="rail-btn" title="行事曆" data-page="calendar">▦</button>
  <button class="rail-btn" title="記憶" data-page="memory">◇</button>
- <button class="rail-btn" title="GitHub 專案" data-page="github">⌘</button>
- <button class="rail-btn" title="Attach 桌面連線" data-page="attach">▣</button>
- <button class="rail-btn" title="Cloud Compute" data-page="cloud">☁</button>
+ <!-- 情境式工具：不在導覽列常駐顯示，由對話意圖觸發 -->
+
  <button class="rail-btn" title="設定" data-page="settings">⚙</button>
  <div class="rail-spacer"></div><button class="rail-btn" title="關於 Kaptia" data-page="about">i</button>
 </aside>
@@ -155,10 +161,7 @@ html,body{background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI",sy
  <button class="side-action active" data-page="chat"><span>＋</span> 新對話</button>
  <button class="side-action" data-page="calendar"><span>▦</span> 行事曆</button>
  <button class="side-action" data-page="memory"><span>◇</span> 個人記憶</button>
- <button class="side-action" data-page="github"><span>⌘</span> GitHub 專案</button>
- <button class="side-action" data-page="attach"><span>▣</span> Attach 桌面連線</button>
- <button class="side-action" data-page="cloud"><span>☁</span> Cloud Compute</button>
- <button class="side-action" data-page="workspace"><span>⌘</span> 工作區 Agent</button>
+ <!-- GitHub / Attach / Cloud Compute / Workspace Agent 改由對話情境提示進入 -->
  <button class="side-action" data-page="settings"><span>⚙</span> 設定</button>
  <div class="side-label">最近訊息</div><div class="history" id="history"><div class="history-item" style="color:#777f81">本機對話記憶會在此工作區延續</div></div>
  <div class="side-bottom">LOCAL SESSION<br><span id="local-status">尚未載入模型</span></div>
@@ -284,11 +287,28 @@ $('attach-install-vision').addEventListener('click',async()=>{if(!window.confirm
 async function scanAttachApps(){const root=$('attach-app-list');root.textContent='掃描中…';const r=await call('attach_scan');if(!r?.ok){$('attach-scan-status').textContent=r?.error||'掃描失敗';root.textContent='無法取得應用程式清單。';return}$('attach-scan-status').textContent='找到 '+r.count+' 個可見視窗。';root.textContent='';r.windows.forEach(app=>{const row=document.createElement('div');row.className='event-row';const label=document.createElement('span');label.textContent=app.process+' · '+app.title+' · PID '+app.pid;const btn=document.createElement('button');btn.textContent='Attach';btn.onclick=async()=>{if(!window.confirm('允許 Kaptia 附加並檢視此視窗的介面元素？\n\n'+app.process+'\n'+app.title+'\n\n後續點擊或輸入仍須逐次確認。'))return;btn.disabled=true;const connected=await call('attach_connect',app.window_id,true);if(!connected?.ok){toast(connected?.error||'附加失敗');btn.disabled=false;return}attachSessions.set(connected.session_id,{process:app.process,title:app.title,window_id:app.window_id});renderAttachSessions();const detail=$('attach-control-details');detail.textContent='已附加 '+app.process+'。正在檢查 UI Automation…';const inspected=await call('attach_inspect',connected.session_id);if(inspected?.ok){detail.textContent='可存取 '+inspected.controls.length+' 個介面控制項。AI 可使用這些資訊規劃操作；實際點擊與輸入仍需逐次確認。'}else{detail.textContent='已附加視窗，但無法讀取 UI Automation：'+(inspected?.error||'未知錯誤')+'。此軟體可能需要其他控制介面。'}};row.append(label,btn);root.append(row)});if(!r.windows.length)root.textContent='目前沒有可附加的可見應用程式視窗。'}
 $('attach-scan').addEventListener('click',scanAttachApps);
 function appendMessage(role,content,error){$('welcome')?.remove();const row=document.createElement('div');row.className='message'+(error?' error':'');const avatar=document.createElement('div');avatar.className='avatar'+(role==='user'?' user':'');avatar.textContent=role==='user'?'你':'K';const body=document.createElement('div');body.className='message-content';const label=document.createElement('div');label.className='message-role';label.textContent=role==='user'?'你':'Kaptia';const text=document.createElement('div');text.textContent=content;body.append(label,text);row.append(avatar,body);$('messages').append(row);$('messages').scrollTop=$('messages').scrollHeight}
+function suggestContextualTool(userText){
+ const q=String(userText||'').toLowerCase();
+ const rules=[
+  {page:'github',terms:['github','repository','repo','pull request','branch','commit','程式庫','儲存庫' ,'版本庫','git'],title:'可使用 GitHub 專案功能',desc:'連接 Repository，檢視程式碼、整理問題或規劃變更。'},
+  {page:'attach',terms:['attach','桌面連線','桌面應用程式','桌面軟體','控制桌面','操作軟體','視窗操作','blender','photoshop','visual studio','vscode'],title:'可使用 Attach 桌面連線',desc:'連接目前正在執行的桌面應用程式，再由 Kaptia 協助操作。'},
+  {page:'cloud',terms:['cloud compute','雲端運算','外接伺服器','雲端伺服器','自己的伺服器','遠端算力'],title:'可設定 Cloud Compute',desc:'連接你自行部署的運算伺服器，分擔本機工作負載。'},
+  {page:'workspace',terms:['工作區 agent','workspace agent','智能體','代理人','多步驟任務','自主執行','幫我完成整個專案','端到端完成'],title:'可使用工作區 Agent',desc:'將任務拆解成步驟，交由工作區 Agent 協調執行。'}
+ ];
+ const hit=rules.find(rule=>rule.terms.some(term=>q.includes(term)));
+ if(!hit)return;
+ const card=document.createElement('div');card.className='context-tool-hint';
+ const copy=document.createElement('div');const heading=document.createElement('strong');heading.textContent=hit.title;
+ const detail=document.createElement('span');detail.textContent=hit.desc;copy.append(heading,detail);
+ const action=document.createElement('button');action.className='context-tool-open';action.textContent='查看功能';action.onclick=()=>switchPage(hit.page);
+ card.append(copy,action);$('messages').append(card);$('messages').scrollTop=$('messages').scrollHeight;
+}
 function setBusy(v){busy=v;$('send').disabled=v;$('state-dot').classList.toggle('ready',!v);$('status-left').textContent=v?'正在回應…':'就緒';$('composer-state').textContent=v?'Kaptia 正在處理訊息…':'本機推論 · 對話記憶保存在此電腦'}
 async function call(name,...args){if(!window.pywebview?.api){toast('桌面服務尚未就緒');return null}try{return await window.pywebview.api[name](...args)}catch(e){toast(String(e));return null}}
-async function sendChat(){const input=$('chat-input'),value=input.value.trim();if(!value||busy)return;input.value='';appendMessage('user',value);setBusy(true);const r=await call('chat',value,$('chat-mode').value);if(!r?.ok){appendMessage('assistant',r?.error||'無法送出訊息',true);setBusy(false)}}
+let lastUserPrompt='';
+async function sendChat(){const input=$('chat-input'),value=input.value.trim();if(!value||busy)return;lastUserPrompt=value;input.value='';appendMessage('user',value);setBusy(true);const r=await call('chat',value,$('chat-mode').value);if(!r?.ok){appendMessage('assistant',r?.error||'無法送出訊息',true);setBusy(false)}}
 $('send').onclick=sendChat;$('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
-window.kaptiaChatUpdate=d=>{if(d.status){$('composer-state').textContent=d.status;$('status-left').textContent=d.status}if(d.answer){appendMessage('assistant',d.answer);setBusy(false)}if(d.error){appendMessage('assistant',d.error,true);setBusy(false)}if(d.github_setup_required){switchPage('github');(async()=>{const s=await call('github_plugin_status');if(s?.ok&&!s.installed&&window.confirm('偵測到你需要使用 GitHub，但 GitHub 外掛尚未安裝。現在安裝必要的安全憑證元件嗎？')){const b=$('install-github-plugin');b.disabled=true;const r=await call('github_install_dependencies',true);b.disabled=false;toast(r?.ok?'GitHub 外掛安裝完成':(r?.error||'安裝失敗'));await refreshGitHubPluginStatus()}})()}};
+window.kaptiaChatUpdate=d=>{if(d.status){$('composer-state').textContent=d.status;$('status-left').textContent=d.status}if(d.answer){appendMessage('assistant',d.answer);suggestContextualTool(lastUserPrompt);setBusy(false)}if(d.error){appendMessage('assistant',d.error,true);setBusy(false)}if(d.github_setup_required){switchPage('github');(async()=>{const s=await call('github_plugin_status');if(s?.ok&&!s.installed&&window.confirm('偵測到你需要使用 GitHub，但 GitHub 外掛尚未安裝。現在安裝必要的安全憑證元件嗎？')){const b=$('install-github-plugin');b.disabled=true;const r=await call('github_install_dependencies',true);b.disabled=false;toast(r?.ok?'GitHub 外掛安裝完成':(r?.error||'安裝失敗'));await refreshGitHubPluginStatus()}})()}};
 async function refresh(){const d=await call('get_status');if(!d)return;$('about-build').textContent='核心更新通道';$('local-status').textContent=d.model_status||'未載入';$('model-state').textContent=d.model_status||'首次對話時載入';$('side-model').textContent=d.model||'Qwen3-8B';$('model-label').textContent=d.model||'Kaptia Assistant';$('model-id').value=d.model_id||'Qwen/Qwen3-8B';$('quantization').value=d.quantization||'4bit';$('state-dot').classList.toggle('ready',!!d.ready);$('status-left').textContent=d.status||'就緒';$('memory-state').textContent=d.memory||'本機記憶可用';if(d.hardware)$('status-left').title=d.hardware;await loadUpdateSettings();loadHistory()}
 async function loadHistory(){const items=await call('recent_history');if(!items)return;const root=$('history');root.textContent='';if(!items.length){root.textContent='目前沒有已保存的訊息';return}items.slice().reverse().forEach(item=>{const b=document.createElement('button');b.className='history-item';b.textContent=item;b.title=item;b.onclick=()=>{$('chat-input').value=item;$('chat-input').focus();switchPage('chat')};root.append(b)})}
 async function loadEvents(){const d=await call('list_events');if(!d)return;$('events').textContent='';if(!d.events.length){$('events').textContent='目前沒有事件';return}d.events.forEach(e=>{const row=document.createElement('div');row.className='event-row';const label=document.createElement('span');label.textContent=e.date+' '+e.time+' · '+e.title;const del=document.createElement('button');del.textContent='刪除';del.onclick=async()=>{await call('delete_event',e.id);loadEvents()};row.append(label,del);$('events').append(row)})}
