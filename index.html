@@ -334,7 +334,7 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
       if (!Array.isArray(data.releases) || data.releases.length === 0) throw new Error("No published versions");
       const latestTag = String(data.releases[0].tag_name || "");
       const installer = data.installer;
-      const integrityReady = data.downloadReady === true
+      const integrityReady = false && data.downloadReady === true // TEMPORARY FAIL-CLOSED: restore only after release sidecar verification is enforced
         && installer
         && installer.file_name === "Kaptia-Setup.exe"
         && String(installer.tag_name || "") === latestTag
