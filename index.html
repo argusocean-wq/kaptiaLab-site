@@ -124,11 +124,30 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
 .setup-dialog .btn:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:560px){.setup-dialog-inner{padding:20px}.setup-dialog-actions{display:grid}.setup-dialog-actions .btn{width:100%}}
 
+html[dir="rtl"] body,html[dir="rtl"] .wrap{direction:rtl;text-align:right}
+html[dir="rtl"] .top,html[dir="rtl"] .nav,html[dir="rtl"] .top-actions,html[dir="rtl"] .actions,html[dir="rtl"] .release-head,html[dir="rtl"] .footer{direction:rtl}
+html[dir="rtl"] .hero{text-align:right}
+html[dir="rtl"] .hero-brand,html[dir="rtl"] .actions{justify-content:flex-start}
+html[dir="rtl"] .lead{margin-right:0;margin-left:auto}
+html[dir="rtl"] .grid,html[dir="rtl"] .steps,html[dir="rtl"] .requirements{direction:rtl}
+html[dir="rtl"] .setup-dialog-inner{direction:rtl;text-align:right}
+html[dir="rtl"] .setup-field label,html[dir="rtl"] .setup-hardware-row,html[dir="rtl"] .setup-warning{text-align:right}
+html[dir="rtl"] .setup-hardware-row{flex-direction:row-reverse}
+html[dir="rtl"] .setup-dialog-actions{flex-direction:row-reverse}
+html[dir="rtl"] .release-links{direction:rtl}
+
+/* RTL refinements for mixed-language technical content and narrow screens. */
+html[dir="rtl"] input,html[dir="rtl"] select,html[dir="rtl"] textarea{text-align:right;direction:rtl}
+html[dir="rtl"] code,html[dir="rtl"] pre,html[dir="rtl"] .release-tag,html[dir="rtl"] .release-hash,html[dir="rtl"] .file-size,html[dir="rtl"] .checksum{direction:ltr;text-align:left;unicode-bidi:plaintext}
+html[dir="rtl"] .setup-dialog-actions{flex-direction:row-reverse}
+html[dir="rtl"] .release-links{flex-direction:row-reverse;justify-content:flex-start}
+html[dir="rtl"] .setup-hardware-row{gap:12px}
+@media(max-width:760px){html[dir="rtl"] .top{flex-wrap:wrap}html[dir="rtl"] .nav{justify-content:flex-start;flex-wrap:wrap}html[dir="rtl"] .top-actions{flex-wrap:wrap}html[dir="rtl"] .setup-dialog-actions{display:grid;grid-template-columns:1fr}html[dir="rtl"] .release-head{align-items:flex-start;flex-wrap:wrap}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品功能</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本資訊</a></nav><div class="top-actions"><button class="btn" style="min-height:38px;padding:0 17px;font-size:13px" type="button" data-setup-open id="topDownload">下載安裝程式</button><span class="tag" id="languageTag">ZH-TW</span></div></header>
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品功能</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本資訊</a></nav><div class="top-actions"><button class="btn" style="min-height:38px;padding:0 17px;font-size:13px" type="button" data-setup-open id="topDownload">下載安裝程式</button><select class="tag" id="languageTag" aria-label="Website language"><option value="zh-TW">繁體中文</option><option value="zh-CN">简体中文</option><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="es">Español</option><option value="pt-BR">Português (Brasil)</option><option value="it">Italiano</option><option value="ru">Русский</option><option value="ar">العربية</option><option value="th">ไทย</option><option value="vi">Tiếng Việt</option><option value="id">Bahasa Indonesia</option></select></div></header>
 <main>
 <section class="hero" style="border:0"><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>Kaptia · Personal AI Assistant</span></div><h1>一個會記住脈絡、<br>也會獨立思考的 AI 助手</h1><p class="lead">Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。</p><div class="actions"><button class="btn" type="button" data-setup-open id="download">下載 Windows 安裝程式</button><a class="btn secondary" href="#overview">了解產品功能</a></div><p class="note" id="downloadNote">Windows 10/11 · 官網已更新產品方向；新版本機記憶功能仍須完成建置、測試並發布安裝器。</p></section>
 <section id="release-announcements" aria-labelledby="release-title">
@@ -178,6 +197,16 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
         <option value="en">English</option>
         <option value="ja">日本語</option>
         <option value="ko">한국어</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="pt-BR">Português (Brasil)</option>
+        <option value="it">Italiano</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+        <option value="th">ไทย</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="id">Bahasa Indonesia</option>
       </select>
     </div>
     <div class="setup-hardware" id="setupHardware" aria-live="polite">
@@ -204,6 +233,26 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   const downloadUrl = "./downloads/Kaptia-Setup.exe";
   const list = document.getElementById("releaseList");
 
+  const releaseCopy={
+"zh-TW":["發布日期未提供","Kaptia 版本","版本標籤未提供","目前版本","歷史版本","此版本尚未提供更新說明。","下載目前版本安裝程式 ↓","大小未知","安裝檔大小：",releaseText(9),releaseText(10),"目前版本 {tag} · {size} · 官網下載，SHA-256 可供下載後比對。","目前無法確認安裝檔與版本資訊一致，為避免提供未驗證檔案，下載已暫停。",releaseText(13),releaseText(14)],
+"zh-CN":["未提供发布日期","Kaptia 版本","未提供版本标签","当前版本","历史版本","此版本尚未提供更新说明。","下载当前版本安装程序 ↓","大小未知","安装文件大小：","SHA-256（下载后可比对）","Windows PowerShell 验证命令（请按实际下载位置调整路径）：","当前版本 {tag} · {size} · 官网下载，SHA-256 可供下载后比对。","目前无法确认安装文件与版本信息一致，为避免提供未验证文件，下载已暂停。","目前无法加载版本信息。请稍后刷新本网站。","目前无法确认安装程序状态，请稍后刷新本网站。"],
+"en":["Publication date not provided","Kaptia release","Version tag not provided","Latest version","Previous version","No release notes are available for this version.","Download current installer ↓","Size unknown","Installer size:","SHA-256 (verify after download)","Windows PowerShell verification command (adjust the path to your download location):","Latest version {tag} · {size} · Official download; compare the SHA-256 after downloading.","The installer could not be matched to the release metadata. Download is paused to avoid serving an unverified file.","Release information is currently unavailable. Refresh this website later.","Installer status cannot currently be verified. Refresh this website later."],
+"ja":["公開日がありません","Kaptia リリース","バージョンタグがありません","最新バージョン","過去のバージョン","このバージョンの更新情報はありません。","現在のインストーラーをダウンロード ↓","サイズ不明","インストーラーのサイズ：","SHA-256（ダウンロード後に照合）","Windows PowerShell 検証コマンド（ダウンロード先に合わせてパスを変更してください）：","最新バージョン {tag} · {size} · 公式ダウンロード。ダウンロード後にSHA-256を照合してください。","インストーラーとリリース情報の一致を確認できないため、未検証ファイルの配布を防ぐためダウンロードを停止しました。","現在リリース情報を読み込めません。後でもう一度サイトを更新してください。","インストーラーの状態を確認できません。後でもう一度サイトを更新してください。"],
+"ko":["게시 날짜가 제공되지 않음","Kaptia 릴리스","버전 태그가 제공되지 않음","최신 버전","이전 버전","이 버전에는 릴리스 노트가 없습니다.","현재 설치 프로그램 다운로드 ↓","크기 알 수 없음","설치 파일 크기:","SHA-256(다운로드 후 확인)","Windows PowerShell 확인 명령(실제 다운로드 위치에 맞게 경로를 수정하세요):","최신 버전 {tag} · {size} · 공식 다운로드입니다. 다운로드 후 SHA-256을 비교하세요.","설치 프로그램과 릴리스 메타데이터의 일치 여부를 확인할 수 없어 검증되지 않은 파일 제공을 막기 위해 다운로드를 중지했습니다.","현재 릴리스 정보를 불러올 수 없습니다. 나중에 웹사이트를 새로 고침하세요.","설치 프로그램 상태를 확인할 수 없습니다. 나중에 웹사이트를 새로 고침하세요."],
+"fr":["Date de publication non fournie","Version de Kaptia","Étiquette de version non fournie","Dernière version","Version précédente","Aucune note de version n’est disponible.","Télécharger l’installateur actuel ↓","Taille inconnue","Taille de l’installateur :","SHA-256 (à vérifier après le téléchargement)","Commande de vérification Windows PowerShell (adaptez le chemin à votre dossier de téléchargement) :","Dernière version {tag} · {size} · Téléchargement officiel ; comparez le SHA-256 après le téléchargement.","La correspondance entre l’installateur et les métadonnées de version n’a pas pu être vérifiée. Téléchargement suspendu.","Les informations de version sont indisponibles. Actualisez ce site plus tard.","L’état de l’installateur ne peut pas être vérifié. Actualisez ce site plus tard."],
+"de":["Veröffentlichungsdatum nicht angegeben","Kaptia-Version","Versions-Tag nicht angegeben","Aktuelle Version","Vorherige Version","Für diese Version liegen keine Versionshinweise vor.","Aktuellen Installer herunterladen ↓","Größe unbekannt","Installergröße:","SHA-256 (nach dem Download prüfen)","Windows-PowerShell-Prüfbefehl (Pfad an den tatsächlichen Download-Speicherort anpassen):","Aktuelle Version {tag} · {size} · Offizieller Download; SHA-256 nach dem Download vergleichen.","Die Übereinstimmung von Installer und Versionsmetadaten konnte nicht bestätigt werden. Download angehalten.","Versionsinformationen sind derzeit nicht verfügbar. Aktualisieren Sie die Website später erneut.","Der Installerstatus kann derzeit nicht überprüft werden. Aktualisieren Sie die Website später erneut."],
+"es":["Fecha de publicación no disponible","Versión de Kaptia","Etiqueta de versión no disponible","Versión actual","Versión anterior","Esta versión no incluye notas de publicación.","Descargar el instalador actual ↓","Tamaño desconocido","Tamaño del instalador:","SHA-256 (verificar después de descargar)","Comando de verificación de Windows PowerShell (ajusta la ruta a la ubicación de descarga):","Última versión {tag} · {size} · Descarga oficial; compara el SHA-256 después de descargar.","No se pudo confirmar que el instalador coincida con los metadatos de la versión. Descarga pausada.","La información de versión no está disponible. Actualiza este sitio más tarde.","No se puede verificar el estado del instalador. Actualiza este sitio más tarde."],
+"pt-BR":["Data de publicação não informada","Versão do Kaptia","Tag da versão não informada","Versão atual","Versão anterior","Esta versão não possui notas de lançamento.","Baixar o instalador atual ↓","Tamanho desconhecido","Tamanho do instalador:","SHA-256 (verifique após o download)","Comando de verificação do Windows PowerShell (ajuste o caminho para o local do download):","Versão atual {tag} · {size} · Download oficial; compare o SHA-256 após baixar.","Não foi possível confirmar a correspondência entre o instalador e os metadados da versão. Download pausado.","As informações da versão estão indisponíveis. Atualize este site mais tarde.","Não foi possível verificar o estado do instalador. Atualize este site mais tarde."],
+"it":["Data di pubblicazione non disponibile","Versione Kaptia","Tag versione non disponibile","Versione attuale","Versione precedente","Questa versione non include note di rilascio.","Scarica l’installer attuale ↓","Dimensione sconosciuta","Dimensione dell’installer:","SHA-256 (verificare dopo il download)","Comando di verifica Windows PowerShell (modifica il percorso in base alla posizione del download):","Ultima versione {tag} · {size} · Download ufficiale; confronta lo SHA-256 dopo il download.","Impossibile verificare la corrispondenza tra installer e metadati della versione. Download sospeso.","Le informazioni sulla versione non sono disponibili. Aggiorna il sito più tardi.","Impossibile verificare lo stato dell’installer. Aggiorna il sito più tardi."],
+"ru":["Дата публикации не указана","Версия Kaptia","Тег версии не указан","Текущая версия","Предыдущая версия","Для этой версии нет примечаний к выпуску.","Скачать текущий установщик ↓","Размер неизвестен","Размер установщика:","SHA-256 (проверить после загрузки)","Команда проверки Windows PowerShell (измените путь на фактическое место загрузки):","Текущая версия {tag} · {size} · Официальная загрузка; сравните SHA-256 после загрузки.","Не удалось подтвердить соответствие установщика метаданным выпуска. Загрузка приостановлена.","Информация о версиях сейчас недоступна. Обновите сайт позже.","Не удалось проверить состояние установщика. Обновите сайт позже."],
+"ar":["تاريخ النشر غير متوفر","إصدار Kaptia","وسم الإصدار غير متوفر","الإصدار الحالي","الإصدار السابق","لا توجد ملاحظات إصدار لهذا الإصدار.","تنزيل أداة التثبيت الحالية ↓","الحجم غير معروف","حجم أداة التثبيت:","SHA-256 (تحقق بعد التنزيل)","أمر التحقق في Windows PowerShell (عدّل المسار وفق موقع التنزيل):","الإصدار الحالي {tag} · {size} · تنزيل رسمي؛ قارن SHA-256 بعد التنزيل.","تعذر التحقق من تطابق أداة التثبيت مع بيانات الإصدار. تم إيقاف التنزيل لتجنب تقديم ملف غير متحقق منه.","معلومات الإصدار غير متاحة حالياً. حدّث الموقع لاحقاً.","تعذر التحقق من حالة أداة التثبيت. حدّث الموقع لاحقاً."],
+"th":["ไม่มีวันที่เผยแพร่","รุ่น Kaptia","ไม่มีแท็กรุ่น","รุ่นล่าสุด","รุ่นก่อนหน้า","รุ่นนี้ไม่มีบันทึกการเผยแพร่","ดาวน์โหลดตัวติดตั้งรุ่นปัจจุบัน ↓","ไม่ทราบขนาด","ขนาดไฟล์ติดตั้ง:","SHA-256 (ตรวจสอบหลังดาวน์โหลด)","คำสั่งตรวจสอบ Windows PowerShell (ปรับเส้นทางให้ตรงกับตำแหน่งดาวน์โหลด):","รุ่นล่าสุด {tag} · {size} · ดาวน์โหลดอย่างเป็นทางการ เปรียบเทียบ SHA-256 หลังดาวน์โหลด","ไม่สามารถยืนยันว่าตัวติดตั้งตรงกับข้อมูลรุ่นได้ จึงหยุดดาวน์โหลดเพื่อป้องกันการให้ไฟล์ที่ยังไม่ผ่านการตรวจสอบ","ไม่สามารถโหลดข้อมูลรุ่นได้ในขณะนี้ โปรดรีเฟรชเว็บไซต์ภายหลัง","ไม่สามารถตรวจสอบสถานะตัวติดตั้งได้ โปรดรีเฟรชเว็บไซต์ภายหลัง"],
+"vi":["Chưa có ngày phát hành","Bản phát hành Kaptia","Chưa có thẻ phiên bản","Phiên bản hiện tại","Phiên bản trước","Phiên bản này chưa có ghi chú phát hành.","Tải trình cài đặt hiện tại ↓","Không rõ kích thước","Kích thước trình cài đặt:","SHA-256 (kiểm tra sau khi tải)","Lệnh xác minh Windows PowerShell (điều chỉnh đường dẫn theo vị trí tải xuống):","Phiên bản hiện tại {tag} · {size} · Tải chính thức; hãy so sánh SHA-256 sau khi tải.","Không thể xác minh trình cài đặt khớp với siêu dữ liệu phát hành. Đã tạm dừng tải xuống.","Hiện không thể tải thông tin phát hành. Hãy làm mới trang web sau.","Không thể xác minh trạng thái trình cài đặt. Hãy làm mới trang web sau."],
+"id":["Tanggal publikasi tidak tersedia","Rilis Kaptia","Tag versi tidak tersedia","Versi saat ini","Versi sebelumnya","Catatan rilis belum tersedia untuk versi ini.","Unduh installer saat ini ↓","Ukuran tidak diketahui","Ukuran installer:","SHA-256 (periksa setelah mengunduh)","Perintah verifikasi Windows PowerShell (sesuaikan jalur dengan lokasi unduhan):","Versi terbaru {tag} · {size} · Unduhan resmi; bandingkan SHA-256 setelah mengunduh.","Kecocokan installer dengan metadata rilis tidak dapat diverifikasi. Unduhan dijeda untuk menghindari file yang belum terverifikasi.","Informasi rilis saat ini tidak tersedia. Muat ulang situs nanti.","Status installer tidak dapat diverifikasi saat ini. Muat ulang situs nanti."]
+};
+  const currentLocale=()=>document.getElementById("languageTag")?.value||"en";
+  const releaseText=(index,tag="",size="")=>(releaseCopy[currentLocale()]||releaseCopy.en)[index].replace("{tag}",tag).replace("{size}",size);
+
   function node(tag, className, value) {
     const el = document.createElement(tag);
     if (className) el.className = className;
@@ -211,10 +260,10 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     return el;
   }
   function formatDate(value) {
-    if (!value) return "發布日期未提供";
+    if (!value) return releaseText(0);
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "發布日期未提供";
-    return new Intl.DateTimeFormat("zh-TW", {
+    if (Number.isNaN(date.getTime())) return releaseText(0);
+    return new Intl.DateTimeFormat(currentLocale(), {
       timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(date);
   }
@@ -222,30 +271,30 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     const card = node("article", "release-card");
     const head = node("div", "release-head");
     const info = node("div");
-    const title = node("h3", "release-title", String(release.name || release.tag_name || "Kaptia 版本").slice(0, 200));
+    const title = node("h3", "release-title", String(release.name || release.tag_name || releaseText(1)).slice(0, 200));
     title.classList.add("notranslate");
     title.setAttribute("translate", "no");
     info.appendChild(title);
-    const meta = node("div", "release-meta", String(release.tag_name || "版本標籤未提供").slice(0, 100) + " · " + formatDate(release.published_at));
+    const meta = node("div", "release-meta", String(release.tag_name || releaseText(2)).slice(0, 100) + " · " + formatDate(release.published_at));
     meta.classList.add("notranslate");
     meta.setAttribute("translate", "no");
     info.appendChild(meta);
     head.appendChild(info);
-    head.appendChild(node("span", "release-badge", isLatest ? "目前版本" : "歷史版本"));
+    head.appendChild(node("span", "release-badge", isLatest ? releaseText(3) : releaseText(4)));
     card.appendChild(head);
     const notes = typeof release.body === "string" && release.body.trim()
-      ? release.body.trim().slice(0, 4000) : "此版本尚未提供更新說明。";
+      ? release.body.trim().slice(0, 4000) : releaseText(5);
     card.appendChild(node("p", "release-notes", notes));
     if (isLatest && installerMetadata) {
       const links = node("div", "release-links");
-      const a = node("a", "", "下載目前版本安裝程式 ↓");
+      const a = node("a", "", releaseText(6));
       a.href = downloadUrl;
       a.setAttribute("download", "Kaptia-Setup.exe");
       links.appendChild(a);
       card.appendChild(links);
 
       const integrity = node("div", "release-integrity");
-      integrity.appendChild(node("p", "release-meta", "安裝檔大小：" + formatBytes(installerMetadata.size_bytes)));
+      integrity.appendChild(node("p", "release-meta", releaseText(8) + formatBytes(installerMetadata.size_bytes)));
       integrity.appendChild(node("p", "release-meta", "SHA-256（下載後可比對）"));
       integrity.appendChild(node("code", "integrity-hash", installerMetadata.sha256));
       integrity.appendChild(node("p", "release-meta", "Windows PowerShell 驗證指令（請按實際下載位置調整路徑）："));
@@ -255,7 +304,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     return card;
   }
   function formatBytes(value) {
-    if (!Number.isSafeInteger(value) || value <= 0) return "大小未知";
+    if (!Number.isSafeInteger(value) || value <= 0) return releaseText(7);
     return value >= 1024 * 1024
       ? (value / (1024 * 1024)).toFixed(2) + " MB"
       : (value / 1024).toFixed(1) + " KB";
@@ -302,16 +351,17 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
       list.replaceChildren(fragment);
       setDownloadReady(Boolean(checkedInstaller),
         checkedInstaller
-          ? "目前版本 " + latestTag + " · " + formatBytes(checkedInstaller.size_bytes) + " · 官網下載，SHA-256 可供下載後比對。"
-          : "目前無法確認安裝檔與版本資訊一致，為避免提供未驗證檔案，下載已暫停。");
+          ? releaseText(11, latestTag, formatBytes(checkedInstaller.size_bytes))
+          : releaseText(12));
     } catch (_) {
       if (list) list.replaceChildren();
       const card = node("article", "release-card");
-      card.appendChild(node("p", "release-status", "目前無法載入版本資訊。請稍後重新整理本網站。"));
+      card.appendChild(node("p", "release-status", releaseText(13)));
       list.appendChild(card);
-      setDownloadReady(false, "目前無法確認安裝程式狀態，請稍後重新整理本網站。");
+      setDownloadReady(false, releaseText(14));
     }
   }
+  window.kaptiaReloadReleases = loadReleases;
   loadReleases();
 })();
 </script>
@@ -343,24 +393,153 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     installerReady = Boolean(event.detail && event.detail.ready);
     inspect();
   });
-  const languageNames = {"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어"};
+  const languageNames = {"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어","fr":"Français","de":"Deutsch","es":"Español","pt-BR":"Português (Brasil)","it":"Italiano","ru":"Русский","ar":"العربية","th":"ไทย","vi":"Tiếng Việt","id":"Bahasa Indonesia"};
   const params = new URLSearchParams(location.search);
   const supported = Object.keys(languageNames);
-  const initial = params.get("lang");
-  if (supported.includes(initial)) language.value = initial;
-  else {
-    const browserLang = (navigator.language || "").toLowerCase();
-    language.value = browserLang.startsWith("zh-cn") || browserLang.startsWith("zh-sg") ? "zh-CN"
-      : browserLang.startsWith("ja") ? "ja"
-      : browserLang.startsWith("ko") ? "ko"
-      : browserLang.startsWith("en") ? "en" : "zh-TW";
+  const localeFor = value => {
+    const tag = String(value || "").toLowerCase();
+    if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg") || tag.startsWith("zh-hans")) return "zh-CN";
+    if (tag.startsWith("zh")) return "zh-TW";
+    if (tag.startsWith("pt")) return "pt-BR";
+    const primary = tag.split("-")[0];
+    return ["en","ja","ko","fr","de","es","it","ru","ar","th","vi","id"].includes(primary) ? primary : null;
+  };
+  let savedLanguage = null;
+  try { savedLanguage = localStorage.getItem("kaptia.setup.language"); } catch (_) {}
+  const browserLanguage = (navigator.languages || [navigator.language || ""]).map(localeFor).find(Boolean);
+  const requestedLanguage = params.get("lang");
+  language.value = supported.includes(requestedLanguage) ? requestedLanguage
+    : supported.includes(savedLanguage) ? savedLanguage
+    : browserLanguage || "en";
+  const uiCopy = {
+    "zh-TW": {title:"選擇語言與檢查電腦",intro:"先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。",field:"安裝語言",cancel:"取消",confirm:"確認並下載 Setup"},
+    "zh-CN": {title:"选择语言并检查电脑",intro:"请先选择安装语言，再进行初步兼容性检查。完整 GPU、VRAM 和内存信息将由 Windows 安装程序在本机确认。",field:"安装语言",cancel:"取消",confirm:"确认并下载 Setup"},
+    "en": {title:"Choose language and check your PC",intro:"Choose the installer language first, then run a preliminary compatibility check. Full GPU, VRAM, and memory details will be verified locally by the Windows installer.",field:"Installer language",cancel:"Cancel",confirm:"Confirm and download Setup"},
+    "ja": {title:"言語の選択と PC の確認",intro:"最初にインストーラーの言語を選択し、互換性を事前確認します。GPU、VRAM、メモリの詳細は Windows インストーラーがローカルで確認します。",field:"インストーラーの言語",cancel:"キャンセル",confirm:"確認して Setup をダウンロード"},
+    "ko": {title:"언어 선택 및 PC 확인",intro:"먼저 설치 프로그램 언어를 선택한 다음 기본 호환성을 확인합니다. GPU, VRAM 및 메모리 세부 정보는 Windows 설치 프로그램이 로컬에서 확인합니다.",field:"설치 프로그램 언어",cancel:"취소",confirm:"확인 후 Setup 다운로드"},
+    "fr": {title:"Choisir la langue et vérifier le PC",intro:"Choisissez la langue du programme, puis lancez une vérification préliminaire. Le GPU, la VRAM et la mémoire seront vérifiés localement par Setup sous Windows.",field:"Langue du programme",cancel:"Annuler",confirm:"Confirmer et télécharger Setup"},
+    "de": {title:"Sprache wählen und PC prüfen",intro:"Wählen Sie zuerst die Setup-Sprache. GPU, VRAM und Arbeitsspeicher werden anschließend lokal vom Windows-Setup geprüft.",field:"Setup-Sprache",cancel:"Abbrechen",confirm:"Bestätigen und Setup herunterladen"},
+    "es": {title:"Elegir idioma y comprobar el PC",intro:"Elija primero el idioma del instalador. Windows Setup comprobará localmente la GPU, la VRAM y la memoria.",field:"Idioma del instalador",cancel:"Cancelar",confirm:"Confirmar y descargar Setup"},
+    "pt-BR": {title:"Escolher idioma e verificar o PC",intro:"Escolha primeiro o idioma do instalador. O Setup do Windows verificará localmente a GPU, a VRAM e a memória.",field:"Idioma do instalador",cancel:"Cancelar",confirm:"Confirmar e baixar o Setup"},
+    "it": {title:"Scegli la lingua e verifica il PC",intro:"Scegli prima la lingua del programma. Setup per Windows verificherà localmente GPU, VRAM e memoria.",field:"Lingua del programma",cancel:"Annulla",confirm:"Conferma e scarica Setup"},
+    "ru": {title:"Выберите язык и проверьте ПК",intro:"Сначала выберите язык установщика. Windows Setup локально проверит GPU, VRAM и оперативную память.",field:"Язык установщика",cancel:"Отмена",confirm:"Подтвердить и скачать Setup"},
+    "ar": {title:"اختر اللغة وافحص الكمبيوتر",intro:"اختر لغة التثبيت أولاً. سيتحقق برنامج Windows Setup محلياً من وحدة GPU وذاكرة VRAM والذاكرة.",field:"لغة التثبيت",cancel:"إلغاء",confirm:"تأكيد وتنزيل Setup"},
+    "th": {title:"เลือกภาษาและตรวจสอบพีซี",intro:"เลือกภาษาของตัวติดตั้งก่อน จากนั้น Windows Setup จะตรวจสอบ GPU, VRAM และหน่วยความจำบนเครื่อง",field:"ภาษาตัวติดตั้ง",cancel:"ยกเลิก",confirm:"ยืนยันและดาวน์โหลด Setup"},
+    "vi": {title:"Chọn ngôn ngữ và kiểm tra PC",intro:"Hãy chọn ngôn ngữ trình cài đặt trước. Windows Setup sẽ kiểm tra GPU, VRAM và bộ nhớ ngay trên máy.",field:"Ngôn ngữ trình cài đặt",cancel:"Hủy",confirm:"Xác nhận và tải Setup"},
+    "id": {title:"Pilih bahasa dan periksa PC",intro:"Pilih bahasa penginstal terlebih dahulu. Windows Setup akan memeriksa GPU, VRAM, dan memori secara lokal.",field:"Bahasa penginstal",cancel:"Batal",confirm:"Konfirmasi dan unduh Setup"}
+  };
+  const siteCopy={
+"zh-TW":["產品功能","開始使用","隱私與控制","版本資訊","下載安裝程式","一個會記住脈絡、<br>也會獨立思考的 AI 助手","下載 Windows 安裝程式","了解產品功能","版本發布公告","在此查看版本號、發布日期與更新內容。所有版本資訊直接顯示於官網，下載安裝程式不需要離開本網站。","正在讀取最新版本公告…","讓助手逐步理解你，而不是每次從零開始","從第一次對話開始建立自己的助手","記憶屬於你，控制權也應屬於你"],
+"zh-CN":["产品功能","开始使用","隐私与控制","版本信息","下载安装程序","一个会记住上下文、<br>也会独立思考的 AI 助手","下载 Windows 安装程序","了解产品功能","版本发布公告","在此查看版本号、发布日期与更新内容。所有版本信息直接显示于官网，下载安装程序无需离开本网站。","正在读取最新版本公告…","让助手逐步理解你，而不是每次从零开始","从第一次对话开始建立自己的助手","记忆属于你，控制权也应属于你"],
+"en":["Features","Get started","Privacy & control","Releases","Download Setup","An AI assistant that remembers context<br>and thinks independently","Download for Windows","Explore features","Release notes","View version numbers, release dates and changes here. Release information is shown on this website; you do not need to leave the site to download Setup.","Loading the latest release notes…","An assistant that gets to know you over time","Build your assistant from the first conversation","Your memory. Your control."],
+"ja":["製品機能","使い始める","プライバシーと管理","リリース","インストーラーをダウンロード","文脈を記憶し<br>独立して考える AI アシスタント","Windows 版をダウンロード","機能を見る","リリースノート","ここでバージョン、公開日、更新内容を確認できます。Setup のダウンロードもこのサイトから行えます。","最新のリリース情報を読み込んでいます…","使うほどにあなたを理解するアシスタント","最初の会話から自分のアシスタントを作る","記憶はあなたのもの。管理するのもあなたです。"],
+"ko":["제품 기능","시작하기","개인정보 및 제어","릴리스","설치 프로그램 다운로드","맥락을 기억하고<br>독립적으로 생각하는 AI 비서","Windows용 다운로드","기능 살펴보기","릴리스 노트","버전, 출시일 및 변경 사항을 여기에서 확인하세요. 설치 프로그램도 이 웹사이트에서 바로 다운로드할 수 있습니다.","최신 릴리스 정보를 불러오는 중…","시간이 지날수록 사용자를 이해하는 비서","첫 대화부터 나만의 비서를 만들기","기억은 사용자의 것, 제어권도 사용자에게 있습니다."],
+"fr":["Fonctionnalités","Commencer","Confidentialité et contrôle","Versions","Télécharger Setup","Un assistant IA qui mémorise le contexte<br>et réfléchit de façon indépendante","Télécharger pour Windows","Découvrir les fonctionnalités","Notes de version","Consultez ici les versions, dates de publication et modifications. Le téléchargement de Setup reste sur ce site.","Chargement des dernières notes de version…","Un assistant qui apprend à vous comprendre au fil du temps","Créez votre assistant dès la première conversation","Votre mémoire. Votre contrôle."],
+"de":["Funktionen","Erste Schritte","Datenschutz und Kontrolle","Versionen","Setup herunterladen","Ein KI-Assistent, der Kontext behält<br>und eigenständig denkt","Für Windows herunterladen","Funktionen ansehen","Versionshinweise","Hier finden Sie Versionsnummern, Veröffentlichungsdaten und Änderungen. Setup kann direkt auf dieser Website heruntergeladen werden.","Neueste Versionshinweise werden geladen…","Ein Assistent, der Sie mit der Zeit besser versteht","Erstellen Sie Ihren Assistenten ab dem ersten Gespräch","Ihre Erinnerung. Ihre Kontrolle."],
+"es":["Funciones","Comenzar","Privacidad y control","Versiones","Descargar Setup","Un asistente de IA que recuerda el contexto<br>y piensa de forma independiente","Descargar para Windows","Ver funciones","Notas de versión","Consulta aquí las versiones, fechas de publicación y cambios. Puedes descargar Setup directamente desde este sitio.","Cargando las últimas notas de versión…","Un asistente que te comprende cada vez mejor","Crea tu asistente desde la primera conversación","Tu memoria. Tu control."],
+"pt-BR":["Recursos","Começar","Privacidade e controle","Versões","Baixar Setup","Um assistente de IA que lembra o contexto<br>e pensa de forma independente","Baixar para Windows","Conhecer recursos","Notas da versão","Consulte aqui as versões, datas de lançamento e alterações. O Setup pode ser baixado diretamente neste site.","Carregando as notas da versão mais recente…","Um assistente que entende você com o tempo","Crie seu assistente desde a primeira conversa","Sua memória. Seu controle."],
+"it":["Funzionalità","Inizia","Privacy e controllo","Versioni","Scarica Setup","Un assistente IA che ricorda il contesto<br>e pensa in modo indipendente","Scarica per Windows","Scopri le funzionalità","Note di rilascio","Qui puoi consultare versioni, date di rilascio e modifiche. Puoi scaricare Setup direttamente da questo sito.","Caricamento delle ultime note di rilascio…","Un assistente che impara a conoscerti nel tempo","Crea il tuo assistente dalla prima conversazione","La tua memoria. Il tuo controllo."],
+"ru":["Возможности","Начать","Конфиденциальность и управление","Релизы","Скачать Setup","ИИ-ассистент, который помнит контекст<br>и мыслит самостоятельно","Скачать для Windows","Возможности продукта","Примечания к выпуску","Здесь указаны версии, даты выпуска и изменения. Скачать Setup можно прямо на этом сайте.","Загрузка последних примечаний к выпуску…","Ассистент, который лучше понимает вас со временем","Создайте своего ассистента с первого разговора","Ваша память. Ваш контроль."],
+"ar":["الميزات","ابدأ الاستخدام","الخصوصية والتحكم","الإصدارات","تنزيل Setup","مساعد ذكاء اصطناعي يتذكر السياق<br>ويفكر بشكل مستقل","تنزيل Windows","استكشف الميزات","ملاحظات الإصدار","اعرض أرقام الإصدارات وتواريخ النشر والتغييرات هنا. يمكنك تنزيل Setup مباشرة من هذا الموقع.","جارٍ تحميل أحدث ملاحظات الإصدار…","مساعد يتعرف عليك بشكل أفضل مع الوقت","أنشئ مساعدك من أول محادثة","ذاكرتك. وتحكمك."],
+"th":["คุณสมบัติ","เริ่มต้นใช้งาน","ความเป็นส่วนตัวและการควบคุม","รุ่นที่เผยแพร่","ดาวน์โหลด Setup","ผู้ช่วย AI ที่จดจำบริบท<br>และคิดได้อย่างเป็นอิสระ","ดาวน์โหลดสำหรับ Windows","ดูคุณสมบัติ","บันทึกประจำรุ่น","ดูหมายเลขเวอร์ชัน วันที่เผยแพร่ และรายการเปลี่ยนแปลงได้ที่นี่ ดาวน์โหลด Setup ได้จากเว็บไซต์นี้โดยตรง","กำลังโหลดบันทึกประจำรุ่นล่าสุด…","ผู้ช่วยที่เข้าใจคุณมากขึ้นเมื่อใช้งาน","เริ่มสร้างผู้ช่วยของคุณตั้งแต่บทสนทนาแรก","ความทรงจำของคุณ การควบคุมของคุณ"],
+"vi":["Tính năng","Bắt đầu","Quyền riêng tư và kiểm soát","Bản phát hành","Tải Setup","Trợ lý AI ghi nhớ ngữ cảnh<br>và suy nghĩ độc lập","Tải xuống cho Windows","Khám phá tính năng","Ghi chú phát hành","Xem số phiên bản, ngày phát hành và các thay đổi tại đây. Bạn có thể tải Setup ngay trên trang web này.","Đang tải ghi chú phát hành mới nhất…","Trợ lý hiểu bạn hơn theo thời gian","Xây dựng trợ lý của bạn từ cuộc trò chuyện đầu tiên","Ký ức của bạn. Quyền kiểm soát của bạn."],
+"id":["Fitur","Mulai","Privasi & kontrol","Rilis","Unduh Setup","Asisten AI yang mengingat konteks<br>dan berpikir secara mandiri","Unduh untuk Windows","Jelajahi fitur","Catatan rilis","Lihat nomor versi, tanggal rilis, dan perubahan di sini. Setup dapat diunduh langsung dari situs ini.","Memuat catatan rilis terbaru…","Asisten yang semakin memahami Anda seiring waktu","Bangun asisten Anda sejak percakapan pertama","Memori Anda. Kendali Anda."]
+};
+  const siteSelectors=[
+    ".nav a:nth-child(1)",".nav a:nth-child(2)",".nav a:nth-child(3)",".nav a:nth-child(4)","#topDownload",
+    ".hero h1","#download",".actions a","#release-title","#release-announcements .copy",".release-status",
+    "#overview h2","#get-started h2","#requirements h2"
+  ];
+  const siteDetails={
+"zh-TW":["Windows 10/11 · 官網產品資訊與實際安裝器版本可能不同，請以已發布安裝器為準。","版本公告與安裝程式由網站部署流程同步；頁面公告不代表已在所有 Windows 裝置完成實機驗證。","PERSONAL ASSISTANT","本機長期記憶","每台電腦保留自己的近期對話歷史，讓重新啟動後仍能延續脈絡。記憶存於該使用者的本機資料夾，不等於自動雲端同步。","獨立判斷","Kaptia 不應只附和使用者：要能比較選項、指出矛盾、提出反例，並依新證據修正判斷。這是助理行為設計，不代表它具有意識。","個人化體驗","本機歷史讓助手能延續近期談話；更長期的偏好整理、可編輯記憶與跨話題回憶仍需逐步實作與驗收。","GET STARTED","STEP 01","下載並確認版本","在本網站查看版本說明並下載安裝檔。請確認該版本是否包含所需功能。","STEP 02","開始自然對話","像一般助手一樣提出問題、修正回答，並逐步建立可延續的對話脈絡。","STEP 03","檢查與管理記憶","本機記憶應能查閱與清除。功能是否可用，請以目前安裝器實際提供的版本為準。","PRIVACY & CONTROL","作業系統","Windows 10 或 Windows 11（64 位元）。目前此安裝流程不是 iPhone/iPad 安裝程式。","本機資料位置","對話記憶存放於目前 Windows 使用者的本機資料夾；不同電腦各自保有獨立記憶，不會因網站發布而自動同步。","記憶控制","設計方向包含查看記憶狀態、清除本機歷史與限制儲存量。只有已整合並發布的版本才可視為可用。","外部服務與隱私","本機記憶不需要把聊天上傳到雲端。若選擇外接 API，對話內容可能送往服務商；請先檢查設定與隱私條款。","版本資訊","開始使用"],
+"zh-CN":["Windows 10/11 · 官网产品信息与实际安装器版本可能不同，请以已发布的安装器为准。","版本公告与安装程序由网站部署流程同步；页面公告不代表已在所有 Windows 设备完成实机验证。","PERSONAL ASSISTANT","本地长期记忆","每台电脑保留自己的近期对话历史，让重新启动后仍能延续上下文。记忆存储在该用户的本地文件夹，不等于自动云端同步。","独立判断","Kaptia 不应只附和用户：应比较选项、指出矛盾、提出反例，并根据新证据修正判断。这是助手行为设计，不代表它具有意识。","个性化体验","本地历史让助手延续近期对话；更长期的偏好整理、可编辑记忆与跨话题回忆仍需逐步实现和验收。","GET STARTED","STEP 01","下载并确认版本","在本网站查看版本说明并下载安装文件。请确认该版本是否包含所需功能。","STEP 02","开始自然对话","像使用普通助手一样提问、修正回答，并逐步建立可延续的对话上下文。","STEP 03","检查与管理记忆","本地记忆应可查看和清除。功能是否可用，请以当前安装器实际提供的版本为准。","PRIVACY & CONTROL","操作系统","Windows 10 或 Windows 11（64 位）。当前安装流程不是 iPhone/iPad 安装程序。","本地数据位置","对话记忆存放在当前 Windows 用户的本地文件夹；不同电脑各自保留独立记忆，不会因网站发布而自动同步。","记忆控制","设计方向包括查看记忆状态、清除本地历史和限制存储量。只有已集成并发布的版本才可视为可用。","外部服务与隐私","本地记忆无需将聊天上传到云端。若选择外接 API，对话内容可能发送给服务商；请先检查设置和隐私条款。","版本信息","开始使用"],
+"en":["Windows 10/11 · Website information may differ from the installer currently published. Always verify the released installer.","Release notes and Setup are synchronized by the website deployment process; a page update does not mean every Windows device has been tested.","PERSONAL ASSISTANT","Local conversation memory","Each computer keeps its own recent conversation history so context can continue after restart. Memory stays in the current user's local data folder; it is not automatic cloud sync.","Independent judgment","Kaptia should do more than agree: compare options, identify contradictions, offer counterexamples and revise conclusions when evidence changes. This describes assistant behavior, not consciousness.","Personalized experience","Local history preserves recent context. Longer-term preference summaries, editable memories and cross-topic recall still require implementation and verification.","GET STARTED","STEP 01","Download and verify the version","Review the release notes and download the installer here. Check that the released version includes the features you need.","STEP 02","Start a natural conversation","Ask questions, refine responses and gradually build conversation context that can continue over time.","STEP 03","Review and manage memory","Local memory should be reviewable and clearable. Use only capabilities included in the installer version you have installed.","PRIVACY & CONTROL","Operating system","Windows 10 or Windows 11 (64-bit). This installer is not for iPhone or iPad.","Local data location","Conversation memory is stored in the current Windows user's local folder. Each computer keeps separate memory; publishing the website does not sync local files.","Memory controls","The design includes memory status, local history deletion and storage limits. A capability is available only after it has been integrated and released.","External services and privacy","Local memory does not require chat uploads. If you connect an external API, conversation content may be sent to that provider; review settings and privacy terms first.","Releases","Get started"],
+"ja":["Windows 10/11 · Webサイトの情報と公開中のインストーラーの機能は異なる場合があります。公開版を確認してください。","リリース情報とSetupはサイトのデプロイに合わせて更新されます。ページ更新は、すべてのWindows端末での実機検証を意味しません。","PERSONAL ASSISTANT","ローカル会話メモリ","各PCは最近の会話履歴を個別に保存し、再起動後も文脈を引き継ぎます。メモリはユーザーのローカルフォルダーに保存され、自動クラウド同期ではありません。","独立した判断","Kaptiaは単に同意するのではなく、選択肢を比較し、矛盾を指摘し、反例を示し、新しい証拠に応じて判断を修正することを目指します。意識を持つという意味ではありません。","パーソナライズ","ローカル履歴で最近の会話を継続できます。長期的な好みの整理、編集可能なメモリ、話題をまたぐ想起は今後の実装と検証が必要です。","GET STARTED","STEP 01","バージョンを確認してダウンロード","このサイトでリリース情報を確認し、インストーラーをダウンロードしてください。必要な機能が公開版に含まれるか確認してください。","STEP 02","自然に会話を始める","質問し、回答を調整しながら、継続できる会話の文脈を少しずつ作ります。","STEP 03","メモリを確認・管理","ローカルメモリは確認・削除できる設計です。利用可能な機能はインストール済みの版で確認してください。","PRIVACY & CONTROL","OS","Windows 10またはWindows 11（64ビット）。このインストーラーはiPhone/iPad用ではありません。","ローカルデータの保存先","会話メモリは現在のWindowsユーザーのローカルフォルダーに保存されます。PCごとに独立し、サイト更新で同期されません。","メモリ管理","メモリ状態の確認、ローカル履歴の削除、保存容量の制限を設計に含みます。統合・公開済みの版でのみ利用できます。","外部サービスとプライバシー","ローカルメモリはチャットのクラウド送信を必要としません。外部APIを接続すると会話内容が事業者へ送信される場合があります。設定と規約を確認してください。","リリース","使い始める"],
+"ko":["Windows 10/11 · 웹사이트 정보와 현재 공개된 설치 프로그램의 기능은 다를 수 있습니다. 배포된 설치 프로그램을 확인하세요.","릴리스 정보와 Setup은 웹사이트 배포 과정에 맞춰 동기화됩니다. 페이지 업데이트가 모든 Windows 기기의 실기 테스트를 의미하지는 않습니다.","PERSONAL ASSISTANT","로컬 대화 메모리","각 컴퓨터는 최근 대화 기록을 별도로 보관하여 재시작 후에도 맥락을 이어갑니다. 메모리는 현재 사용자의 로컬 폴더에 저장되며 자동 클라우드 동기화가 아닙니다.","독립적인 판단","Kaptia는 단순히 동의하는 데 그치지 않고 선택지를 비교하고 모순을 짚으며 반례를 제시하고 새로운 증거에 따라 판단을 수정해야 합니다. 이는 비서 동작 설계이지 의식을 뜻하지 않습니다.","개인화 경험","로컬 기록은 최근 맥락을 이어줍니다. 장기 선호 정리, 편집 가능한 메모리, 주제 간 회상은 추가 구현과 검증이 필요합니다.","GET STARTED","STEP 01","버전 확인 및 다운로드","이 사이트에서 릴리스 정보를 확인하고 설치 프로그램을 다운로드하세요. 필요한 기능이 공개 버전에 포함되어 있는지 확인하세요.","STEP 02","자연스러운 대화 시작","질문하고 답변을 다듬으며 지속 가능한 대화 맥락을 점진적으로 만드세요.","STEP 03","메모리 확인 및 관리","로컬 메모리는 확인하고 삭제할 수 있어야 합니다. 실제 기능은 설치된 버전을 기준으로 확인하세요.","PRIVACY & CONTROL","운영체제","Windows 10 또는 Windows 11(64비트). 이 설치 프로그램은 iPhone/iPad용이 아닙니다.","로컬 데이터 위치","대화 메모리는 현재 Windows 사용자의 로컬 폴더에 저장됩니다. 컴퓨터마다 독립적으로 유지되며 웹사이트 배포로 동기화되지 않습니다.","메모리 제어","메모리 상태 확인, 로컬 기록 삭제 및 저장 용량 제한을 설계에 포함합니다. 통합 및 배포된 버전에서만 사용할 수 있습니다.","외부 서비스 및 개인정보","로컬 메모리는 채팅을 클라우드에 업로드할 필요가 없습니다. 외부 API를 연결하면 대화 내용이 서비스 제공자에게 전송될 수 있으므로 설정과 약관을 확인하세요.","릴리스","시작하기"],
+"fr":["Windows 10/11 · Les informations du site peuvent différer de l’installateur publié. Vérifiez toujours la version distribuée.","Les notes de version et Setup sont synchronisés par le déploiement du site ; une mise à jour de page ne signifie pas que chaque PC Windows a été testé.","PERSONAL ASSISTANT","Mémoire locale des conversations","Chaque ordinateur conserve son propre historique récent afin de reprendre le contexte après un redémarrage. La mémoire reste dans le dossier local de l’utilisateur ; aucune synchronisation cloud automatique.","Jugement indépendant","Kaptia doit aller au-delà de l’approbation : comparer les options, relever les contradictions, proposer des contre-exemples et réviser ses conclusions selon les preuves. Cela ne signifie pas qu’il est conscient.","Expérience personnalisée","L’historique local conserve le contexte récent. Les préférences à long terme, les souvenirs modifiables et le rappel entre sujets nécessitent encore une mise en œuvre et une validation.","GET STARTED","STEP 01","Télécharger et vérifier la version","Consultez les notes de version et téléchargez l’installateur ici. Vérifiez que la version publiée contient les fonctions souhaitées.","STEP 02","Commencer une conversation naturelle","Posez des questions, affinez les réponses et construisez progressivement un contexte réutilisable.","STEP 03","Consulter et gérer la mémoire","La mémoire locale doit pouvoir être consultée et effacée. Fiez-vous aux fonctions réellement présentes dans la version installée.","PRIVACY & CONTROL","Système d’exploitation","Windows 10 ou Windows 11 (64 bits). Cet installateur n’est pas destiné à iPhone/iPad.","Emplacement des données locales","La mémoire est stockée dans le dossier local de l’utilisateur Windows. Chaque ordinateur reste indépendant ; le site ne synchronise pas les fichiers locaux.","Contrôle de la mémoire","La conception prévoit l’état de la mémoire, l’effacement de l’historique local et des limites de stockage. Ces fonctions ne sont disponibles qu’après intégration et publication.","Services externes et confidentialité","La mémoire locale n’exige pas l’envoi des conversations vers le cloud. Une API externe peut recevoir le contenu des conversations ; vérifiez les paramètres et les conditions.","Versions","Commencer"],
+"de":["Windows 10/11 · Website-Angaben können vom aktuell veröffentlichten Installer abweichen. Maßgeblich ist die veröffentlichte Version.","Versionshinweise und Setup werden mit dem Website-Deployment synchronisiert. Eine Seitenaktualisierung bedeutet nicht, dass jedes Windows-Gerät getestet wurde.","PERSONAL ASSISTANT","Lokales Gesprächsgedächtnis","Jeder Computer speichert seinen eigenen aktuellen Gesprächsverlauf, damit der Kontext nach einem Neustart erhalten bleibt. Die Daten bleiben lokal im Benutzerordner; keine automatische Cloud-Synchronisierung.","Eigenständiges Urteilsvermögen","Kaptia soll nicht nur zustimmen: Optionen vergleichen, Widersprüche erkennen, Gegenbeispiele liefern und Schlussfolgerungen anhand neuer Belege anpassen. Das bedeutet kein Bewusstsein.","Personalisierung","Der lokale Verlauf erhält den jüngsten Kontext. Langfristige Präferenzen, bearbeitbare Erinnerungen und themenübergreifender Abruf benötigen noch Implementierung und Prüfung.","GET STARTED","STEP 01","Version prüfen und herunterladen","Lesen Sie hier die Versionshinweise und laden Sie den Installer herunter. Prüfen Sie, ob die veröffentlichte Version die benötigten Funktionen enthält.","STEP 02","Natürliches Gespräch beginnen","Stellen Sie Fragen, verfeinern Sie Antworten und bauen Sie schrittweise einen fortsetzbaren Gesprächskontext auf.","STEP 03","Speicher prüfen und verwalten","Der lokale Speicher sollte einsehbar und löschbar sein. Maßgeblich sind die Funktionen Ihrer installierten Version.","PRIVACY & CONTROL","Betriebssystem","Windows 10 oder Windows 11 (64-Bit). Dieser Installer ist nicht für iPhone/iPad bestimmt.","Lokaler Datenspeicher","Gesprächsdaten liegen im lokalen Ordner des aktuellen Windows-Benutzers. Jeder Computer bleibt unabhängig; die Website synchronisiert keine lokalen Dateien.","Speicherkontrolle","Geplant sind Speicherstatus, Löschen des lokalen Verlaufs und Speicherlimits. Verfügbar sind Funktionen erst nach Integration und Veröffentlichung.","Externe Dienste und Datenschutz","Lokaler Speicher benötigt keinen Chat-Upload in die Cloud. Bei einer externen API können Gesprächsinhalte an den Anbieter gesendet werden; prüfen Sie Einstellungen und Datenschutzbedingungen.","Versionen","Erste Schritte"],
+"es":["Windows 10/11 · La información del sitio puede diferir del instalador publicado. Comprueba siempre la versión distribuida.","Las notas de versión y Setup se sincronizan mediante el despliegue del sitio; actualizar la página no significa que se haya probado en todos los equipos Windows.","PERSONAL ASSISTANT","Memoria local de conversaciones","Cada equipo conserva su propio historial reciente para continuar el contexto después de reiniciar. La memoria permanece en la carpeta local del usuario; no es una sincronización automática en la nube.","Criterio independiente","Kaptia debe ir más allá de dar la razón: comparar opciones, detectar contradicciones, ofrecer contraejemplos y revisar conclusiones según nuevas pruebas. Esto no implica conciencia.","Experiencia personalizada","El historial local conserva el contexto reciente. Las preferencias a largo plazo, los recuerdos editables y la recuperación entre temas aún requieren implementación y validación.","GET STARTED","STEP 01","Descargar y verificar la versión","Consulta las notas de versión y descarga el instalador aquí. Comprueba que la versión publicada incluya las funciones que necesitas.","STEP 02","Iniciar una conversación natural","Haz preguntas, ajusta las respuestas y crea gradualmente un contexto de conversación que pueda continuar.","STEP 03","Revisar y gestionar la memoria","La memoria local debería poder consultarse y borrarse. Usa como referencia las funciones incluidas en tu versión instalada.","PRIVACY & CONTROL","Sistema operativo","Windows 10 o Windows 11 (64 bits). Este instalador no es para iPhone/iPad.","Ubicación de datos locales","La memoria se guarda en la carpeta local del usuario actual de Windows. Cada equipo es independiente; el sitio no sincroniza archivos locales.","Control de memoria","El diseño contempla consultar el estado, borrar el historial local y limitar el almacenamiento. Solo está disponible tras integrarse y publicarse.","Servicios externos y privacidad","La memoria local no necesita subir chats a la nube. Si conectas una API externa, el contenido puede enviarse al proveedor; revisa antes la configuración y las condiciones.","Versiones","Comenzar"],
+"pt-BR":["Windows 10/11 · As informações do site podem diferir do instalador publicado. Verifique sempre a versão distribuída.","As notas da versão e o Setup são sincronizados pela implantação do site; atualizar a página não significa que todos os PCs Windows foram testados.","PERSONAL ASSISTANT","Memória local de conversas","Cada computador mantém seu próprio histórico recente para continuar o contexto após reiniciar. A memória fica na pasta local do usuário; não há sincronização automática na nuvem.","Julgamento independente","Kaptia deve ir além de concordar: comparar opções, apontar contradições, oferecer contraexemplos e revisar conclusões diante de novas evidências. Isso não significa consciência.","Experiência personalizada","O histórico local mantém o contexto recente. Preferências de longo prazo, memórias editáveis e recuperação entre assuntos ainda exigem implementação e validação.","GET STARTED","STEP 01","Baixar e verificar a versão","Consulte as notas da versão e baixe o instalador aqui. Confirme se a versão publicada inclui os recursos necessários.","STEP 02","Começar uma conversa natural","Faça perguntas, refine respostas e construa gradualmente um contexto de conversa contínuo.","STEP 03","Consultar e gerenciar a memória","A memória local deve poder ser consultada e apagada. Considere apenas os recursos incluídos na versão instalada.","PRIVACY & CONTROL","Sistema operacional","Windows 10 ou Windows 11 (64 bits). Este instalador não é para iPhone/iPad.","Local dos dados locais","A memória fica na pasta local do usuário atual do Windows. Cada computador permanece independente; o site não sincroniza arquivos locais.","Controle da memória","O projeto prevê consultar o estado da memória, apagar o histórico local e limitar o armazenamento. Os recursos só existem após integração e publicação.","Serviços externos e privacidade","A memória local não exige enviar conversas à nuvem. Uma API externa pode receber o conteúdo das conversas; confira as configurações e os termos antes.","Versões","Começar"],
+"it":["Windows 10/11 · Le informazioni del sito possono differire dall’installer pubblicato. Verifica sempre la versione distribuita.","Le note di rilascio e Setup sono sincronizzati dal deployment del sito; l’aggiornamento della pagina non significa che ogni PC Windows sia stato testato.","PERSONAL ASSISTANT","Memoria locale delle conversazioni","Ogni computer conserva la propria cronologia recente per riprendere il contesto dopo il riavvio. La memoria resta nella cartella locale dell’utente; non è una sincronizzazione cloud automatica.","Giudizio indipendente","Kaptia dovrebbe fare più che concordare: confrontare opzioni, individuare contraddizioni, proporre controesempi e rivedere le conclusioni in base a nuove prove. Non implica coscienza.","Esperienza personalizzata","La cronologia locale mantiene il contesto recente. Preferenze a lungo termine, ricordi modificabili e richiamo tra argomenti richiedono ancora implementazione e verifica.","GET STARTED","STEP 01","Scarica e verifica la versione","Consulta le note di rilascio e scarica qui l’installer. Verifica che la versione pubblicata includa le funzioni necessarie.","STEP 02","Inizia una conversazione naturale","Fai domande, perfeziona le risposte e costruisci gradualmente un contesto conversazionale continuo.","STEP 03","Controlla e gestisci la memoria","La memoria locale dovrebbe essere consultabile e cancellabile. Fai riferimento alle funzioni realmente incluse nella versione installata.","PRIVACY & CONTROL","Sistema operativo","Windows 10 o Windows 11 (64 bit). Questo installer non è destinato a iPhone/iPad.","Posizione dei dati locali","La memoria è salvata nella cartella locale dell’utente Windows corrente. Ogni computer resta indipendente; il sito non sincronizza i file locali.","Controlli della memoria","Il progetto include stato della memoria, eliminazione della cronologia locale e limiti di archiviazione. Le funzioni sono disponibili solo dopo integrazione e rilascio.","Servizi esterni e privacy","La memoria locale non richiede l’invio delle chat al cloud. Un’API esterna può ricevere il contenuto delle conversazioni; controlla impostazioni e condizioni.","Versioni","Inizia"],
+"ru":["Windows 10/11 · Информация на сайте может отличаться от опубликованного установщика. Проверяйте именно выпущенную версию.","Примечания к выпуску и Setup синхронизируются при развертывании сайта; обновление страницы не означает проверку на каждом ПК с Windows.","PERSONAL ASSISTANT","Локальная память диалогов","Каждый компьютер хранит собственную недавнюю историю, чтобы продолжать контекст после перезапуска. Память находится в локальной папке пользователя и не синхронизируется автоматически с облаком.","Самостоятельные суждения","Kaptia должен не просто соглашаться: сравнивать варианты, замечать противоречия, приводить контрпримеры и пересматривать выводы по новым данным. Это не означает наличие сознания.","Персонализация","Локальная история сохраняет недавний контекст. Долгосрочные предпочтения, редактируемая память и поиск между темами требуют дальнейшей реализации и проверки.","GET STARTED","STEP 01","Скачать и проверить версию","Посмотрите примечания к выпуску и скачайте установщик здесь. Убедитесь, что опубликованная версия содержит нужные функции.","STEP 02","Начать естественный диалог","Задавайте вопросы, уточняйте ответы и постепенно создавайте контекст, который можно продолжать.","STEP 03","Проверить и управлять памятью","Локальную память следует просматривать и очищать. Ориентируйтесь на функции установленной версии.","PRIVACY & CONTROL","Операционная система","Windows 10 или Windows 11 (64-разрядная версия). Этот установщик не предназначен для iPhone/iPad.","Расположение локальных данных","Память хранится в локальной папке текущего пользователя Windows. Каждый компьютер независим; сайт не синхронизирует локальные файлы.","Управление памятью","Планируются просмотр состояния памяти, удаление локальной истории и ограничения хранения. Функции доступны только после интеграции и выпуска.","Внешние сервисы и конфиденциальность","Локальная память не требует отправки чатов в облако. При подключении внешнего API содержимое диалогов может передаваться поставщику; проверьте настройки и условия.","Релизы","Начать"],
+"ar":["Windows 10/11 · قد تختلف معلومات الموقع عن أداة التثبيت المنشورة. يُرجى التحقق من الإصدار الذي تم إصداره فعلياً.","تتم مزامنة ملاحظات الإصدار وSetup عبر نشر الموقع؛ تحديث الصفحة لا يعني اختبار البرنامج على جميع أجهزة Windows.","PERSONAL ASSISTANT","ذاكرة المحادثات المحلية","يحتفظ كل جهاز بسجل محادثاته الأخير بشكل مستقل لمتابعة السياق بعد إعادة التشغيل. تُخزّن الذاكرة في مجلد المستخدم المحلي ولا تتم مزامنتها تلقائياً مع السحابة.","حكم مستقل","ينبغي لـ Kaptia أن يتجاوز الموافقة: يقارن الخيارات ويكشف التناقضات ويقدم أمثلة مضادة ويراجع استنتاجاته وفق الأدلة الجديدة. هذا لا يعني امتلاكه وعياً.","تجربة شخصية","يحافظ السجل المحلي على السياق الحديث. ما زالت تفضيلات المدى الطويل والذكريات القابلة للتحرير والاسترجاع بين المواضيع بحاجة إلى تنفيذ واختبار.","GET STARTED","STEP 01","نزّل الإصدار وتحقق منه","راجع ملاحظات الإصدار ونزّل أداة التثبيت من هنا. تحقق من أن الإصدار المنشور يتضمن الميزات المطلوبة.","STEP 02","ابدأ محادثة طبيعية","اطرح الأسئلة ونقّح الإجابات وابنِ تدريجياً سياقاً يمكن مواصلة المحادثة من خلاله.","STEP 03","راجع الذاكرة وأدرها","ينبغي أن تكون الذاكرة المحلية قابلة للمراجعة والمسح. اعتمد على الميزات الموجودة فعلياً في الإصدار المثبت.","PRIVACY & CONTROL","نظام التشغيل","Windows 10 أو Windows 11 (64 بت). أداة التثبيت هذه ليست مخصصة لـ iPhone أو iPad.","موقع البيانات المحلية","تُحفظ الذاكرة في المجلد المحلي لمستخدم Windows الحالي. يظل كل جهاز مستقلاً ولا يقوم الموقع بمزامنة الملفات المحلية.","التحكم في الذاكرة","يشمل التصميم عرض حالة الذاكرة ومسح السجل المحلي وتحديد مساحة التخزين. لا تتوفر الميزات إلا بعد دمجها وإصدارها.","الخدمات الخارجية والخصوصية","لا تتطلب الذاكرة المحلية رفع المحادثات إلى السحابة. عند توصيل API خارجي قد يُرسل محتوى المحادثة إلى مزود الخدمة؛ راجع الإعدادات والشروط أولاً.","الإصدارات","ابدأ"],
+"th":["Windows 10/11 · ข้อมูลบนเว็บไซต์อาจแตกต่างจากตัวติดตั้งที่เผยแพร่ โปรดตรวจสอบรุ่นที่เผยแพร่จริง","บันทึกประจำรุ่นและ Setup จะซิงค์ตามขั้นตอนเผยแพร่เว็บไซต์ การอัปเดตหน้าเว็บไม่ได้หมายความว่าทดสอบบนอุปกรณ์ Windows ทุกเครื่องแล้ว","PERSONAL ASSISTANT","ความจำบทสนทนาในเครื่อง","คอมพิวเตอร์แต่ละเครื่องเก็บประวัติบทสนทนาล่าสุดของตนเองเพื่อให้ต่อเนื่องหลังรีสตาร์ต ข้อมูลอยู่ในโฟลเดอร์ผู้ใช้ในเครื่อง ไม่ใช่การซิงค์คลาวด์อัตโนมัติ","การตัดสินใจอย่างอิสระ","Kaptia ควรทำมากกว่าการเห็นด้วย: เปรียบเทียบตัวเลือก ชี้ข้อขัดแย้ง เสนอตัวอย่างโต้แย้ง และปรับข้อสรุปตามหลักฐานใหม่ สิ่งนี้ไม่ได้หมายถึงการมีสติรู้ตัว","ประสบการณ์เฉพาะบุคคล","ประวัติในเครื่องช่วยรักษาบริบทล่าสุด ส่วนการจัดการความชอบระยะยาว ความจำที่แก้ไขได้ และการเรียกคืนข้ามหัวข้อยังต้องพัฒนาและตรวจสอบ","GET STARTED","STEP 01","ดาวน์โหลดและตรวจสอบเวอร์ชัน","อ่านบันทึกประจำรุ่นและดาวน์โหลดตัวติดตั้งที่นี่ ตรวจสอบว่าเวอร์ชันที่เผยแพร่มีคุณสมบัติที่ต้องการ","STEP 02","เริ่มสนทนาอย่างเป็นธรรมชาติ","ถามคำถาม ปรับคำตอบ และค่อย ๆ สร้างบริบทการสนทนาที่ต่อเนื่องได้","STEP 03","ตรวจสอบและจัดการความจำ","ควรตรวจดูและลบความจำในเครื่องได้ โปรดอ้างอิงคุณสมบัติที่มีอยู่จริงในเวอร์ชันที่ติดตั้ง","PRIVACY & CONTROL","ระบบปฏิบัติการ","Windows 10 หรือ Windows 11 (64 บิต) ตัวติดตั้งนี้ไม่ใช่สำหรับ iPhone/iPad","ตำแหน่งข้อมูลในเครื่อง","ความจำบทสนทนาจัดเก็บในโฟลเดอร์ของผู้ใช้ Windows ปัจจุบัน แต่ละเครื่องแยกจากกัน เว็บไซต์ไม่ซิงค์ไฟล์ในเครื่อง","การควบคุมความจำ","แนวทางประกอบด้วยการดูสถานะความจำ ลบประวัติในเครื่อง และจำกัดพื้นที่จัดเก็บ คุณสมบัติจะใช้ได้หลังรวมและเผยแพร่แล้วเท่านั้น","บริการภายนอกและความเป็นส่วนตัว","ความจำในเครื่องไม่จำเป็นต้องอัปโหลดแชตไปยังคลาวด์ หากเชื่อมต่อ API ภายนอก เนื้อหาบทสนทนาอาจถูกส่งไปยังผู้ให้บริการ โปรดตรวจสอบการตั้งค่าและเงื่อนไข","รุ่นที่เผยแพร่","เริ่มต้นใช้งาน"],
+"vi":["Windows 10/11 · Thông tin trên trang web có thể khác với trình cài đặt đã phát hành. Hãy kiểm tra phiên bản thực tế.","Ghi chú phát hành và Setup được đồng bộ theo quy trình triển khai trang web; cập nhật trang không có nghĩa là đã kiểm thử trên mọi máy Windows.","PERSONAL ASSISTANT","Bộ nhớ hội thoại cục bộ","Mỗi máy tính lưu lịch sử hội thoại gần đây riêng để tiếp tục ngữ cảnh sau khi khởi động lại. Bộ nhớ nằm trong thư mục cục bộ của người dùng, không tự động đồng bộ đám mây.","Đánh giá độc lập","Kaptia cần làm nhiều hơn việc đồng ý: so sánh lựa chọn, chỉ ra mâu thuẫn, đưa phản ví dụ và điều chỉnh kết luận theo bằng chứng mới. Điều này không có nghĩa là có ý thức.","Trải nghiệm cá nhân hóa","Lịch sử cục bộ giữ ngữ cảnh gần đây. Việc tổng hợp sở thích dài hạn, bộ nhớ có thể chỉnh sửa và nhớ xuyên chủ đề vẫn cần triển khai và kiểm chứng.","GET STARTED","STEP 01","Tải xuống và xác minh phiên bản","Xem ghi chú phát hành và tải trình cài đặt tại đây. Hãy kiểm tra phiên bản đã phát hành có tính năng bạn cần hay không.","STEP 02","Bắt đầu trò chuyện tự nhiên","Đặt câu hỏi, điều chỉnh câu trả lời và dần xây dựng ngữ cảnh hội thoại có thể tiếp tục.","STEP 03","Kiểm tra và quản lý bộ nhớ","Bộ nhớ cục bộ nên có thể xem và xóa. Hãy dựa vào các tính năng thực tế trong phiên bản đã cài đặt.","PRIVACY & CONTROL","Hệ điều hành","Windows 10 hoặc Windows 11 (64-bit). Trình cài đặt này không dành cho iPhone/iPad.","Vị trí dữ liệu cục bộ","Bộ nhớ hội thoại được lưu trong thư mục cục bộ của người dùng Windows hiện tại. Mỗi máy độc lập; trang web không đồng bộ tệp cục bộ.","Kiểm soát bộ nhớ","Thiết kế bao gồm xem trạng thái bộ nhớ, xóa lịch sử cục bộ và giới hạn dung lượng. Chỉ khả dụng sau khi tích hợp và phát hành.","Dịch vụ bên ngoài và quyền riêng tư","Bộ nhớ cục bộ không cần tải cuộc trò chuyện lên đám mây. Nếu kết nối API bên ngoài, nội dung có thể được gửi tới nhà cung cấp; hãy kiểm tra cài đặt và điều khoản.","Bản phát hành","Bắt đầu"],
+"id":["Windows 10/11 · Informasi situs dapat berbeda dari installer yang telah dirilis. Selalu periksa versi yang benar-benar diterbitkan.","Catatan rilis dan Setup disinkronkan melalui proses deployment situs; pembaruan halaman tidak berarti telah diuji pada semua perangkat Windows.","PERSONAL ASSISTANT","Memori percakapan lokal","Setiap komputer menyimpan riwayat percakapannya sendiri agar konteks berlanjut setelah dimulai ulang. Memori tersimpan di folder lokal pengguna; bukan sinkronisasi cloud otomatis.","Penilaian mandiri","Kaptia harus lebih dari sekadar setuju: membandingkan opsi, menemukan kontradiksi, memberi contoh tandingan, dan merevisi kesimpulan berdasarkan bukti baru. Ini bukan berarti memiliki kesadaran.","Pengalaman personal","Riwayat lokal mempertahankan konteks terbaru. Ringkasan preferensi jangka panjang, memori yang dapat diedit, dan ingatan lintas topik masih memerlukan implementasi dan verifikasi.","GET STARTED","STEP 01","Unduh dan verifikasi versi","Lihat catatan rilis dan unduh installer di sini. Pastikan versi yang dirilis mencakup fitur yang Anda perlukan.","STEP 02","Mulai percakapan alami","Ajukan pertanyaan, sempurnakan jawaban, dan bangun konteks percakapan yang dapat berlanjut secara bertahap.","STEP 03","Tinjau dan kelola memori","Memori lokal seharusnya dapat ditinjau dan dihapus. Gunakan fitur yang benar-benar tersedia pada versi terpasang.","PRIVACY & CONTROL","Sistem operasi","Windows 10 atau Windows 11 (64-bit). Installer ini bukan untuk iPhone/iPad.","Lokasi data lokal","Memori percakapan disimpan di folder lokal pengguna Windows saat ini. Setiap komputer berdiri sendiri; situs tidak menyinkronkan file lokal.","Kontrol memori","Rancangan mencakup status memori, penghapusan riwayat lokal, dan batas penyimpanan. Fitur tersedia setelah diintegrasikan dan dirilis.","Layanan eksternal dan privasi","Memori lokal tidak memerlukan unggahan chat ke cloud. Jika memakai API eksternal, isi percakapan dapat dikirim ke penyedia; periksa pengaturan dan ketentuannya.","Rilis","Mulai"]
+};
+  const siteDetailSelectors=[
+    "#downloadNote","#release-announcements .release-footnote","#overview .eyebrow",
+    "#overview .card:nth-child(1) h3","#overview .card:nth-child(1) p",
+    "#overview .card:nth-child(2) h3","#overview .card:nth-child(2) p",
+    "#overview .card:nth-child(3) h3","#overview .card:nth-child(3) p",
+    "#get-started .eyebrow","#get-started .step:nth-child(1) .num","#get-started .step:nth-child(1) strong","#get-started .step:nth-child(1) p",
+    "#get-started .step:nth-child(2) .num","#get-started .step:nth-child(2) strong","#get-started .step:nth-child(2) p",
+    "#get-started .step:nth-child(3) .num","#get-started .step:nth-child(3) strong","#get-started .step:nth-child(3) p",
+    "#requirements .eyebrow","#requirements .req:nth-child(1) strong","#requirements .req:nth-child(1) p",
+    "#requirements .req:nth-child(2) strong","#requirements .req:nth-child(2) p",
+    "#requirements .req:nth-child(3) strong","#requirements .req:nth-child(3) p",
+    "#requirements .req:nth-child(4) strong","#requirements .req:nth-child(4) p",
+    ".footer a:nth-of-type(1)",".footer a:nth-of-type(2)"
+  ];
+
+  function applySiteLanguage(lang){
+    const values=siteCopy[lang]||siteCopy.en;
+    siteSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node){if(index===5)node.innerHTML=values[index];else node.textContent=values[index]}});
+    const details=siteDetails[lang]||siteDetails.en;
+    siteDetailSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node)node.textContent=details[index]});
+    document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+    if(languageTag)languageTag.value=lang;
+  }
+  function applyLanguage(){
+    const copy = uiCopy[language.value] || uiCopy["zh-TW"];
+    dialog.lang = language.value;
+    dialog.dir = language.value === "ar" ? "rtl" : "ltr";
+    document.getElementById("setupDialogTitle").textContent = copy.title;
+    document.getElementById("setupDialogIntro").textContent = copy.intro;
+    document.querySelector('label[for="setupLanguage"]').textContent = copy.field;
+    document.getElementById("setupCancel").textContent = copy.cancel;
+    confirm.textContent = copy.confirm;
+    applySiteLanguage(language.value);
+    if (window.kaptiaReloadReleases) window.kaptiaReloadReleases();
+  const metaDescription=document.querySelector('meta[name="description"]');
+  if(metaDescription){
+    const descriptions={
+      "zh-TW":"Kaptia 是安裝於個人電腦的 AI 助手，提供本機對話記憶、工作流程與可選工具。",
+      "zh-CN":"Kaptia 是安装在个人电脑上的 AI 助手，提供本地对话记忆、工作流程与可选工具。",
+      "en":"Kaptia is a desktop AI assistant with local conversation memory, personal workflows and optional tools.",
+      "ja":"Kaptiaはローカル会話メモリ、個人ワークフロー、選択可能なツールを備えたデスクトップAIアシスタントです。",
+      "ko":"Kaptia는 로컬 대화 메모리, 개인 워크플로 및 선택형 도구를 제공하는 데스크톱 AI 비서입니다.",
+      "fr":"Kaptia est un assistant IA de bureau doté d’une mémoire locale, de flux personnels et d’outils facultatifs.",
+      "de":"Kaptia ist ein Desktop-KI-Assistent mit lokalem Gesprächsspeicher, persönlichen Abläufen und optionalen Werkzeugen.",
+      "es":"Kaptia es un asistente de IA de escritorio con memoria local, flujos personales y herramientas opcionales.",
+      "pt-BR":"Kaptia é um assistente de IA para desktop com memória local, fluxos pessoais e ferramentas opcionais.",
+      "it":"Kaptia è un assistente IA desktop con memoria locale, flussi personali e strumenti opzionali.",
+      "ru":"Kaptia — настольный ИИ-ассистент с локальной памятью диалогов, личными рабочими процессами и дополнительными инструментами.",
+      "ar":"Kaptia هو مساعد ذكاء اصطناعي لسطح المكتب بذاكرة محادثات محلية وسير عمل شخصي وأدوات اختيارية.",
+      "th":"Kaptia คือผู้ช่วย AI บนเดสก์ท็อปที่มีความจำบทสนทนาในเครื่อง เวิร์กโฟลว์ส่วนตัว และเครื่องมือเสริม",
+      "vi":"Kaptia là trợ lý AI trên máy tính với bộ nhớ hội thoại cục bộ, quy trình cá nhân và công cụ tùy chọn.",
+      "id":"Kaptia adalah asisten AI desktop dengan memori percakapan lokal, alur kerja pribadi, dan alat opsional."
+    };
+    metaDescription.content=descriptions[language.value]||descriptions.en;
+  }
+    try { localStorage.setItem("kaptia.setup.language", language.value); } catch (_) {}
   }
   const labels = [
     ["zh-TW","作業系統","CPU / 架構","記憶體","GPU / VRAM","建議配置","此瀏覽器無法可靠讀取 GPU 型號與 VRAM。通用 Setup 會在 Windows 本機再次掃描硬體，再選擇相容的運算元件。","此裝置不是支援的 Windows 桌面環境，暫停下載。"],
     ["zh-CN","操作系统","CPU / 架构","内存","GPU / VRAM","建议配置","此浏览器无法可靠读取 GPU 型号与 VRAM。通用 Setup 会在 Windows 本机再次扫描硬件，再选择兼容的计算组件。","此设备不是受支持的 Windows 桌面环境，已暂停下载。"],
     ["en","Operating system","CPU / architecture","Memory","GPU / VRAM","Recommended profile","This browser cannot reliably read GPU model or VRAM. The universal Setup must rescan hardware locally on Windows before selecting compatible compute components.","This is not a supported Windows desktop environment. Download is paused."],
     ["ja","オペレーティングシステム","CPU / アーキテクチャ","メモリ","GPU / VRAM","推奨構成","ブラウザーから GPU 型番や VRAM を正確に取得することはできません。Windows 用 Setup がローカルで再検査し、互換性のある実行コンポーネントを選択します。","対応する Windows デスクトップ環境ではないため、ダウンロードを停止しました。"],
-    ["ko","운영 체제","CPU / 아키텍처","메모리","GPU / VRAM","권장 구성","브라우저에서는 GPU 모델과 VRAM을 정확히 확인할 수 없습니다. Windows Setup이 로컬에서 하드웨어를 다시 검사한 후 호환되는 실행 구성 요소를 선택해야 합니다.","지원되는 Windows 데스크톱 환경이 아니므로 다운로드를 중지했습니다."]
+    ["ko","운영 체제","CPU / 아키텍처","메모리","GPU / VRAM","권장 구성","브라우저에서는 GPU 모델과 VRAM을 정확히 확인할 수 없습니다. Windows Setup이 로컬에서 하드웨어를 다시 검사한 후 호환되는 실행 구성 요소를 선택해야 합니다.","지원되는 Windows 데스크톱 환경이 아니므로 다운로드를 중지했습니다."],
+    ["fr","Système d’exploitation","CPU / architecture","Mémoire","GPU / VRAM","Configuration recommandée","Le navigateur ne peut pas lire de façon fiable le modèle du GPU ou la VRAM. Setup vérifiera le matériel localement sous Windows.","Cet appareil ne dispose pas d’un environnement Windows pris en charge. Le téléchargement est suspendu."],
+    ["de","Betriebssystem","CPU / Architektur","Arbeitsspeicher","GPU / VRAM","Empfohlenes Profil","Der Browser kann GPU-Modell und VRAM nicht zuverlässig auslesen. Setup prüft die Hardware lokal unter Windows.","Dies ist keine unterstützte Windows-Desktopumgebung. Der Download wurde angehalten."],
+    ["es","Sistema operativo","CPU / arquitectura","Memoria","GPU / VRAM","Perfil recomendado","El navegador no puede leer de forma fiable el modelo de GPU ni la VRAM. Setup comprobará el hardware localmente en Windows.","Este dispositivo no tiene un entorno de escritorio Windows compatible. La descarga está pausada."],
+    ["pt-BR","Sistema operacional","CPU / arquitetura","Memória","GPU / VRAM","Perfil recomendado","O navegador não consegue ler o modelo da GPU nem a VRAM com confiabilidade. O Setup verificará o hardware localmente no Windows.","Este dispositivo não possui um ambiente Windows compatível. O download foi pausado."],
+    ["it","Sistema operativo","CPU / architettura","Memoria","GPU / VRAM","Profilo consigliato","Il browser non può leggere in modo affidabile il modello GPU o la VRAM. Setup controllerà l’hardware localmente su Windows.","Questo dispositivo non dispone di un ambiente desktop Windows supportato. Download sospeso."],
+    ["ru","Операционная система","CPU / архитектура","Память","GPU / VRAM","Рекомендуемая конфигурация","Браузер не может достоверно определить модель GPU и объём VRAM. Setup проверит оборудование локально в Windows.","Это устройство не поддерживает среду Windows Desktop. Загрузка приостановлена."],
+    ["ar","نظام التشغيل","المعالج / البنية","الذاكرة","GPU / VRAM","التكوين الموصى به","لا يستطيع المتصفح قراءة طراز GPU أو VRAM بدقة. سيفحص Setup الأجهزة محلياً في Windows.","هذا الجهاز ليس ضمن بيئة Windows المكتبية المدعومة. تم إيقاف التنزيل مؤقتاً."],
+    ["th","ระบบปฏิบัติการ","CPU / สถาปัตยกรรม","หน่วยความจำ","GPU / VRAM","โปรไฟล์ที่แนะนำ","เบราว์เซอร์ไม่สามารถอ่านรุ่น GPU หรือ VRAM ได้อย่างน่าเชื่อถือ Setup จะตรวจสอบฮาร์ดแวร์ใน Windows โดยตรง","อุปกรณ์นี้ไม่ใช่สภาพแวดล้อม Windows Desktop ที่รองรับ จึงหยุดดาวน์โหลด"],
+    ["vi","Hệ điều hành","CPU / kiến trúc","Bộ nhớ","GPU / VRAM","Cấu hình đề xuất","Trình duyệt không thể đọc chính xác mẫu GPU hoặc VRAM. Setup sẽ kiểm tra phần cứng trực tiếp trên Windows.","Thiết bị này không thuộc môi trường Windows Desktop được hỗ trợ. Đã tạm dừng tải xuống."],
+    ["id","Sistem operasi","CPU / arsitektur","Memori","GPU / VRAM","Profil yang disarankan","Browser tidak dapat membaca model GPU atau VRAM secara andal. Setup akan memeriksa perangkat keras secara lokal di Windows.","Perangkat ini bukan lingkungan Windows Desktop yang didukung. Unduhan dijeda."]
   ];
   function row(name,value){return '<div class="setup-hardware-row"><span>'+name+'</span><strong>'+value+'</strong></div>';}
   async function inspect(){
@@ -396,6 +575,8 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     warning.textContent = !installerReady ? "尚未通過版本與 SHA-256 驗證，暫停下載。" : (supportedPlatform ? L[6] : L[7]);
     warning.dataset.supported = String(supportedPlatform);
   }
+  applyLanguage();
+  languageTag.value=language.value;
   function openDialog(){
     inspect();
     if (typeof dialog.showModal === "function") dialog.showModal();
@@ -403,12 +584,12 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   }
   document.querySelectorAll("[data-setup-open]").forEach(el=>el.addEventListener("click",openDialog));
   document.getElementById("setupCancel").addEventListener("click",()=>dialog.close());
-  language.addEventListener("change",inspect);
+  language.addEventListener("change",()=>{ applyLanguage(); inspect(); });
+  applyLanguage();
   confirm.addEventListener("click",()=>{
     if(confirm.disabled) return;
     const lang = language.value;
-    try { localStorage.setItem("kaptia.setup.language",lang); } catch (_) {}
-    if(languageTag) languageTag.textContent = lang.toUpperCase();
+    applyLanguage();
     const url = new URL("./downloads/Kaptia-Setup.exe",location.href);
     url.searchParams.set("lang",lang);
     url.searchParams.set("profile","hardware-auto");
