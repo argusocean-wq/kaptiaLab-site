@@ -370,7 +370,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   const requestedLanguage = params.get("lang");
   language.value = supported.includes(requestedLanguage) ? requestedLanguage
     : supported.includes(savedLanguage) ? savedLanguage
-    : browserLanguage || "zh-TW";
+    : browserLanguage || "en";
   const uiCopy = {
     "zh-TW": {title:"選擇語言與檢查電腦",intro:"先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。",field:"安裝語言",cancel:"取消",confirm:"確認並下載 Setup"},
     "zh-CN": {title:"选择语言并检查电脑",intro:"请先选择安装语言，再进行初步兼容性检查。完整 GPU、VRAM 和内存信息将由 Windows 安装程序在本机确认。",field:"安装语言",cancel:"取消",confirm:"确认并下载 Setup"},
