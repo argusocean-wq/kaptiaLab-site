@@ -225,6 +225,26 @@ html[dir="rtl"] .release-links{direction:rtl}
   const downloadUrl = "./downloads/Kaptia-Setup.exe";
   const list = document.getElementById("releaseList");
 
+  const releaseCopy={
+"zh-TW":["發布日期未提供","Kaptia 版本","版本標籤未提供","目前版本","歷史版本","此版本尚未提供更新說明。","下載目前版本安裝程式 ↓","大小未知","安裝檔大小：",releaseText(9),releaseText(10),"目前版本 {tag} · {size} · 官網下載，SHA-256 可供下載後比對。","目前無法確認安裝檔與版本資訊一致，為避免提供未驗證檔案，下載已暫停。",releaseText(13),releaseText(14)],
+"zh-CN":["未提供发布日期","Kaptia 版本","未提供版本标签","当前版本","历史版本","此版本尚未提供更新说明。","下载当前版本安装程序 ↓","大小未知","安装文件大小：","SHA-256（下载后可比对）","Windows PowerShell 验证命令（请按实际下载位置调整路径）：","当前版本 {tag} · {size} · 官网下载，SHA-256 可供下载后比对。","目前无法确认安装文件与版本信息一致，为避免提供未验证文件，下载已暂停。","目前无法加载版本信息。请稍后刷新本网站。","目前无法确认安装程序状态，请稍后刷新本网站。"],
+"en":["Publication date not provided","Kaptia release","Version tag not provided","Latest version","Previous version","No release notes are available for this version.","Download current installer ↓","Size unknown","Installer size:","SHA-256 (verify after download)","Windows PowerShell verification command (adjust the path to your download location):","Latest version {tag} · {size} · Official download; compare the SHA-256 after downloading.","The installer could not be matched to the release metadata. Download is paused to avoid serving an unverified file.","Release information is currently unavailable. Refresh this website later.","Installer status cannot currently be verified. Refresh this website later."],
+"ja":["公開日がありません","Kaptia リリース","バージョンタグがありません","最新バージョン","過去のバージョン","このバージョンの更新情報はありません。","現在のインストーラーをダウンロード ↓","サイズ不明","インストーラーのサイズ：","SHA-256（ダウンロード後に照合）","Windows PowerShell 検証コマンド（ダウンロード先に合わせてパスを変更してください）：","最新バージョン {tag} · {size} · 公式ダウンロード。ダウンロード後にSHA-256を照合してください。","インストーラーとリリース情報の一致を確認できないため、未検証ファイルの配布を防ぐためダウンロードを停止しました。","現在リリース情報を読み込めません。後でもう一度サイトを更新してください。","インストーラーの状態を確認できません。後でもう一度サイトを更新してください。"],
+"ko":["게시 날짜가 제공되지 않음","Kaptia 릴리스","버전 태그가 제공되지 않음","최신 버전","이전 버전","이 버전에는 릴리스 노트가 없습니다.","현재 설치 프로그램 다운로드 ↓","크기 알 수 없음","설치 파일 크기:","SHA-256(다운로드 후 확인)","Windows PowerShell 확인 명령(실제 다운로드 위치에 맞게 경로를 수정하세요):","최신 버전 {tag} · {size} · 공식 다운로드입니다. 다운로드 후 SHA-256을 비교하세요.","설치 프로그램과 릴리스 메타데이터의 일치 여부를 확인할 수 없어 검증되지 않은 파일 제공을 막기 위해 다운로드를 중지했습니다.","현재 릴리스 정보를 불러올 수 없습니다. 나중에 웹사이트를 새로 고침하세요.","설치 프로그램 상태를 확인할 수 없습니다. 나중에 웹사이트를 새로 고침하세요."],
+"fr":["Date de publication non fournie","Version de Kaptia","Étiquette de version non fournie","Dernière version","Version précédente","Aucune note de version n’est disponible.","Télécharger l’installateur actuel ↓","Taille inconnue","Taille de l’installateur :","SHA-256 (à vérifier après le téléchargement)","Commande de vérification Windows PowerShell (adaptez le chemin à votre dossier de téléchargement) :","Dernière version {tag} · {size} · Téléchargement officiel ; comparez le SHA-256 après le téléchargement.","La correspondance entre l’installateur et les métadonnées de version n’a pas pu être vérifiée. Téléchargement suspendu.","Les informations de version sont indisponibles. Actualisez ce site plus tard.","L’état de l’installateur ne peut pas être vérifié. Actualisez ce site plus tard."],
+"de":["Veröffentlichungsdatum nicht angegeben","Kaptia-Version","Versions-Tag nicht angegeben","Aktuelle Version","Vorherige Version","Für diese Version liegen keine Versionshinweise vor.","Aktuellen Installer herunterladen ↓","Größe unbekannt","Installergröße:","SHA-256 (nach dem Download prüfen)","Windows-PowerShell-Prüfbefehl (Pfad an den tatsächlichen Download-Speicherort anpassen):","Aktuelle Version {tag} · {size} · Offizieller Download; SHA-256 nach dem Download vergleichen.","Die Übereinstimmung von Installer und Versionsmetadaten konnte nicht bestätigt werden. Download angehalten.","Versionsinformationen sind derzeit nicht verfügbar. Aktualisieren Sie die Website später erneut.","Der Installerstatus kann derzeit nicht überprüft werden. Aktualisieren Sie die Website später erneut."],
+"es":["Fecha de publicación no disponible","Versión de Kaptia","Etiqueta de versión no disponible","Versión actual","Versión anterior","Esta versión no incluye notas de publicación.","Descargar el instalador actual ↓","Tamaño desconocido","Tamaño del instalador:","SHA-256 (verificar después de descargar)","Comando de verificación de Windows PowerShell (ajusta la ruta a la ubicación de descarga):","Última versión {tag} · {size} · Descarga oficial; compara el SHA-256 después de descargar.","No se pudo confirmar que el instalador coincida con los metadatos de la versión. Descarga pausada.","La información de versión no está disponible. Actualiza este sitio más tarde.","No se puede verificar el estado del instalador. Actualiza este sitio más tarde."],
+"pt-BR":["Data de publicação não informada","Versão do Kaptia","Tag da versão não informada","Versão atual","Versão anterior","Esta versão não possui notas de lançamento.","Baixar o instalador atual ↓","Tamanho desconhecido","Tamanho do instalador:","SHA-256 (verifique após o download)","Comando de verificação do Windows PowerShell (ajuste o caminho para o local do download):","Versão atual {tag} · {size} · Download oficial; compare o SHA-256 após baixar.","Não foi possível confirmar a correspondência entre o instalador e os metadados da versão. Download pausado.","As informações da versão estão indisponíveis. Atualize este site mais tarde.","Não foi possível verificar o estado do instalador. Atualize este site mais tarde."],
+"it":["Data di pubblicazione non disponibile","Versione Kaptia","Tag versione non disponibile","Versione attuale","Versione precedente","Questa versione non include note di rilascio.","Scarica l’installer attuale ↓","Dimensione sconosciuta","Dimensione dell’installer:","SHA-256 (verificare dopo il download)","Comando di verifica Windows PowerShell (modifica il percorso in base alla posizione del download):","Ultima versione {tag} · {size} · Download ufficiale; confronta lo SHA-256 dopo il download.","Impossibile verificare la corrispondenza tra installer e metadati della versione. Download sospeso.","Le informazioni sulla versione non sono disponibili. Aggiorna il sito più tardi.","Impossibile verificare lo stato dell’installer. Aggiorna il sito più tardi."],
+"ru":["Дата публикации не указана","Версия Kaptia","Тег версии не указан","Текущая версия","Предыдущая версия","Для этой версии нет примечаний к выпуску.","Скачать текущий установщик ↓","Размер неизвестен","Размер установщика:","SHA-256 (проверить после загрузки)","Команда проверки Windows PowerShell (измените путь на фактическое место загрузки):","Текущая версия {tag} · {size} · Официальная загрузка; сравните SHA-256 после загрузки.","Не удалось подтвердить соответствие установщика метаданным выпуска. Загрузка приостановлена.","Информация о версиях сейчас недоступна. Обновите сайт позже.","Не удалось проверить состояние установщика. Обновите сайт позже."],
+"ar":["تاريخ النشر غير متوفر","إصدار Kaptia","وسم الإصدار غير متوفر","الإصدار الحالي","الإصدار السابق","لا توجد ملاحظات إصدار لهذا الإصدار.","تنزيل أداة التثبيت الحالية ↓","الحجم غير معروف","حجم أداة التثبيت:","SHA-256 (تحقق بعد التنزيل)","أمر التحقق في Windows PowerShell (عدّل المسار وفق موقع التنزيل):","الإصدار الحالي {tag} · {size} · تنزيل رسمي؛ قارن SHA-256 بعد التنزيل.","تعذر التحقق من تطابق أداة التثبيت مع بيانات الإصدار. تم إيقاف التنزيل لتجنب تقديم ملف غير متحقق منه.","معلومات الإصدار غير متاحة حالياً. حدّث الموقع لاحقاً.","تعذر التحقق من حالة أداة التثبيت. حدّث الموقع لاحقاً."],
+"th":["ไม่มีวันที่เผยแพร่","รุ่น Kaptia","ไม่มีแท็กรุ่น","รุ่นล่าสุด","รุ่นก่อนหน้า","รุ่นนี้ไม่มีบันทึกการเผยแพร่","ดาวน์โหลดตัวติดตั้งรุ่นปัจจุบัน ↓","ไม่ทราบขนาด","ขนาดไฟล์ติดตั้ง:","SHA-256 (ตรวจสอบหลังดาวน์โหลด)","คำสั่งตรวจสอบ Windows PowerShell (ปรับเส้นทางให้ตรงกับตำแหน่งดาวน์โหลด):","รุ่นล่าสุด {tag} · {size} · ดาวน์โหลดอย่างเป็นทางการ เปรียบเทียบ SHA-256 หลังดาวน์โหลด","ไม่สามารถยืนยันว่าตัวติดตั้งตรงกับข้อมูลรุ่นได้ จึงหยุดดาวน์โหลดเพื่อป้องกันการให้ไฟล์ที่ยังไม่ผ่านการตรวจสอบ","ไม่สามารถโหลดข้อมูลรุ่นได้ในขณะนี้ โปรดรีเฟรชเว็บไซต์ภายหลัง","ไม่สามารถตรวจสอบสถานะตัวติดตั้งได้ โปรดรีเฟรชเว็บไซต์ภายหลัง"],
+"vi":["Chưa có ngày phát hành","Bản phát hành Kaptia","Chưa có thẻ phiên bản","Phiên bản hiện tại","Phiên bản trước","Phiên bản này chưa có ghi chú phát hành.","Tải trình cài đặt hiện tại ↓","Không rõ kích thước","Kích thước trình cài đặt:","SHA-256 (kiểm tra sau khi tải)","Lệnh xác minh Windows PowerShell (điều chỉnh đường dẫn theo vị trí tải xuống):","Phiên bản hiện tại {tag} · {size} · Tải chính thức; hãy so sánh SHA-256 sau khi tải.","Không thể xác minh trình cài đặt khớp với siêu dữ liệu phát hành. Đã tạm dừng tải xuống.","Hiện không thể tải thông tin phát hành. Hãy làm mới trang web sau.","Không thể xác minh trạng thái trình cài đặt. Hãy làm mới trang web sau."],
+"id":["Tanggal publikasi tidak tersedia","Rilis Kaptia","Tag versi tidak tersedia","Versi saat ini","Versi sebelumnya","Catatan rilis belum tersedia untuk versi ini.","Unduh installer saat ini ↓","Ukuran tidak diketahui","Ukuran installer:","SHA-256 (periksa setelah mengunduh)","Perintah verifikasi Windows PowerShell (sesuaikan jalur dengan lokasi unduhan):","Versi terbaru {tag} · {size} · Unduhan resmi; bandingkan SHA-256 setelah mengunduh.","Kecocokan installer dengan metadata rilis tidak dapat diverifikasi. Unduhan dijeda untuk menghindari file yang belum terverifikasi.","Informasi rilis saat ini tidak tersedia. Muat ulang situs nanti.","Status installer tidak dapat diverifikasi saat ini. Muat ulang situs nanti."]
+};
+  const currentLocale=()=>document.getElementById("languageTag")?.value||"en";
+  const releaseText=(index,tag="",size="")=>(releaseCopy[currentLocale()]||releaseCopy.en)[index].replace("{tag}",tag).replace("{size}",size);
+
   function node(tag, className, value) {
     const el = document.createElement(tag);
     if (className) el.className = className;
@@ -232,10 +252,10 @@ html[dir="rtl"] .release-links{direction:rtl}
     return el;
   }
   function formatDate(value) {
-    if (!value) return "發布日期未提供";
+    if (!value) return releaseText(0);
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "發布日期未提供";
-    return new Intl.DateTimeFormat("zh-TW", {
+    if (Number.isNaN(date.getTime())) return releaseText(0);
+    return new Intl.DateTimeFormat(currentLocale(), {
       timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
     }).format(date);
   }
@@ -243,30 +263,30 @@ html[dir="rtl"] .release-links{direction:rtl}
     const card = node("article", "release-card");
     const head = node("div", "release-head");
     const info = node("div");
-    const title = node("h3", "release-title", String(release.name || release.tag_name || "Kaptia 版本").slice(0, 200));
+    const title = node("h3", "release-title", String(release.name || release.tag_name || releaseText(1)).slice(0, 200));
     title.classList.add("notranslate");
     title.setAttribute("translate", "no");
     info.appendChild(title);
-    const meta = node("div", "release-meta", String(release.tag_name || "版本標籤未提供").slice(0, 100) + " · " + formatDate(release.published_at));
+    const meta = node("div", "release-meta", String(release.tag_name || releaseText(2)).slice(0, 100) + " · " + formatDate(release.published_at));
     meta.classList.add("notranslate");
     meta.setAttribute("translate", "no");
     info.appendChild(meta);
     head.appendChild(info);
-    head.appendChild(node("span", "release-badge", isLatest ? "目前版本" : "歷史版本"));
+    head.appendChild(node("span", "release-badge", isLatest ? releaseText(3) : releaseText(4)));
     card.appendChild(head);
     const notes = typeof release.body === "string" && release.body.trim()
-      ? release.body.trim().slice(0, 4000) : "此版本尚未提供更新說明。";
+      ? release.body.trim().slice(0, 4000) : releaseText(5);
     card.appendChild(node("p", "release-notes", notes));
     if (isLatest && installerMetadata) {
       const links = node("div", "release-links");
-      const a = node("a", "", "下載目前版本安裝程式 ↓");
+      const a = node("a", "", releaseText(6));
       a.href = downloadUrl;
       a.setAttribute("download", "Kaptia-Setup.exe");
       links.appendChild(a);
       card.appendChild(links);
 
       const integrity = node("div", "release-integrity");
-      integrity.appendChild(node("p", "release-meta", "安裝檔大小：" + formatBytes(installerMetadata.size_bytes)));
+      integrity.appendChild(node("p", "release-meta", releaseText(8) + formatBytes(installerMetadata.size_bytes)));
       integrity.appendChild(node("p", "release-meta", "SHA-256（下載後可比對）"));
       integrity.appendChild(node("code", "integrity-hash", installerMetadata.sha256));
       integrity.appendChild(node("p", "release-meta", "Windows PowerShell 驗證指令（請按實際下載位置調整路徑）："));
@@ -276,7 +296,7 @@ html[dir="rtl"] .release-links{direction:rtl}
     return card;
   }
   function formatBytes(value) {
-    if (!Number.isSafeInteger(value) || value <= 0) return "大小未知";
+    if (!Number.isSafeInteger(value) || value <= 0) return releaseText(7);
     return value >= 1024 * 1024
       ? (value / (1024 * 1024)).toFixed(2) + " MB"
       : (value / 1024).toFixed(1) + " KB";
@@ -323,8 +343,8 @@ html[dir="rtl"] .release-links{direction:rtl}
       list.replaceChildren(fragment);
       setDownloadReady(Boolean(checkedInstaller),
         checkedInstaller
-          ? "目前版本 " + latestTag + " · " + formatBytes(checkedInstaller.size_bytes) + " · 官網下載，SHA-256 可供下載後比對。"
-          : "目前無法確認安裝檔與版本資訊一致，為避免提供未驗證檔案，下載已暫停。");
+          ? releaseText(11, latestTag, formatBytes(checkedInstaller.size_bytes))
+          : releaseText(12));
     } catch (_) {
       if (list) list.replaceChildren();
       const card = node("article", "release-card");
