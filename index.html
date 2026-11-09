@@ -135,6 +135,14 @@ html[dir="rtl"] .setup-field label,html[dir="rtl"] .setup-hardware-row,html[dir=
 html[dir="rtl"] .setup-hardware-row{flex-direction:row-reverse}
 html[dir="rtl"] .setup-dialog-actions{flex-direction:row-reverse}
 html[dir="rtl"] .release-links{direction:rtl}
+
+/* RTL refinements for mixed-language technical content and narrow screens. */
+html[dir="rtl"] input,html[dir="rtl"] select,html[dir="rtl"] textarea{text-align:right;direction:rtl}
+html[dir="rtl"] code,html[dir="rtl"] pre,html[dir="rtl"] .release-tag,html[dir="rtl"] .release-hash,html[dir="rtl"] .file-size,html[dir="rtl"] .checksum{direction:ltr;text-align:left;unicode-bidi:plaintext}
+html[dir="rtl"] .setup-dialog-actions{flex-direction:row-reverse}
+html[dir="rtl"] .release-links{flex-direction:row-reverse;justify-content:flex-start}
+html[dir="rtl"] .setup-hardware-row{gap:12px}
+@media(max-width:760px){html[dir="rtl"] .top{flex-wrap:wrap}html[dir="rtl"] .nav{justify-content:flex-start;flex-wrap:wrap}html[dir="rtl"] .top-actions{flex-wrap:wrap}html[dir="rtl"] .setup-dialog-actions{display:grid;grid-template-columns:1fr}html[dir="rtl"] .release-head{align-items:flex-start;flex-wrap:wrap}}
 </style>
 </head>
 <body>
