@@ -178,6 +178,16 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
         <option value="en">English</option>
         <option value="ja">日本語</option>
         <option value="ko">한국어</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="pt-BR">Português (Brasil)</option>
+        <option value="it">Italiano</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+        <option value="th">ไทย</option>
+        <option value="vi">Tiếng Việt</option>
+        <option value="id">Bahasa Indonesia</option>
       </select>
     </div>
     <div class="setup-hardware" id="setupHardware" aria-live="polite">
@@ -343,17 +353,16 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     installerReady = Boolean(event.detail && event.detail.ready);
     inspect();
   });
-  const languageNames = {"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어"};
+  const languageNames = {"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어","fr":"Français","de":"Deutsch","es":"Español","pt-BR":"Português (Brasil)","it":"Italiano","ru":"Русский","ar":"العربية","th":"ไทย","vi":"Tiếng Việt","id":"Bahasa Indonesia"};
   const params = new URLSearchParams(location.search);
   const supported = Object.keys(languageNames);
   const localeFor = value => {
     const tag = String(value || "").toLowerCase();
     if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg") || tag.startsWith("zh-hans")) return "zh-CN";
     if (tag.startsWith("zh")) return "zh-TW";
-    if (tag.startsWith("ja")) return "ja";
-    if (tag.startsWith("ko")) return "ko";
-    if (tag.startsWith("en")) return "en";
-    return null;
+    if (tag.startsWith("pt")) return "pt-BR";
+    const primary = tag.split("-")[0];
+    return ["en","ja","ko","fr","de","es","it","ru","ar","th","vi","id"].includes(primary) ? primary : null;
   };
   let savedLanguage = null;
   try { savedLanguage = localStorage.getItem("kaptia.setup.language"); } catch (_) {}
@@ -363,11 +372,21 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     : supported.includes(savedLanguage) ? savedLanguage
     : browserLanguage || "zh-TW";
   const uiCopy = {
-    "zh-TW": {title:"選擇語言與檢查電腦",intro:"先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。",field:"安裝語言 / Installer language",cancel:"取消",confirm:"確認並下載 Setup"},
-    "zh-CN": {title:"选择语言并检查电脑",intro:"请先选择安装语言，再进行初步兼容性检查。完整 GPU、VRAM 和内存信息将由 Windows 安装程序在本机确认。",field:"安装语言 / Installer language",cancel:"取消",confirm:"确认并下载 Setup"},
+    "zh-TW": {title:"選擇語言與檢查電腦",intro:"先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。",field:"安裝語言",cancel:"取消",confirm:"確認並下載 Setup"},
+    "zh-CN": {title:"选择语言并检查电脑",intro:"请先选择安装语言，再进行初步兼容性检查。完整 GPU、VRAM 和内存信息将由 Windows 安装程序在本机确认。",field:"安装语言",cancel:"取消",confirm:"确认并下载 Setup"},
     "en": {title:"Choose language and check your PC",intro:"Choose the installer language first, then run a preliminary compatibility check. Full GPU, VRAM, and memory details will be verified locally by the Windows installer.",field:"Installer language",cancel:"Cancel",confirm:"Confirm and download Setup"},
     "ja": {title:"言語の選択と PC の確認",intro:"最初にインストーラーの言語を選択し、互換性を事前確認します。GPU、VRAM、メモリの詳細は Windows インストーラーがローカルで確認します。",field:"インストーラーの言語",cancel:"キャンセル",confirm:"確認して Setup をダウンロード"},
-    "ko": {title:"언어 선택 및 PC 확인",intro:"먼저 설치 프로그램 언어를 선택한 다음 기본 호환성을 확인합니다. GPU, VRAM 및 메모리 세부 정보는 Windows 설치 프로그램이 로컬에서 확인합니다.",field:"설치 프로그램 언어",cancel:"취소",confirm:"확인 후 Setup 다운로드"}
+    "ko": {title:"언어 선택 및 PC 확인",intro:"먼저 설치 프로그램 언어를 선택한 다음 기본 호환성을 확인합니다. GPU, VRAM 및 메모리 세부 정보는 Windows 설치 프로그램이 로컬에서 확인합니다.",field:"설치 프로그램 언어",cancel:"취소",confirm:"확인 후 Setup 다운로드"},
+    "fr": {title:"Choisir la langue et vérifier le PC",intro:"Choisissez la langue du programme, puis lancez une vérification préliminaire. Le GPU, la VRAM et la mémoire seront vérifiés localement par Setup sous Windows.",field:"Langue du programme",cancel:"Annuler",confirm:"Confirmer et télécharger Setup"},
+    "de": {title:"Sprache wählen und PC prüfen",intro:"Wählen Sie zuerst die Setup-Sprache. GPU, VRAM und Arbeitsspeicher werden anschließend lokal vom Windows-Setup geprüft.",field:"Setup-Sprache",cancel:"Abbrechen",confirm:"Bestätigen und Setup herunterladen"},
+    "es": {title:"Elegir idioma y comprobar el PC",intro:"Elija primero el idioma del instalador. Windows Setup comprobará localmente la GPU, la VRAM y la memoria.",field:"Idioma del instalador",cancel:"Cancelar",confirm:"Confirmar y descargar Setup"},
+    "pt-BR": {title:"Escolher idioma e verificar o PC",intro:"Escolha primeiro o idioma do instalador. O Setup do Windows verificará localmente a GPU, a VRAM e a memória.",field:"Idioma do instalador",cancel:"Cancelar",confirm:"Confirmar e baixar o Setup"},
+    "it": {title:"Scegli la lingua e verifica il PC",intro:"Scegli prima la lingua del programma. Setup per Windows verificherà localmente GPU, VRAM e memoria.",field:"Lingua del programma",cancel:"Annulla",confirm:"Conferma e scarica Setup"},
+    "ru": {title:"Выберите язык и проверьте ПК",intro:"Сначала выберите язык установщика. Windows Setup локально проверит GPU, VRAM и оперативную память.",field:"Язык установщика",cancel:"Отмена",confirm:"Подтвердить и скачать Setup"},
+    "ar": {title:"اختر اللغة وافحص الكمبيوتر",intro:"اختر لغة التثبيت أولاً. سيتحقق برنامج Windows Setup محلياً من وحدة GPU وذاكرة VRAM والذاكرة.",field:"لغة التثبيت",cancel:"إلغاء",confirm:"تأكيد وتنزيل Setup"},
+    "th": {title:"เลือกภาษาและตรวจสอบพีซี",intro:"เลือกภาษาของตัวติดตั้งก่อน จากนั้น Windows Setup จะตรวจสอบ GPU, VRAM และหน่วยความจำบนเครื่อง",field:"ภาษาตัวติดตั้ง",cancel:"ยกเลิก",confirm:"ยืนยันและดาวน์โหลด Setup"},
+    "vi": {title:"Chọn ngôn ngữ và kiểm tra PC",intro:"Hãy chọn ngôn ngữ trình cài đặt trước. Windows Setup sẽ kiểm tra GPU, VRAM và bộ nhớ ngay trên máy.",field:"Ngôn ngữ trình cài đặt",cancel:"Hủy",confirm:"Xác nhận và tải Setup"},
+    "id": {title:"Pilih bahasa dan periksa PC",intro:"Pilih bahasa penginstal terlebih dahulu. Windows Setup akan memeriksa GPU, VRAM, dan memori secara lokal.",field:"Bahasa penginstal",cancel:"Batal",confirm:"Konfirmasi dan unduh Setup"}
   };
   function applyLanguage(){
     const copy = uiCopy[language.value] || uiCopy["zh-TW"];
@@ -385,7 +404,17 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     ["zh-CN","操作系统","CPU / 架构","内存","GPU / VRAM","建议配置","此浏览器无法可靠读取 GPU 型号与 VRAM。通用 Setup 会在 Windows 本机再次扫描硬件，再选择兼容的计算组件。","此设备不是受支持的 Windows 桌面环境，已暂停下载。"],
     ["en","Operating system","CPU / architecture","Memory","GPU / VRAM","Recommended profile","This browser cannot reliably read GPU model or VRAM. The universal Setup must rescan hardware locally on Windows before selecting compatible compute components.","This is not a supported Windows desktop environment. Download is paused."],
     ["ja","オペレーティングシステム","CPU / アーキテクチャ","メモリ","GPU / VRAM","推奨構成","ブラウザーから GPU 型番や VRAM を正確に取得することはできません。Windows 用 Setup がローカルで再検査し、互換性のある実行コンポーネントを選択します。","対応する Windows デスクトップ環境ではないため、ダウンロードを停止しました。"],
-    ["ko","운영 체제","CPU / 아키텍처","메모리","GPU / VRAM","권장 구성","브라우저에서는 GPU 모델과 VRAM을 정확히 확인할 수 없습니다. Windows Setup이 로컬에서 하드웨어를 다시 검사한 후 호환되는 실행 구성 요소를 선택해야 합니다.","지원되는 Windows 데스크톱 환경이 아니므로 다운로드를 중지했습니다."]
+    ["ko","운영 체제","CPU / 아키텍처","메모리","GPU / VRAM","권장 구성","브라우저에서는 GPU 모델과 VRAM을 정확히 확인할 수 없습니다. Windows Setup이 로컬에서 하드웨어를 다시 검사한 후 호환되는 실행 구성 요소를 선택해야 합니다.","지원되는 Windows 데스크톱 환경이 아니므로 다운로드를 중지했습니다."],
+    ["fr","Système d’exploitation","CPU / architecture","Mémoire","GPU / VRAM","Configuration recommandée","Le navigateur ne peut pas lire de façon fiable le modèle du GPU ou la VRAM. Setup vérifiera le matériel localement sous Windows.","Cet appareil ne dispose pas d’un environnement Windows pris en charge. Le téléchargement est suspendu."],
+    ["de","Betriebssystem","CPU / Architektur","Arbeitsspeicher","GPU / VRAM","Empfohlenes Profil","Der Browser kann GPU-Modell und VRAM nicht zuverlässig auslesen. Setup prüft die Hardware lokal unter Windows.","Dies ist keine unterstützte Windows-Desktopumgebung. Der Download wurde angehalten."],
+    ["es","Sistema operativo","CPU / arquitectura","Memoria","GPU / VRAM","Perfil recomendado","El navegador no puede leer de forma fiable el modelo de GPU ni la VRAM. Setup comprobará el hardware localmente en Windows.","Este dispositivo no tiene un entorno de escritorio Windows compatible. La descarga está pausada."],
+    ["pt-BR","Sistema operacional","CPU / arquitetura","Memória","GPU / VRAM","Perfil recomendado","O navegador não consegue ler o modelo da GPU nem a VRAM com confiabilidade. O Setup verificará o hardware localmente no Windows.","Este dispositivo não possui um ambiente Windows compatível. O download foi pausado."],
+    ["it","Sistema operativo","CPU / architettura","Memoria","GPU / VRAM","Profilo consigliato","Il browser non può leggere in modo affidabile il modello GPU o la VRAM. Setup controllerà l’hardware localmente su Windows.","Questo dispositivo non dispone di un ambiente desktop Windows supportato. Download sospeso."],
+    ["ru","Операционная система","CPU / архитектура","Память","GPU / VRAM","Рекомендуемая конфигурация","Браузер не может достоверно определить модель GPU и объём VRAM. Setup проверит оборудование локально в Windows.","Это устройство не поддерживает среду Windows Desktop. Загрузка приостановлена."],
+    ["ar","نظام التشغيل","المعالج / البنية","الذاكرة","GPU / VRAM","التكوين الموصى به","لا يستطيع المتصفح قراءة طراز GPU أو VRAM بدقة. سيفحص Setup الأجهزة محلياً في Windows.","هذا الجهاز ليس ضمن بيئة Windows المكتبية المدعومة. تم إيقاف التنزيل مؤقتاً."],
+    ["th","ระบบปฏิบัติการ","CPU / สถาปัตยกรรม","หน่วยความจำ","GPU / VRAM","โปรไฟล์ที่แนะนำ","เบราว์เซอร์ไม่สามารถอ่านรุ่น GPU หรือ VRAM ได้อย่างน่าเชื่อถือ Setup จะตรวจสอบฮาร์ดแวร์ใน Windows โดยตรง","อุปกรณ์นี้ไม่ใช่สภาพแวดล้อม Windows Desktop ที่รองรับ จึงหยุดดาวน์โหลด"],
+    ["vi","Hệ điều hành","CPU / kiến trúc","Bộ nhớ","GPU / VRAM","Cấu hình đề xuất","Trình duyệt không thể đọc chính xác mẫu GPU hoặc VRAM. Setup sẽ kiểm tra phần cứng trực tiếp trên Windows.","Thiết bị này không thuộc môi trường Windows Desktop được hỗ trợ. Đã tạm dừng tải xuống."],
+    ["id","Sistem operasi","CPU / arsitektur","Memori","GPU / VRAM","Profil yang disarankan","Browser tidak dapat membaca model GPU atau VRAM secara andal. Setup akan memeriksa perangkat keras secara lokal di Windows.","Perangkat ini bukan lingkungan Windows Desktop yang didukung. Unduhan dijeda."]
   ];
   function row(name,value){return '<div class="setup-hardware-row"><span>'+name+'</span><strong>'+value+'</strong></div>';}
   async function inspect(){
@@ -421,6 +450,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     warning.textContent = !installerReady ? "尚未通過版本與 SHA-256 驗證，暫停下載。" : (supportedPlatform ? L[6] : L[7]);
     warning.dataset.supported = String(supportedPlatform);
   }
+  applyLanguage();
   function openDialog(){
     inspect();
     if (typeof dialog.showModal === "function") dialog.showModal();
