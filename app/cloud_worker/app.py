@@ -1,4 +1,8 @@
-"""KaptiaLab remote compute worker. Run behind a TLS reverse proxy with Docker."""
+"""KaptiaLab remote compute worker with Security Core enforcement.
+
+Run behind a TLS reverse proxy or with the hardened cloud_worker.server launcher.
+Submitted jobs are executed only in the existing restricted Docker container.
+"""
 from __future__ import annotations
 
 import hmac
@@ -11,8 +15,16 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.responses import JSONResponse
+
+try:
+    from security.manager import SecurityManager
+    from security.policy import client_allowed
+except ImportError:
+    from scripts.security.manager import SecurityManager
+    from scripts.security.policy import client_allowed
 
 DB_PATH = Path(os.environ.get("KAPTIA_CLOUD_DB", "./kaptia_cloud_jobs.sqlite3"))
 TOKEN = os.environ.get("KAPTIA_CLOUD_TOKEN", "")
@@ -22,7 +34,8 @@ IMAGE_PYTHON = os.environ.get("KAPTIA_CLOUD_PYTHON_IMAGE", "python:3.12-slim")
 IMAGE_BLENDER = os.environ.get("KAPTIA_CLOUD_BLENDER_IMAGE", "blender:4.5.0")
 LOCK = threading.RLock()
 ACTIVE: dict[str, threading.Thread] = {}
-app = FastAPI(title="KaptiaLab Cloud Worker", version="0.2.0")
+SECURITY = SecurityManager()
+app = FastAPI(title="KaptiaLab Cloud Worker", version="0.3.0")
 
 
 class JobRequest(BaseModel):
@@ -32,15 +45,42 @@ class JobRequest(BaseModel):
     timeout_seconds: int = Field(default=900, ge=1, le=3600)
 
 
-def _auth(authorization: str | None):
+class LockdownRequest(BaseModel):
+    enabled: bool
+
+
+def _auth(authorization: str | None, actor: str = "unknown"):
     if not TOKEN or len(TOKEN) < 24:
         raise HTTPException(503, "Worker token is not configured securely")
     prefix = "Bearer "
     if not authorization or not authorization.startswith(prefix):
+        SECURITY.auth_failed(actor)
         raise HTTPException(401, "Bearer token required")
     supplied = authorization[len(prefix):].strip()
     if not hmac.compare_digest(supplied, TOKEN):
+        SECURITY.auth_failed(actor)
         raise HTTPException(401, "Unauthorized")
+
+
+@app.middleware("http")
+async def enforce_security_policy(request: Request, call_next):
+    # request.client.host is the TCP peer. Do not trust caller-provided X-Forwarded-For.
+    peer = request.client.host if request.client else "unknown"
+    if not client_allowed(peer):
+        SECURITY.event("network_policy_denied", actor=peer, outcome="denied",
+                       reason="source_not_allowlisted")
+        return JSONResponse({"detail": "Client network is not allowlisted"}, status_code=403)
+    allowed, retry_after = SECURITY.request_allowed(peer)
+    if not allowed:
+        return JSONResponse(
+            {"detail": "Request rate limit exceeded"},
+            status_code=429,
+            headers={"Retry-After": str(retry_after)},
+        )
+    # Allow health/security inspection and reads during lockdown; reject new workload submissions.
+    if request.url.path == "/v1/jobs" and request.method.upper() == "POST" and SECURITY.lockdown.is_enabled():
+        return JSONResponse({"detail": "Worker is in emergency lockdown; new jobs are disabled"}, status_code=423)
+    return await call_next(request)
 
 
 @contextmanager
@@ -78,6 +118,7 @@ def _recover_and_prune():
 @app.on_event("startup")
 def _startup():
     _recover_and_prune()
+    SECURITY.status()
 
 
 def _execute(job_id: str):
@@ -137,7 +178,9 @@ def _execute(job_id: str):
                 "exit_code=? WHERE id=?",
                 (status, time.time(), stdout, stderr, code, job_id),
             )
-    except Exception:
+        SECURITY.event("cloud_job_completed" if status == "completed" else "cloud_job_failed",
+                       target=job_id, outcome=status, reason="docker_exit", policy=task_type)
+    except Exception as exc:
         # Avoid leaking submitted source into logs; clear it if the worker itself fails.
         with _db() as con:
             con.execute(
@@ -145,25 +188,35 @@ def _execute(job_id: str):
                 "stderr='Worker internal error',exit_code=-3 WHERE id=?",
                 (time.time(), job_id),
             )
+        SECURITY.event("cloud_job_failed", target=job_id, outcome="failed",
+                       reason=type(exc).__name__)
     finally:
         with LOCK:
             ACTIVE.pop(job_id, None)
 
 
+def _actor(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
 @app.get("/v1/health")
-def health(authorization: str | None = Header(default=None)):
-    _auth(authorization)
+def health(request: Request, authorization: str | None = Header(default=None)):
+    _auth(authorization, _actor(request))
     with LOCK:
         active_jobs = len(ACTIVE)
     return {
-        "ok": True, "service": "kaptialab-cloud-worker",
-        "version": "0.2.0", "active_jobs": active_jobs, "max_concurrency": 2,
+        "ok": True,
+        "service": "kaptialab-cloud-worker",
+        "version": "0.3.0",
+        "active_jobs": active_jobs,
+        "max_concurrency": 2,
+        "remote_jobs_locked": SECURITY.lockdown.is_enabled(),
     }
 
 
 @app.get("/v1/capabilities")
-def capabilities(authorization: str | None = Header(default=None)):
-    _auth(authorization)
+def capabilities(request: Request, authorization: str | None = Header(default=None)):
+    _auth(authorization, _actor(request))
     return {
         "task_types": ["python_script", "blender_background"],
         "isolation": "docker", "network_access": False, "gpu_execution": False,
@@ -172,12 +225,36 @@ def capabilities(authorization: str | None = Header(default=None)):
             "container_memory": "4g", "container_cpus": 4,
             "max_concurrency": 2, "job_retention_days": 7,
         },
+        "security_core": True,
+        "remote_jobs_locked": SECURITY.lockdown.is_enabled(),
     }
 
 
+@app.get("/v1/security/status")
+def security_status(request: Request, authorization: str | None = Header(default=None)):
+    _auth(authorization, _actor(request))
+    return {"ok": True, "security": SECURITY.status()}
+
+
+@app.post("/v1/security/lockdown")
+def enable_lockdown(payload: LockdownRequest, request: Request,
+                    authorization: str | None = Header(default=None)):
+    _auth(authorization, _actor(request))
+    if payload.enabled is not True:
+        raise HTTPException(403, "Remote API can enable lockdown only; unlock must be performed locally on the Worker.")
+    state = SECURITY.lockdown.set_enabled(True, reason="desktop_emergency_lockdown")
+    SECURITY.event("emergency_lockdown_enabled", actor=_actor(request), outcome="success")
+    return {"ok": True, "lockdown": state,
+            "active_jobs_note": "Already running Docker jobs are not force-terminated by this lock."}
+
+
 @app.post("/v1/jobs")
-def submit_job(request: JobRequest, authorization: str | None = Header(default=None)):
-    _auth(authorization)
+def submit_job(request: JobRequest, http_request: Request,
+               authorization: str | None = Header(default=None)):
+    actor = _actor(http_request)
+    _auth(authorization, actor)
+    if SECURITY.lockdown.is_enabled():
+        raise HTTPException(423, "Worker is in emergency lockdown")
     if request.task_type not in {"python_script", "blender_background"}:
         raise HTTPException(400, "Unsupported task_type")
     with LOCK:
@@ -196,12 +273,14 @@ def submit_job(request: JobRequest, authorization: str | None = Header(default=N
         thread = threading.Thread(target=_execute, args=(request.task_id,), daemon=True)
         ACTIVE[request.task_id] = thread
         thread.start()
+    SECURITY.event("cloud_job_submitted", actor=actor, target=request.task_id,
+                   outcome="queued", policy=request.task_type)
     return {"job_id": request.task_id, "status": "queued"}
 
 
 @app.get("/v1/jobs/{job_id}")
-def get_job(job_id: str, authorization: str | None = Header(default=None)):
-    _auth(authorization)
+def get_job(job_id: str, request: Request, authorization: str | None = Header(default=None)):
+    _auth(authorization, _actor(request))
     if not job_id or len(job_id) > 80 or any(
         c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
         for c in job_id
