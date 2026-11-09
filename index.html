@@ -128,7 +128,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
 </head>
 <body>
 <div class="wrap">
-<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品功能</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本資訊</a></nav><div class="top-actions"><button class="btn" style="min-height:38px;padding:0 17px;font-size:13px" type="button" data-setup-open id="topDownload">下載安裝程式</button><span class="tag" id="languageTag">ZH-TW</span></div></header>
+<header class="top"><div class="brand notranslate" translate="no" aria-label="kaptiaLab"><span class="brand-mark">✦</span><span>kaptiaLab</span></div><nav class="nav" aria-label="主要導覽"><a href="#overview">產品功能</a><a href="#get-started">開始使用</a><a href="#requirements">隱私與控制</a><a href="#release-announcements">版本資訊</a></nav><div class="top-actions"><button class="btn" style="min-height:38px;padding:0 17px;font-size:13px" type="button" data-setup-open id="topDownload">下載安裝程式</button><select class="tag" id="languageTag" aria-label="Website language"><option value="zh-TW">繁體中文</option><option value="zh-CN">简体中文</option><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="es">Español</option><option value="pt-BR">Português (Brasil)</option><option value="it">Italiano</option><option value="ru">Русский</option><option value="ar">العربية</option><option value="th">ไทย</option><option value="vi">Tiếng Việt</option><option value="id">Bahasa Indonesia</option></select></div></header>
 <main>
 <section class="hero" style="border:0"><div class="hero-brand"><span class="hero-mark" aria-hidden="true">KL</span><span>Kaptia · Personal AI Assistant</span></div><h1>一個會記住脈絡、<br>也會獨立思考的 AI 助手</h1><p class="lead">Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。</p><div class="actions"><button class="btn" type="button" data-setup-open id="download">下載 Windows 安裝程式</button><a class="btn secondary" href="#overview">了解產品功能</a></div><p class="note" id="downloadNote">Windows 10/11 · 官網已更新產品方向；新版本機記憶功能仍須完成建置、測試並發布安裝器。</p></section>
 <section id="release-announcements" aria-labelledby="release-title">
@@ -388,6 +388,34 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     "vi": {title:"Chọn ngôn ngữ và kiểm tra PC",intro:"Hãy chọn ngôn ngữ trình cài đặt trước. Windows Setup sẽ kiểm tra GPU, VRAM và bộ nhớ ngay trên máy.",field:"Ngôn ngữ trình cài đặt",cancel:"Hủy",confirm:"Xác nhận và tải Setup"},
     "id": {title:"Pilih bahasa dan periksa PC",intro:"Pilih bahasa penginstal terlebih dahulu. Windows Setup akan memeriksa GPU, VRAM, dan memori secara lokal.",field:"Bahasa penginstal",cancel:"Batal",confirm:"Konfirmasi dan unduh Setup"}
   };
+  const siteCopy={
+"zh-TW":["產品功能","開始使用","隱私與控制","版本資訊","下載安裝程式","一個會記住脈絡、<br>也會獨立思考的 AI 助手","下載 Windows 安裝程式","了解產品功能","版本發布公告","在此查看版本號、發布日期與更新內容。所有版本資訊直接顯示於官網，下載安裝程式不需要離開本網站。","正在讀取最新版本公告…","讓助手逐步理解你，而不是每次從零開始","從第一次對話開始建立自己的助手","記憶屬於你，控制權也應屬於你"],
+"zh-CN":["产品功能","开始使用","隐私与控制","版本信息","下载安装程序","一个会记住上下文、<br>也会独立思考的 AI 助手","下载 Windows 安装程序","了解产品功能","版本发布公告","在此查看版本号、发布日期与更新内容。所有版本信息直接显示于官网，下载安装程序无需离开本网站。","正在读取最新版本公告…","让助手逐步理解你，而不是每次从零开始","从第一次对话开始建立自己的助手","记忆属于你，控制权也应属于你"],
+"en":["Features","Get started","Privacy & control","Releases","Download Setup","An AI assistant that remembers context<br>and thinks independently","Download for Windows","Explore features","Release notes","View version numbers, release dates and changes here. Release information is shown on this website; you do not need to leave the site to download Setup.","Loading the latest release notes…","An assistant that gets to know you over time","Build your assistant from the first conversation","Your memory. Your control."],
+"ja":["製品機能","使い始める","プライバシーと管理","リリース","インストーラーをダウンロード","文脈を記憶し<br>独立して考える AI アシスタント","Windows 版をダウンロード","機能を見る","リリースノート","ここでバージョン、公開日、更新内容を確認できます。Setup のダウンロードもこのサイトから行えます。","最新のリリース情報を読み込んでいます…","使うほどにあなたを理解するアシスタント","最初の会話から自分のアシスタントを作る","記憶はあなたのもの。管理するのもあなたです。"],
+"ko":["제품 기능","시작하기","개인정보 및 제어","릴리스","설치 프로그램 다운로드","맥락을 기억하고<br>독립적으로 생각하는 AI 비서","Windows용 다운로드","기능 살펴보기","릴리스 노트","버전, 출시일 및 변경 사항을 여기에서 확인하세요. 설치 프로그램도 이 웹사이트에서 바로 다운로드할 수 있습니다.","최신 릴리스 정보를 불러오는 중…","시간이 지날수록 사용자를 이해하는 비서","첫 대화부터 나만의 비서를 만들기","기억은 사용자의 것, 제어권도 사용자에게 있습니다."],
+"fr":["Fonctionnalités","Commencer","Confidentialité et contrôle","Versions","Télécharger Setup","Un assistant IA qui mémorise le contexte<br>et réfléchit de façon indépendante","Télécharger pour Windows","Découvrir les fonctionnalités","Notes de version","Consultez ici les versions, dates de publication et modifications. Le téléchargement de Setup reste sur ce site.","Chargement des dernières notes de version…","Un assistant qui apprend à vous comprendre au fil du temps","Créez votre assistant dès la première conversation","Votre mémoire. Votre contrôle."],
+"de":["Funktionen","Erste Schritte","Datenschutz und Kontrolle","Versionen","Setup herunterladen","Ein KI-Assistent, der Kontext behält<br>und eigenständig denkt","Für Windows herunterladen","Funktionen ansehen","Versionshinweise","Hier finden Sie Versionsnummern, Veröffentlichungsdaten und Änderungen. Setup kann direkt auf dieser Website heruntergeladen werden.","Neueste Versionshinweise werden geladen…","Ein Assistent, der Sie mit der Zeit besser versteht","Erstellen Sie Ihren Assistenten ab dem ersten Gespräch","Ihre Erinnerung. Ihre Kontrolle."],
+"es":["Funciones","Comenzar","Privacidad y control","Versiones","Descargar Setup","Un asistente de IA que recuerda el contexto<br>y piensa de forma independiente","Descargar para Windows","Ver funciones","Notas de versión","Consulta aquí las versiones, fechas de publicación y cambios. Puedes descargar Setup directamente desde este sitio.","Cargando las últimas notas de versión…","Un asistente que te comprende cada vez mejor","Crea tu asistente desde la primera conversación","Tu memoria. Tu control."],
+"pt-BR":["Recursos","Começar","Privacidade e controle","Versões","Baixar Setup","Um assistente de IA que lembra o contexto<br>e pensa de forma independente","Baixar para Windows","Conhecer recursos","Notas da versão","Consulte aqui as versões, datas de lançamento e alterações. O Setup pode ser baixado diretamente neste site.","Carregando as notas da versão mais recente…","Um assistente que entende você com o tempo","Crie seu assistente desde a primeira conversa","Sua memória. Seu controle."],
+"it":["Funzionalità","Inizia","Privacy e controllo","Versioni","Scarica Setup","Un assistente IA che ricorda il contesto<br>e pensa in modo indipendente","Scarica per Windows","Scopri le funzionalità","Note di rilascio","Qui puoi consultare versioni, date di rilascio e modifiche. Puoi scaricare Setup direttamente da questo sito.","Caricamento delle ultime note di rilascio…","Un assistente che impara a conoscerti nel tempo","Crea il tuo assistente dalla prima conversazione","La tua memoria. Il tuo controllo."],
+"ru":["Возможности","Начать","Конфиденциальность и управление","Релизы","Скачать Setup","ИИ-ассистент, который помнит контекст<br>и мыслит самостоятельно","Скачать для Windows","Возможности продукта","Примечания к выпуску","Здесь указаны версии, даты выпуска и изменения. Скачать Setup можно прямо на этом сайте.","Загрузка последних примечаний к выпуску…","Ассистент, который лучше понимает вас со временем","Создайте своего ассистента с первого разговора","Ваша память. Ваш контроль."],
+"ar":["الميزات","ابدأ الاستخدام","الخصوصية والتحكم","الإصدارات","تنزيل Setup","مساعد ذكاء اصطناعي يتذكر السياق<br>ويفكر بشكل مستقل","تنزيل Windows","استكشف الميزات","ملاحظات الإصدار","اعرض أرقام الإصدارات وتواريخ النشر والتغييرات هنا. يمكنك تنزيل Setup مباشرة من هذا الموقع.","جارٍ تحميل أحدث ملاحظات الإصدار…","مساعد يتعرف عليك بشكل أفضل مع الوقت","أنشئ مساعدك من أول محادثة","ذاكرتك. وتحكمك."],
+"th":["คุณสมบัติ","เริ่มต้นใช้งาน","ความเป็นส่วนตัวและการควบคุม","รุ่นที่เผยแพร่","ดาวน์โหลด Setup","ผู้ช่วย AI ที่จดจำบริบท<br>และคิดได้อย่างเป็นอิสระ","ดาวน์โหลดสำหรับ Windows","ดูคุณสมบัติ","บันทึกประจำรุ่น","ดูหมายเลขเวอร์ชัน วันที่เผยแพร่ และรายการเปลี่ยนแปลงได้ที่นี่ ดาวน์โหลด Setup ได้จากเว็บไซต์นี้โดยตรง","กำลังโหลดบันทึกประจำรุ่นล่าสุด…","ผู้ช่วยที่เข้าใจคุณมากขึ้นเมื่อใช้งาน","เริ่มสร้างผู้ช่วยของคุณตั้งแต่บทสนทนาแรก","ความทรงจำของคุณ การควบคุมของคุณ"],
+"vi":["Tính năng","Bắt đầu","Quyền riêng tư và kiểm soát","Bản phát hành","Tải Setup","Trợ lý AI ghi nhớ ngữ cảnh<br>và suy nghĩ độc lập","Tải xuống cho Windows","Khám phá tính năng","Ghi chú phát hành","Xem số phiên bản, ngày phát hành và các thay đổi tại đây. Bạn có thể tải Setup ngay trên trang web này.","Đang tải ghi chú phát hành mới nhất…","Trợ lý hiểu bạn hơn theo thời gian","Xây dựng trợ lý của bạn từ cuộc trò chuyện đầu tiên","Ký ức của bạn. Quyền kiểm soát của bạn."],
+"id":["Fitur","Mulai","Privasi & kontrol","Rilis","Unduh Setup","Asisten AI yang mengingat konteks<br>dan berpikir secara mandiri","Unduh untuk Windows","Jelajahi fitur","Catatan rilis","Lihat nomor versi, tanggal rilis, dan perubahan di sini. Setup dapat diunduh langsung dari situs ini.","Memuat catatan rilis terbaru…","Asisten yang semakin memahami Anda seiring waktu","Bangun asisten Anda sejak percakapan pertama","Memori Anda. Kendali Anda."]
+};
+  const siteSelectors=[
+    ".nav a:nth-child(1)",".nav a:nth-child(2)",".nav a:nth-child(3)",".nav a:nth-child(4)","#topDownload",
+    ".hero h1","#download",".actions a",".release-title","#release-announcements .copy",".release-status",
+    "#overview h2","#get-started h2","#requirements h2"
+  ];
+  function applySiteLanguage(lang){
+    const values=siteCopy[lang]||siteCopy.en;
+    siteSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node){if(index===5)node.innerHTML=values[index];else node.textContent=values[index]}});
+    document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+    if(languageTag)languageTag.value=lang;
+  }
   function applyLanguage(){
     const copy = uiCopy[language.value] || uiCopy["zh-TW"];
     dialog.lang = language.value;
@@ -397,7 +425,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     document.querySelector('label[for="setupLanguage"]').textContent = copy.field;
     document.getElementById("setupCancel").textContent = copy.cancel;
     confirm.textContent = copy.confirm;
-    if (languageTag) languageTag.textContent = language.value.toUpperCase();
+    applySiteLanguage(language.value);
     try { localStorage.setItem("kaptia.setup.language", language.value); } catch (_) {}
   }
   const labels = [
@@ -452,6 +480,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
     warning.dataset.supported = String(supportedPlatform);
   }
   applyLanguage();
+  languageTag.value=language.value;
   function openDialog(){
     inspect();
     if (typeof dialog.showModal === "function") dialog.showModal();
