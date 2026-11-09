@@ -346,14 +346,39 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   const languageNames = {"zh-TW":"繁體中文","zh-CN":"简体中文","en":"English","ja":"日本語","ko":"한국어"};
   const params = new URLSearchParams(location.search);
   const supported = Object.keys(languageNames);
-  const initial = params.get("lang");
-  if (supported.includes(initial)) language.value = initial;
-  else {
-    const browserLang = (navigator.language || "").toLowerCase();
-    language.value = browserLang.startsWith("zh-cn") || browserLang.startsWith("zh-sg") ? "zh-CN"
-      : browserLang.startsWith("ja") ? "ja"
-      : browserLang.startsWith("ko") ? "ko"
-      : browserLang.startsWith("en") ? "en" : "zh-TW";
+  const localeFor = value => {
+    const tag = String(value || "").toLowerCase();
+    if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg")) return "zh-CN";
+    if (tag.startsWith("zh")) return "zh-TW";
+    if (tag.startsWith("ja")) return "ja";
+    if (tag.startsWith("ko")) return "ko";
+    if (tag.startsWith("en")) return "en";
+    return null;
+  };
+  let savedLanguage = null;
+  try { savedLanguage = localStorage.getItem("kaptia.setup.language"); } catch (_) {}
+  const browserLanguage = (navigator.languages || [navigator.language || ""]).map(localeFor).find(Boolean);
+  const requestedLanguage = params.get("lang");
+  language.value = supported.includes(requestedLanguage) ? requestedLanguage
+    : supported.includes(savedLanguage) ? savedLanguage
+    : browserLanguage || "zh-TW";
+  const uiCopy = {
+    "zh-TW": {title:"選擇語言與檢查電腦",intro:"先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。",field:"安裝語言 / Installer language",cancel:"取消",confirm:"確認並下載 Setup"},
+    "zh-CN": {title:"选择语言并检查电脑",intro:"请先选择安装语言，再进行初步兼容性检查。完整 GPU、VRAM 和内存信息将由 Windows 安装程序在本机确认。",field:"安装语言 / Installer language",cancel:"取消",confirm:"确认并下载 Setup"},
+    "en": {title:"Choose language and check your PC",intro:"Choose the installer language first, then run a preliminary compatibility check. Full GPU, VRAM, and memory details will be verified locally by the Windows installer.",field:"Installer language",cancel:"Cancel",confirm:"Confirm and download Setup"},
+    "ja": {title:"言語の選択と PC の確認",intro:"最初にインストーラーの言語を選択し、互換性を事前確認します。GPU、VRAM、メモリの詳細は Windows インストーラーがローカルで確認します。",field:"インストーラーの言語",cancel:"キャンセル",confirm:"確認して Setup をダウンロード"},
+    "ko": {title:"언어 선택 및 PC 확인",intro:"먼저 설치 프로그램 언어를 선택한 다음 기본 호환성을 확인합니다. GPU, VRAM 및 메모리 세부 정보는 Windows 설치 프로그램이 로컬에서 확인합니다.",field:"설치 프로그램 언어",cancel:"취소",confirm:"확인 후 Setup 다운로드"}
+  };
+  function applyLanguage(){
+    const copy = uiCopy[language.value] || uiCopy["zh-TW"];
+    document.documentElement.lang = language.value;
+    document.getElementById("setupDialogTitle").textContent = copy.title;
+    document.getElementById("setupDialogIntro").textContent = copy.intro;
+    document.querySelector('label[for="setupLanguage"]').textContent = copy.field;
+    document.getElementById("setupCancel").textContent = copy.cancel;
+    confirm.textContent = copy.confirm;
+    if (languageTag) languageTag.textContent = language.value.toUpperCase();
+    try { localStorage.setItem("kaptia.setup.language", language.value); } catch (_) {}
   }
   const labels = [
     ["zh-TW","作業系統","CPU / 架構","記憶體","GPU / VRAM","建議配置","此瀏覽器無法可靠讀取 GPU 型號與 VRAM。通用 Setup 會在 Windows 本機再次掃描硬體，再選擇相容的運算元件。","此裝置不是支援的 Windows 桌面環境，暫停下載。"],
@@ -403,12 +428,12 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   }
   document.querySelectorAll("[data-setup-open]").forEach(el=>el.addEventListener("click",openDialog));
   document.getElementById("setupCancel").addEventListener("click",()=>dialog.close());
-  language.addEventListener("change",inspect);
+  language.addEventListener("change",()=>{ applyLanguage(); inspect(); });
+  applyLanguage();
   confirm.addEventListener("click",()=>{
     if(confirm.disabled) return;
     const lang = language.value;
-    try { localStorage.setItem("kaptia.setup.language",lang); } catch (_) {}
-    if(languageTag) languageTag.textContent = lang.toUpperCase();
+    applyLanguage();
     const url = new URL("./downloads/Kaptia-Setup.exe",location.href);
     url.searchParams.set("lang",lang);
     url.searchParams.set("profile","hardware-auto");
