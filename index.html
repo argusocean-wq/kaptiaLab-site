@@ -390,8 +390,8 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   };
   function applyLanguage(){
     const copy = uiCopy[language.value] || uiCopy["zh-TW"];
-    document.documentElement.lang = language.value;
-    document.documentElement.dir = language.value === "ar" ? "rtl" : "ltr";
+    dialog.lang = language.value;
+    dialog.dir = language.value === "ar" ? "rtl" : "ltr";
     document.getElementById("setupDialogTitle").textContent = copy.title;
     document.getElementById("setupDialogIntro").textContent = copy.intro;
     document.querySelector('label[for="setupLanguage"]').textContent = copy.field;
