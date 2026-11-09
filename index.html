@@ -124,6 +124,17 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
 .setup-dialog .btn:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:560px){.setup-dialog-inner{padding:20px}.setup-dialog-actions{display:grid}.setup-dialog-actions .btn{width:100%}}
 
+html[dir="rtl"] body,html[dir="rtl"] .wrap{direction:rtl;text-align:right}
+html[dir="rtl"] .top,html[dir="rtl"] .nav,html[dir="rtl"] .top-actions,html[dir="rtl"] .actions,html[dir="rtl"] .release-head,html[dir="rtl"] .footer{direction:rtl}
+html[dir="rtl"] .hero{text-align:right}
+html[dir="rtl"] .hero-brand,html[dir="rtl"] .actions{justify-content:flex-start}
+html[dir="rtl"] .lead{margin-right:0;margin-left:auto}
+html[dir="rtl"] .grid,html[dir="rtl"] .steps,html[dir="rtl"] .requirements{direction:rtl}
+html[dir="rtl"] .setup-dialog-inner{direction:rtl;text-align:right}
+html[dir="rtl"] .setup-field label,html[dir="rtl"] .setup-hardware-row,html[dir="rtl"] .setup-warning{text-align:right}
+html[dir="rtl"] .setup-hardware-row{flex-direction:row-reverse}
+html[dir="rtl"] .setup-dialog-actions{flex-direction:row-reverse}
+html[dir="rtl"] .release-links{direction:rtl}
 </style>
 </head>
 <body>
