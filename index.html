@@ -348,7 +348,7 @@ body>:not(#interactiveBackground){position:relative;z-index:1}
   const supported = Object.keys(languageNames);
   const localeFor = value => {
     const tag = String(value || "").toLowerCase();
-    if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg")) return "zh-CN";
+    if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg") || tag.startsWith("zh-hans")) return "zh-CN";
     if (tag.startsWith("zh")) return "zh-TW";
     if (tag.startsWith("ja")) return "ja";
     if (tag.startsWith("ko")) return "ko";
