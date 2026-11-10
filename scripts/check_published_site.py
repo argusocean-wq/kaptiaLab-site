@@ -114,7 +114,7 @@ def verify_deployed_site(raw_url: str) -> dict[str, str]:
             installer_bytes, installer_type = _fetch(checks["installer"][0], host)
             if len(installer_bytes) < 1024 or not installer_bytes.startswith(b"MZ"):
                 raise RuntimeError("官網安裝檔缺失、過小或不是 Windows PE 檔案")
-            results["installer"] = f"200 + Windows PE file present ({len(installer_bytes)} bytes); SHA-256 is not enforced"
+            results["installer"] = f"200 + Windows PE file present ({len(installer_bytes)} bytes)"
 
             return results
         except (HTTPError, URLError, TimeoutError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
