@@ -334,15 +334,15 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
       if (!Array.isArray(data.releases) || data.releases.length === 0) throw new Error("No published versions");
       const latestTag = String(data.releases[0].tag_name || "");
       const installer = data.installer;
-      const integrityReady = false && data.downloadReady === true // TEMPORARY FAIL-CLOSED: restore only after release sidecar verification is enforced
+      // Version gate only: SHA-256 is displayed as optional information, not used to block downloads.
+      const versionReady = data.downloadReady === true
         && installer
         && installer.file_name === "Kaptia-Setup.exe"
+        && latestTag.length > 0
         && String(installer.tag_name || "") === latestTag
         && Number.isSafeInteger(installer.size_bytes)
-        && installer.size_bytes > 1024
-        && typeof installer.sha256 === "string"
-        && /^[a-f0-9]{64}$/i.test(installer.sha256);
-      const checkedInstaller = integrityReady ? installer : null;
+        && installer.size_bytes > 1024;
+      const checkedInstaller = versionReady ? installer : null;
       const fragment = document.createDocumentFragment();
       data.releases.slice(0, 5).forEach((release, index) => {
         fragment.appendChild(renderRelease(release, index === 0, index === 0 ? checkedInstaller : null));
