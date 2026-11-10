@@ -572,7 +572,7 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
       + row(L[5],profile);
     const supportedPlatform = installerReady && isWindows && (architecture === "x86" || architecture === "x86_64" || architecture === "amd64" || architecture === "未知");
     confirm.disabled = !supportedPlatform;
-    warning.textContent = !installerReady ? "尚未通過版本與 SHA-256 驗證，暫停下載。" : (supportedPlatform ? L[6] : L[7]);
+    warning.textContent = !installerReady ? "尚未通過版本驗證，暫停下載。" : (supportedPlatform ? L[6] : L[7]);
     warning.dataset.supported = String(supportedPlatform);
   }
   applyLanguage();
