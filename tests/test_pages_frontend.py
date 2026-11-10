@@ -97,6 +97,12 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertNotIn("GitHub Releases 查看", self.html)
 
 
+    def test_release_copy_initialization_does_not_call_later_helpers(self) -> None:
+        start = self.html.index("  const releaseCopy=")
+        end = self.html.index("  const currentLocale=", start)
+        initializer = self.html[start:end]
+        self.assertNotIn("releaseText(", initializer)
+
     def test_release_loader_has_a_bound_release_list_container(self) -> None:
         self.assertIn('const list = document.getElementById("releaseList")', self.html)
         self.assertIn('if (!list) throw new Error("Release list container missing")', self.html)
