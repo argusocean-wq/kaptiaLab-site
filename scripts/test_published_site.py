@@ -1,5 +1,4 @@
 """Unit tests for the Pages post-deployment health checker; no network access."""
-import hashlib
 import io
 import json
 import unittest
@@ -59,7 +58,6 @@ class PublishedSiteTests(unittest.TestCase):
                 "file_name": "Kaptia-Setup.exe",
                 "tag_name": "v9.0.0",
                 "size_bytes": len(installer),
-                "sha256": hashlib.sha256(installer).hexdigest(),
             },
         })
         responses = [
@@ -72,9 +70,10 @@ class PublishedSiteTests(unittest.TestCase):
         with patch.object(checker, "urlopen", side_effect=responses):
             result = verify_deployed_site(base)
         self.assertEqual(set(result), {"html", "service_worker", "manifest", "releases", "installer"})
-        self.assertIn("SHA-256 match", result["installer"])
+        self.assertIn("Windows PE file present", result["installer"])
+        self.assertNotIn("SHA-256", result["installer"])
 
-    def test_installer_checksum_mismatch_fails_closed(self):
+    def test_installer_version_mismatch_fails_closed(self):
         base = "https://example.github.io/kaptia/"
         html = '<title>kaptiaLab</title><div id="releaseList"></div><button data-setup-open></button><dialog id="setupDialog"></dialog><select><option value="zh-TW"></option><option value="zh-CN"></option><option value="en"></option><option value="ja"></option><option value="ko"></option></select>'
         sw = 'const CACHE = "kaptia-pages-v18"; const NAVIGATION_TIMEOUT_MS = 8000;'
@@ -85,9 +84,7 @@ class PublishedSiteTests(unittest.TestCase):
             "downloadReady": True,
             "installer": {
                 "file_name": "Kaptia-Setup.exe",
-                "tag_name": "v9.0.0",
-                "size_bytes": len(installer),
-                "sha256": "0" * 64,
+                "tag_name": "v8.9.0",
             },
         })
         payloads = {
@@ -104,7 +101,7 @@ class PublishedSiteTests(unittest.TestCase):
 
         with patch.object(checker, "urlopen", side_effect=fake_urlopen):
             with patch.object(checker.time, "sleep"):
-                with self.assertRaisesRegex(RuntimeError, "SHA-256"):
+                with self.assertRaisesRegex(RuntimeError, "版本標籤"):
                     verify_deployed_site(base)
 
     def test_cross_host_redirect_is_rejected(self):
