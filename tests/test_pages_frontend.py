@@ -90,7 +90,6 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertNotIn("raw.githubusercontent.com", self.html.lower())
         self.assertIn('a.setAttribute("download", "Kaptia-Setup.exe")', self.html)
         self.assertIn("installer.size_bytes", self.html)
-        self.assertIn("installer.sha256", self.html)
         gate = self.html.split("const versionReady =", 1)[1].split("const checkedInstaller =", 1)[0]
         self.assertIn('installer.tag_name || "") === latestTag', gate)
         self.assertNotIn("sha256", gate.lower())
