@@ -295,9 +295,9 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
 
       const integrity = node("div", "release-integrity");
       integrity.appendChild(node("p", "release-meta", releaseText(8) + formatBytes(installerMetadata.size_bytes)));
-      integrity.appendChild(node("p", "release-meta", "SHA-256（下載後可比對）"));
+      integrity.appendChild(node("p", "release-meta", releaseText(9)));
       integrity.appendChild(node("code", "integrity-hash", installerMetadata.sha256));
-      integrity.appendChild(node("p", "release-meta", "Windows PowerShell 驗證指令（請按實際下載位置調整路徑）："));
+      integrity.appendChild(node("p", "release-meta", releaseText(10)));
       integrity.appendChild(node("code", "integrity-command", '(Get-FileHash -LiteralPath "$env:USERPROFILE\\Downloads\\Kaptia-Setup.exe" -Algorithm SHA256).Hash'));
       card.appendChild(integrity);
     }
@@ -497,6 +497,7 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     ".footer a:nth-of-type(1)",".footer a:nth-of-type(2)"
   ];
 
+  const localeLabels={"zh-TW":["個人 AI 助手","開始使用","步驟 01","步驟 02","步驟 03","隱私與控制","個人 AI 助手"],"zh-CN":["个人 AI 助手","开始使用","步骤 01","步骤 02","步骤 03","隐私与控制","个人 AI 助手"],"en":["PERSONAL ASSISTANT","GET STARTED","STEP 01","STEP 02","STEP 03","PRIVACY & CONTROL","Personal AI Assistant"],"ja":["パーソナルAIアシスタント","はじめに","ステップ 01","ステップ 02","ステップ 03","プライバシーと管理","パーソナルAIアシスタント"],"ko":["개인 AI 비서","시작하기","단계 01","단계 02","단계 03","개인정보 및 제어","개인 AI 비서"],"fr":["ASSISTANT PERSONNEL","BIEN DÉMARRER","ÉTAPE 01","ÉTAPE 02","ÉTAPE 03","CONFIDENTIALITÉ ET CONTRÔLE","Assistant IA personnel"],"de":["PERSÖNLICHER ASSISTENT","ERSTE SCHRITTE","SCHRITT 01","SCHRITT 02","SCHRITT 03","DATENSCHUTZ & KONTROLLE","Persönlicher KI-Assistent"],"es":["ASISTENTE PERSONAL","PRIMEROS PASOS","PASO 01","PASO 02","PASO 03","PRIVACIDAD Y CONTROL","Asistente personal de IA"],"pt-BR":["ASSISTENTE PESSOAL","COMECE AQUI","ETAPA 01","ETAPA 02","ETAPA 03","PRIVACIDADE E CONTROLE","Assistente pessoal de IA"],"it":["ASSISTENTE PERSONALE","PER INIZIARE","PASSAGGIO 01","PASSAGGIO 02","PASSAGGIO 03","PRIVACY E CONTROLLO","Assistente IA personale"],"ru":["ПЕРСОНАЛЬНЫЙ ПОМОЩНИК","НАЧАЛО РАБОТЫ","ШАГ 01","ШАГ 02","ШАГ 03","КОНФИДЕНЦИАЛЬНОСТЬ И УПРАВЛЕНИЕ","Персональный ИИ-помощник"],"ar":["مساعد شخصي","ابدأ الاستخدام","الخطوة 01","الخطوة 02","الخطوة 03","الخصوصية والتحكم","مساعد ذكاء اصطناعي شخصي"],"th":["ผู้ช่วยส่วนตัว","เริ่มต้นใช้งาน","ขั้นตอน 01","ขั้นตอน 02","ขั้นตอน 03","ความเป็นส่วนตัวและการควบคุม","ผู้ช่วย AI ส่วนตัว"],"vi":["TRỢ LÝ CÁ NHÂN","BẮT ĐẦU","BƯỚC 01","BƯỚC 02","BƯỚC 03","QUYỀN RIÊNG TƯ VÀ KIỂM SOÁT","Trợ lý AI cá nhân"],"id":["ASISTEN PRIBADI","MULAI","LANGKAH 01","LANGKAH 02","LANGKAH 03","PRIVASI & KONTROL","Asisten AI pribadi"]};
   function applySiteLanguage(lang){
     const values=siteCopy[lang]||siteCopy.en;
     siteSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node){if(index===5)node.innerHTML=values[index];else node.textContent=values[index]}});
@@ -504,6 +505,11 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     if(heroLead)heroLead.textContent=heroLeadCopy[lang]||heroLeadCopy.en;
     const details=siteDetails[lang]||siteDetails.en;
     siteDetailSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node)node.textContent=details[index]});
+    const labels=localeLabels[lang]||localeLabels.en;
+    const labelTargets=["#overview .eyebrow","#get-started .eyebrow","#get-started .step:nth-child(1) .num","#get-started .step:nth-child(2) .num","#get-started .step:nth-child(3) .num","#requirements .eyebrow"];
+    labelTargets.forEach((selector,index)=>{const node=document.querySelector(selector);if(node)node.textContent=labels[index]});
+    document.querySelectorAll(".hero-brand span:not(.hero-mark)").forEach(node=>{node.textContent="Kaptia · "+labels[6]});
+    document.querySelectorAll(".footer > span:first-child").forEach(node=>{const brand=node.querySelector(".notranslate");if(brand){node.textContent="";node.appendChild(brand);node.append(" · "+labels[6])}});
     document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
     if(languageTag)languageTag.value=lang;
   }
