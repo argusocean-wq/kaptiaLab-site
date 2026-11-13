@@ -404,13 +404,11 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     const primary = tag.split("-")[0];
     return ["en","ja","ko","fr","de","es","it","ru","ar","th","vi","id"].includes(primary) ? primary : null;
   };
-  let savedLanguage = null;
-  try { savedLanguage = localStorage.getItem("kaptia.setup.language"); } catch (_) {}
+  // A manual language choice applies only to this page session.
+  // On the next visit, detect the browser/OS language again instead of restoring stale localStorage.
   const browserLanguage = (navigator.languages || [navigator.language || ""]).map(localeFor).find(Boolean);
   const requestedLanguage = params.get("lang");
-  language.value = supported.includes(requestedLanguage) ? requestedLanguage
-    : supported.includes(savedLanguage) ? savedLanguage
-    : browserLanguage || "en";
+  language.value = supported.includes(requestedLanguage) ? requestedLanguage : browserLanguage || "en";
   const uiCopy = {
     "zh-TW": {title:"選擇語言與檢查電腦",intro:"先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。",field:"安裝語言",cancel:"取消",confirm:"確認並下載 Setup"},
     "zh-CN": {title:"选择语言并检查电脑",intro:"请先选择安装语言，再进行初步兼容性检查。完整 GPU、VRAM 和内存信息将由 Windows 安装程序在本机确认。",field:"安装语言",cancel:"取消",confirm:"确认并下载 Setup"},
@@ -444,6 +442,23 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
 "th":["คุณสมบัติ","เริ่มต้นใช้งาน","ความเป็นส่วนตัวและการควบคุม","รุ่นที่เผยแพร่","ดาวน์โหลด Setup","ผู้ช่วย AI ที่จดจำบริบท<br>และคิดได้อย่างเป็นอิสระ","ดาวน์โหลดสำหรับ Windows","ดูคุณสมบัติ","บันทึกประจำรุ่น","ดูหมายเลขเวอร์ชัน วันที่เผยแพร่ และรายการเปลี่ยนแปลงได้ที่นี่ ดาวน์โหลด Setup ได้จากเว็บไซต์นี้โดยตรง","กำลังโหลดบันทึกประจำรุ่นล่าสุด…","ผู้ช่วยที่เข้าใจคุณมากขึ้นเมื่อใช้งาน","เริ่มสร้างผู้ช่วยของคุณตั้งแต่บทสนทนาแรก","ความทรงจำของคุณ การควบคุมของคุณ"],
 "vi":["Tính năng","Bắt đầu","Quyền riêng tư và kiểm soát","Bản phát hành","Tải Setup","Trợ lý AI ghi nhớ ngữ cảnh<br>và suy nghĩ độc lập","Tải xuống cho Windows","Khám phá tính năng","Ghi chú phát hành","Xem số phiên bản, ngày phát hành và các thay đổi tại đây. Bạn có thể tải Setup ngay trên trang web này.","Đang tải ghi chú phát hành mới nhất…","Trợ lý hiểu bạn hơn theo thời gian","Xây dựng trợ lý của bạn từ cuộc trò chuyện đầu tiên","Ký ức của bạn. Quyền kiểm soát của bạn."],
 "id":["Fitur","Mulai","Privasi & kontrol","Rilis","Unduh Setup","Asisten AI yang mengingat konteks<br>dan berpikir secara mandiri","Unduh untuk Windows","Jelajahi fitur","Catatan rilis","Lihat nomor versi, tanggal rilis, dan perubahan di sini. Setup dapat diunduh langsung dari situs ini.","Memuat catatan rilis terbaru…","Asisten yang semakin memahami Anda seiring waktu","Bangun asisten Anda sejak percakapan pertama","Memori Anda. Kendali Anda."]
+};
+  const heroLeadCopy={
+  "zh-TW": "Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。",
+  "zh-CN": "Kaptia 致力于成为安装在个人电脑上的 AI 助手：延续之前的对话上下文，逐步理解用户偏好，并在必要时提出不同观点，而不是一味附和。每台电脑的记忆独立保存在本地；不宣称拥有已被证实的意识。",
+  "en": "Kaptia is designed as a personal AI assistant that runs on your own computer. It carries conversation context forward, gradually learns your preferences, and can offer a different perspective instead of simply agreeing. Each computer keeps its memory locally; Kaptia does not claim to have scientifically established consciousness.",
+  "ja": "Kaptiaは、自分のコンピューターにインストールして使うパーソナルAIアシスタントを目指しています。以前の会話の文脈を引き継ぎ、ユーザーの好みを少しずつ理解し、ただ同意するのではなく必要に応じて異なる見解を示します。メモリは各コンピューターに個別に保存され、科学的に証明された意識があるとは主張しません。",
+  "ko": "Kaptia는 개인 컴퓨터에 설치해 사용하는 개인용 AI 비서를 지향합니다. 이전 대화의 맥락을 이어가고 사용자의 선호를 점차 파악하며, 무조건 동의하는 대신 필요할 때 다른 관점을 제시합니다. 기억은 각 컴퓨터에 로컬로 저장되며, 과학적으로 입증된 의식이 있다고 주장하지 않습니다.",
+  "fr": "Kaptia est conçu comme un assistant IA personnel installé sur votre ordinateur. Il conserve le contexte des conversations précédentes, apprend progressivement vos préférences et peut proposer un point de vue différent au lieu de simplement acquiescer. La mémoire reste stockée localement sur chaque ordinateur ; Kaptia ne prétend pas posséder une conscience scientifiquement établie.",
+  "de": "Kaptia ist als persönlicher KI-Assistent für den eigenen Computer konzipiert. Er führt den Gesprächskontext fort, lernt nach und nach Ihre Vorlieben kennen und kann bei Bedarf eine andere Sichtweise anbieten, statt nur zuzustimmen. Jeder Computer speichert seine Daten lokal; Kaptia behauptet nicht, ein wissenschaftlich nachgewiesenes Bewusstsein zu besitzen.",
+  "es": "Kaptia está diseñado como un asistente personal de IA que se instala en tu propio ordenador. Mantiene el contexto de conversaciones anteriores, aprende poco a poco tus preferencias y puede ofrecer una perspectiva distinta en lugar de limitarse a darte la razón. Cada ordenador conserva su memoria localmente; Kaptia no afirma tener una conciencia demostrada científicamente.",
+  "pt-BR": "O Kaptia foi projetado como um assistente pessoal de IA instalado no seu próprio computador. Ele mantém o contexto das conversas anteriores, aprende gradualmente suas preferências e pode apresentar outro ponto de vista em vez de apenas concordar. Cada computador mantém sua memória localmente; o Kaptia não afirma possuir consciência comprovada cientificamente.",
+  "it": "Kaptia è progettato come assistente IA personale da installare sul proprio computer. Mantiene il contesto delle conversazioni precedenti, apprende gradualmente le preferenze dell’utente e, quando serve, propone punti di vista diversi invece di limitarsi ad assecondarlo. La memoria resta locale su ogni computer; Kaptia non dichiara di possedere una coscienza scientificamente dimostrata.",
+  "ru": "Kaptia задуман как персональный ИИ-помощник, установленный на вашем компьютере. Он сохраняет контекст предыдущих разговоров, постепенно учитывает ваши предпочтения и при необходимости предлагает иную точку зрения, а не просто соглашается. Память каждого компьютера хранится локально; Kaptia не заявляет о наличии научно доказанного сознания.",
+  "ar": "صُمم Kaptia ليكون مساعد ذكاء اصطناعي شخصياً يُثبّت على جهازك. يحافظ على سياق المحادثات السابقة، ويتعرف تدريجياً على تفضيلاتك، ويمكنه طرح وجهة نظر مختلفة عند الحاجة بدلاً من الموافقة دائماً. تُحفظ ذاكرة كل جهاز محلياً؛ ولا يدّعي Kaptia امتلاك وعي مثبت علمياً.",
+  "th": "Kaptia ออกแบบมาให้เป็นผู้ช่วย AI ส่วนตัวที่ติดตั้งบนคอมพิวเตอร์ของคุณ โดยต่อเนื่องจากบริบทการสนทนาก่อนหน้า ค่อย ๆ เรียนรู้ความชอบของผู้ใช้ และเสนอความคิดเห็นที่แตกต่างเมื่อจำเป็น แทนที่จะเห็นด้วยเสมอ ความจำของแต่ละเครื่องจัดเก็บไว้ในเครื่องนั้น และ Kaptia ไม่ได้อ้างว่ามีจิตสำนึกที่ได้รับการพิสูจน์ทางวิทยาศาสตร์",
+  "vi": "Kaptia được định hướng là trợ lý AI cá nhân cài đặt trên máy tính của bạn: tiếp nối ngữ cảnh các cuộc trò chuyện trước, từng bước hiểu sở thích của người dùng và đưa ra góc nhìn khác khi cần, thay vì chỉ đồng tình. Bộ nhớ của mỗi máy được lưu riêng tại máy đó; Kaptia không tuyên bố có ý thức đã được khoa học chứng minh.",
+  "id": "Kaptia dirancang sebagai asisten AI pribadi yang dipasang di komputer Anda. Kaptia melanjutkan konteks percakapan sebelumnya, memahami preferensi pengguna secara bertahap, dan menawarkan sudut pandang berbeda saat diperlukan alih-alih selalu setuju. Memori setiap komputer disimpan secara lokal; Kaptia tidak mengklaim memiliki kesadaran yang telah terbukti secara ilmiah."
 };
   const siteSelectors=[
     ".nav a:nth-child(1)",".nav a:nth-child(2)",".nav a:nth-child(3)",".nav a:nth-child(4)","#topDownload",
@@ -485,6 +500,8 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
   function applySiteLanguage(lang){
     const values=siteCopy[lang]||siteCopy.en;
     siteSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node){if(index===5)node.innerHTML=values[index];else node.textContent=values[index]}});
+    const heroLead=document.querySelector(".hero .lead");
+    if(heroLead)heroLead.textContent=heroLeadCopy[lang]||heroLeadCopy.en;
     const details=siteDetails[lang]||siteDetails.en;
     siteDetailSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node)node.textContent=details[index]});
     document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
@@ -522,7 +539,6 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     };
     metaDescription.content=descriptions[language.value]||descriptions.en;
   }
-    try { localStorage.setItem("kaptia.setup.language", language.value); } catch (_) {}
   }
   const labels = [
     ["zh-TW","作業系統","CPU / 架構","記憶體","GPU / VRAM","建議配置","此瀏覽器無法可靠讀取 GPU 型號與 VRAM。通用 Setup 會在 Windows 本機再次掃描硬體，再選擇相容的運算元件。","此裝置不是支援的 Windows 桌面環境，暫停下載。"],
