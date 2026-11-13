@@ -120,6 +120,35 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("VRAM", self.html)
         self.assertIn("通用 Setup", self.html)
 
+    def test_all_supported_locales_have_complete_visible_ui_dictionaries(self) -> None:
+        import json
+        expected = {"zh-TW", "zh-CN", "en", "ja", "ko", "fr", "de", "es", "pt-BR", "it", "ru", "ar", "th", "vi", "id"}
+        for name, end_marker in (
+            ("siteCopy", "const heroLeadCopy="),
+            ("heroLeadCopy", "const siteSelectors="),
+            ("siteDetails", "const siteDetailSelectors="),
+            ("localeLabels", "function applySiteLanguage"),
+            ("hardwareStatus", "const labels ="),
+        ):
+            start = self.html.index(f"const {name}=") + len(f"const {name}=")
+            end = self.html.index(end_marker, start)
+            raw = self.html[start:end].strip().rstrip(";")
+            data = json.loads(raw)
+            self.assertEqual(set(data), expected, f"{name} must cover all 15 supported locales")
+            self.assertTrue(all(isinstance(value, list) for value in data.values()), name)
+            lengths = {len(value) for value in data.values()}
+            self.assertEqual(len(lengths), 1, f"{name} has inconsistent translation-key counts")
+            self.assertGreater(next(iter(lengths)), 0, name)
+
+    def test_runtime_visible_statuses_and_accessibility_labels_are_localized(self) -> None:
+        self.assertIn('button.textContent = ready ? (id === "topDownload" ? pageCopy[4] : pageCopy[6])', self.html)
+        self.assertIn('warning.textContent = !installerReady ? H[12]', self.html)
+        self.assertIn('alert((hardwareStatus[language.value]||hardwareStatus.en)[13])', self.html)
+        self.assertIn('setAttribute("aria-label",labels[7])', self.html)
+        self.assertIn('setAttribute("aria-label",labels[8])', self.html)
+        self.assertIn('releaseText(9)', self.html)
+        self.assertIn('releaseText(10)', self.html)
+
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
         self.assertIn('navigator.serviceWorker.register("./sw.js"', self.html)
         self.assertIn("Offline caching is optional", self.html)

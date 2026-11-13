@@ -295,9 +295,9 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
 
       const integrity = node("div", "release-integrity");
       integrity.appendChild(node("p", "release-meta", releaseText(8) + formatBytes(installerMetadata.size_bytes)));
-      integrity.appendChild(node("p", "release-meta", "SHA-256（下載後可比對）"));
+      integrity.appendChild(node("p", "release-meta", releaseText(9)));
       integrity.appendChild(node("code", "integrity-hash", installerMetadata.sha256));
-      integrity.appendChild(node("p", "release-meta", "Windows PowerShell 驗證指令（請按實際下載位置調整路徑）："));
+      integrity.appendChild(node("p", "release-meta", releaseText(10)));
       integrity.appendChild(node("code", "integrity-command", '(Get-FileHash -LiteralPath "$env:USERPROFILE\\Downloads\\Kaptia-Setup.exe" -Algorithm SHA256).Hash'));
       card.appendChild(integrity);
     }
@@ -315,9 +315,9 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
       const button = document.getElementById(id);
       if (!button) continue;
       button.href = ready ? downloadUrl : "#release-announcements";
-      button.textContent = ready
-        ? (id === "topDownload" ? "下載安裝程式" : "下載 Windows 安裝程式")
-        : "目前無法下載";
+      const activeLocale=document.getElementById("languageTag")?.value||"en";
+      const pageCopy=siteCopy[activeLocale]||siteCopy.en;
+      button.textContent = ready ? (id === "topDownload" ? pageCopy[4] : pageCopy[6]) : (releaseCopy[activeLocale]||releaseCopy.en)[12];
       if (ready) button.setAttribute("download", "Kaptia-Setup.exe");
       else button.removeAttribute("download");
       button.setAttribute("aria-disabled", ready ? "false" : "true");
@@ -404,13 +404,11 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     const primary = tag.split("-")[0];
     return ["en","ja","ko","fr","de","es","it","ru","ar","th","vi","id"].includes(primary) ? primary : null;
   };
-  let savedLanguage = null;
-  try { savedLanguage = localStorage.getItem("kaptia.setup.language"); } catch (_) {}
+  // A manual language choice applies only to this page session.
+  // On the next visit, detect the browser/OS language again instead of restoring stale localStorage.
   const browserLanguage = (navigator.languages || [navigator.language || ""]).map(localeFor).find(Boolean);
   const requestedLanguage = params.get("lang");
-  language.value = supported.includes(requestedLanguage) ? requestedLanguage
-    : supported.includes(savedLanguage) ? savedLanguage
-    : browserLanguage || "en";
+  language.value = supported.includes(requestedLanguage) ? requestedLanguage : browserLanguage || "en";
   const uiCopy = {
     "zh-TW": {title:"選擇語言與檢查電腦",intro:"先選擇安裝語言，再進行初步相容性檢查。完整 GPU、VRAM 與記憶體資訊會由 Windows 安裝程式在本機確認。",field:"安裝語言",cancel:"取消",confirm:"確認並下載 Setup"},
     "zh-CN": {title:"选择语言并检查电脑",intro:"请先选择安装语言，再进行初步兼容性检查。完整 GPU、VRAM 和内存信息将由 Windows 安装程序在本机确认。",field:"安装语言",cancel:"取消",confirm:"确认并下载 Setup"},
@@ -444,6 +442,23 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
 "th":["คุณสมบัติ","เริ่มต้นใช้งาน","ความเป็นส่วนตัวและการควบคุม","รุ่นที่เผยแพร่","ดาวน์โหลด Setup","ผู้ช่วย AI ที่จดจำบริบท<br>และคิดได้อย่างเป็นอิสระ","ดาวน์โหลดสำหรับ Windows","ดูคุณสมบัติ","บันทึกประจำรุ่น","ดูหมายเลขเวอร์ชัน วันที่เผยแพร่ และรายการเปลี่ยนแปลงได้ที่นี่ ดาวน์โหลด Setup ได้จากเว็บไซต์นี้โดยตรง","กำลังโหลดบันทึกประจำรุ่นล่าสุด…","ผู้ช่วยที่เข้าใจคุณมากขึ้นเมื่อใช้งาน","เริ่มสร้างผู้ช่วยของคุณตั้งแต่บทสนทนาแรก","ความทรงจำของคุณ การควบคุมของคุณ"],
 "vi":["Tính năng","Bắt đầu","Quyền riêng tư và kiểm soát","Bản phát hành","Tải Setup","Trợ lý AI ghi nhớ ngữ cảnh<br>và suy nghĩ độc lập","Tải xuống cho Windows","Khám phá tính năng","Ghi chú phát hành","Xem số phiên bản, ngày phát hành và các thay đổi tại đây. Bạn có thể tải Setup ngay trên trang web này.","Đang tải ghi chú phát hành mới nhất…","Trợ lý hiểu bạn hơn theo thời gian","Xây dựng trợ lý của bạn từ cuộc trò chuyện đầu tiên","Ký ức của bạn. Quyền kiểm soát của bạn."],
 "id":["Fitur","Mulai","Privasi & kontrol","Rilis","Unduh Setup","Asisten AI yang mengingat konteks<br>dan berpikir secara mandiri","Unduh untuk Windows","Jelajahi fitur","Catatan rilis","Lihat nomor versi, tanggal rilis, dan perubahan di sini. Setup dapat diunduh langsung dari situs ini.","Memuat catatan rilis terbaru…","Asisten yang semakin memahami Anda seiring waktu","Bangun asisten Anda sejak percakapan pertama","Memori Anda. Kendali Anda."]
+};
+  const heroLeadCopy={
+  "zh-TW": "Kaptia 的方向是成為安裝在自己電腦上的個人 AI 助手：延續先前的對話脈絡、逐步理解使用者偏好，並在需要時提出不同看法，而不是只會附和。每台電腦的記憶獨立保存在本機；不宣稱具有已被證實的意識。",
+  "zh-CN": "Kaptia 致力于成为安装在个人电脑上的 AI 助手：延续之前的对话上下文，逐步理解用户偏好，并在必要时提出不同观点，而不是一味附和。每台电脑的记忆独立保存在本地；不宣称拥有已被证实的意识。",
+  "en": "Kaptia is designed as a personal AI assistant that runs on your own computer. It carries conversation context forward, gradually learns your preferences, and can offer a different perspective instead of simply agreeing. Each computer keeps its memory locally; Kaptia does not claim to have scientifically established consciousness.",
+  "ja": "Kaptiaは、自分のコンピューターにインストールして使うパーソナルAIアシスタントを目指しています。以前の会話の文脈を引き継ぎ、ユーザーの好みを少しずつ理解し、ただ同意するのではなく必要に応じて異なる見解を示します。メモリは各コンピューターに個別に保存され、科学的に証明された意識があるとは主張しません。",
+  "ko": "Kaptia는 개인 컴퓨터에 설치해 사용하는 개인용 AI 비서를 지향합니다. 이전 대화의 맥락을 이어가고 사용자의 선호를 점차 파악하며, 무조건 동의하는 대신 필요할 때 다른 관점을 제시합니다. 기억은 각 컴퓨터에 로컬로 저장되며, 과학적으로 입증된 의식이 있다고 주장하지 않습니다.",
+  "fr": "Kaptia est conçu comme un assistant IA personnel installé sur votre ordinateur. Il conserve le contexte des conversations précédentes, apprend progressivement vos préférences et peut proposer un point de vue différent au lieu de simplement acquiescer. La mémoire reste stockée localement sur chaque ordinateur ; Kaptia ne prétend pas posséder une conscience scientifiquement établie.",
+  "de": "Kaptia ist als persönlicher KI-Assistent für den eigenen Computer konzipiert. Er führt den Gesprächskontext fort, lernt nach und nach Ihre Vorlieben kennen und kann bei Bedarf eine andere Sichtweise anbieten, statt nur zuzustimmen. Jeder Computer speichert seine Daten lokal; Kaptia behauptet nicht, ein wissenschaftlich nachgewiesenes Bewusstsein zu besitzen.",
+  "es": "Kaptia está diseñado como un asistente personal de IA que se instala en tu propio ordenador. Mantiene el contexto de conversaciones anteriores, aprende poco a poco tus preferencias y puede ofrecer una perspectiva distinta en lugar de limitarse a darte la razón. Cada ordenador conserva su memoria localmente; Kaptia no afirma tener una conciencia demostrada científicamente.",
+  "pt-BR": "O Kaptia foi projetado como um assistente pessoal de IA instalado no seu próprio computador. Ele mantém o contexto das conversas anteriores, aprende gradualmente suas preferências e pode apresentar outro ponto de vista em vez de apenas concordar. Cada computador mantém sua memória localmente; o Kaptia não afirma possuir consciência comprovada cientificamente.",
+  "it": "Kaptia è progettato come assistente IA personale da installare sul proprio computer. Mantiene il contesto delle conversazioni precedenti, apprende gradualmente le preferenze dell’utente e, quando serve, propone punti di vista diversi invece di limitarsi ad assecondarlo. La memoria resta locale su ogni computer; Kaptia non dichiara di possedere una coscienza scientificamente dimostrata.",
+  "ru": "Kaptia задуман как персональный ИИ-помощник, установленный на вашем компьютере. Он сохраняет контекст предыдущих разговоров, постепенно учитывает ваши предпочтения и при необходимости предлагает иную точку зрения, а не просто соглашается. Память каждого компьютера хранится локально; Kaptia не заявляет о наличии научно доказанного сознания.",
+  "ar": "صُمم Kaptia ليكون مساعد ذكاء اصطناعي شخصياً يُثبّت على جهازك. يحافظ على سياق المحادثات السابقة، ويتعرف تدريجياً على تفضيلاتك، ويمكنه طرح وجهة نظر مختلفة عند الحاجة بدلاً من الموافقة دائماً. تُحفظ ذاكرة كل جهاز محلياً؛ ولا يدّعي Kaptia امتلاك وعي مثبت علمياً.",
+  "th": "Kaptia ออกแบบมาให้เป็นผู้ช่วย AI ส่วนตัวที่ติดตั้งบนคอมพิวเตอร์ของคุณ โดยต่อเนื่องจากบริบทการสนทนาก่อนหน้า ค่อย ๆ เรียนรู้ความชอบของผู้ใช้ และเสนอความคิดเห็นที่แตกต่างเมื่อจำเป็น แทนที่จะเห็นด้วยเสมอ ความจำของแต่ละเครื่องจัดเก็บไว้ในเครื่องนั้น และ Kaptia ไม่ได้อ้างว่ามีจิตสำนึกที่ได้รับการพิสูจน์ทางวิทยาศาสตร์",
+  "vi": "Kaptia được định hướng là trợ lý AI cá nhân cài đặt trên máy tính của bạn: tiếp nối ngữ cảnh các cuộc trò chuyện trước, từng bước hiểu sở thích của người dùng và đưa ra góc nhìn khác khi cần, thay vì chỉ đồng tình. Bộ nhớ của mỗi máy được lưu riêng tại máy đó; Kaptia không tuyên bố có ý thức đã được khoa học chứng minh.",
+  "id": "Kaptia dirancang sebagai asisten AI pribadi yang dipasang di komputer Anda. Kaptia melanjutkan konteks percakapan sebelumnya, memahami preferensi pengguna secara bertahap, dan menawarkan sudut pandang berbeda saat diperlukan alih-alih selalu setuju. Memori setiap komputer disimpan secara lokal; Kaptia tidak mengklaim memiliki kesadaran yang telah terbukti secara ilmiah."
 };
   const siteSelectors=[
     ".nav a:nth-child(1)",".nav a:nth-child(2)",".nav a:nth-child(3)",".nav a:nth-child(4)","#topDownload",
@@ -482,11 +497,21 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     ".footer a:nth-of-type(1)",".footer a:nth-of-type(2)"
   ];
 
+  const localeLabels={"zh-TW":["個人 AI 助手","開始使用","步驟 01","步驟 02","步驟 03","隱私與控制","個人 AI 助手","網站語言","主要導覽"],"zh-CN":["个人 AI 助手","开始使用","步骤 01","步骤 02","步骤 03","隐私与控制","个人 AI 助手","网站语言","主要导航"],"en":["PERSONAL ASSISTANT","GET STARTED","STEP 01","STEP 02","STEP 03","PRIVACY & CONTROL","Personal AI Assistant","Website language","Main navigation"],"ja":["パーソナルAIアシスタント","はじめに","ステップ 01","ステップ 02","ステップ 03","プライバシーと管理","パーソナルAIアシスタント","ウェブサイトの言語","メインナビゲーション"],"ko":["개인 AI 비서","시작하기","단계 01","단계 02","단계 03","개인정보 및 제어","개인 AI 비서","웹사이트 언어","주요 탐색"],"fr":["ASSISTANT PERSONNEL","BIEN DÉMARRER","ÉTAPE 01","ÉTAPE 02","ÉTAPE 03","CONFIDENTIALITÉ ET CONTRÔLE","Assistant IA personnel","Langue du site","Navigation principale"],"de":["PERSÖNLICHER ASSISTENT","ERSTE SCHRITTE","SCHRITT 01","SCHRITT 02","SCHRITT 03","DATENSCHUTZ & KONTROLLE","Persönlicher KI-Assistent","Websitesprache","Hauptnavigation"],"es":["ASISTENTE PERSONAL","PRIMEROS PASOS","PASO 01","PASO 02","PASO 03","PRIVACIDAD Y CONTROL","Asistente personal de IA","Idioma del sitio web","Navegación principal"],"pt-BR":["ASSISTENTE PESSOAL","COMECE AQUI","ETAPA 01","ETAPA 02","ETAPA 03","PRIVACIDADE E CONTROLE","Assistente pessoal de IA","Idioma do site","Navegação principal"],"it":["ASSISTENTE PERSONALE","PER INIZIARE","PASSAGGIO 01","PASSAGGIO 02","PASSAGGIO 03","PRIVACY E CONTROLLO","Assistente IA personale","Lingua del sito","Navigazione principale"],"ru":["ПЕРСОНАЛЬНЫЙ ПОМОЩНИК","НАЧАЛО РАБОТЫ","ШАГ 01","ШАГ 02","ШАГ 03","КОНФИДЕНЦИАЛЬНОСТЬ И УПРАВЛЕНИЕ","Персональный ИИ-помощник","Язык сайта","Основная навигация"],"ar":["مساعد شخصي","ابدأ الاستخدام","الخطوة 01","الخطوة 02","الخطوة 03","الخصوصية والتحكم","مساعد ذكاء اصطناعي شخصي","لغة الموقع","التنقل الرئيسي"],"th":["ผู้ช่วยส่วนตัว","เริ่มต้นใช้งาน","ขั้นตอน 01","ขั้นตอน 02","ขั้นตอน 03","ความเป็นส่วนตัวและการควบคุม","ผู้ช่วย AI ส่วนตัว","ภาษาของเว็บไซต์","เมนูหลัก"],"vi":["TRỢ LÝ CÁ NHÂN","BẮT ĐẦU","BƯỚC 01","BƯỚC 02","BƯỚC 03","QUYỀN RIÊNG TƯ VÀ KIỂM SOÁT","Trợ lý AI cá nhân","Ngôn ngữ trang web","Điều hướng chính"],"id":["ASISTEN PRIBADI","MULAI","LANGKAH 01","LANGKAH 02","LANGKAH 03","PRIVASI & KONTROL","Asisten AI pribadi","Bahasa situs web","Navigasi utama"]};
   function applySiteLanguage(lang){
     const values=siteCopy[lang]||siteCopy.en;
     siteSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node){if(index===5)node.innerHTML=values[index];else node.textContent=values[index]}});
+    const heroLead=document.querySelector(".hero .lead");
+    if(heroLead)heroLead.textContent=heroLeadCopy[lang]||heroLeadCopy.en;
     const details=siteDetails[lang]||siteDetails.en;
     siteDetailSelectors.forEach((selector,index)=>{const node=document.querySelector(selector);if(node)node.textContent=details[index]});
+    const labels=localeLabels[lang]||localeLabels.en;
+    const labelTargets=["#overview .eyebrow","#get-started .eyebrow","#get-started .step:nth-child(1) .num","#get-started .step:nth-child(2) .num","#get-started .step:nth-child(3) .num","#requirements .eyebrow"];
+    labelTargets.forEach((selector,index)=>{const node=document.querySelector(selector);if(node)node.textContent=labels[index]});
+    document.getElementById("languageTag")?.setAttribute("aria-label",labels[7]);
+    document.querySelector(".nav")?.setAttribute("aria-label",labels[8]);
+    document.querySelectorAll(".hero-brand span:not(.hero-mark)").forEach(node=>{node.textContent="Kaptia · "+labels[6]});
+    document.querySelectorAll(".footer > span:first-child").forEach(node=>{const brand=node.querySelector(".notranslate");if(brand){node.textContent="";node.appendChild(brand);node.append(" · "+labels[6])}});
     document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
     if(languageTag)languageTag.value=lang;
   }
@@ -522,8 +547,8 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     };
     metaDescription.content=descriptions[language.value]||descriptions.en;
   }
-    try { localStorage.setItem("kaptia.setup.language", language.value); } catch (_) {}
   }
+  const hardwareStatus={"zh-TW":["未知","無法確認","通用相容模式","高資源候選（仍需本機 GPU 驗證）","標準候選（仍需本機 GPU 驗證）","低資源候選（建議輕量配置）","無法由瀏覽器取得","約 "," GB（瀏覽器估計）","安裝時由 Windows 本機確認","Windows","非 Windows / 未確認","尚未通過版本驗證，暫停下載。","請使用支援 HTML Dialog 的新版瀏覽器。"],"zh-CN":["未知","无法确认","通用兼容模式","高资源候选（仍需本机 GPU 验证）","标准候选（仍需本机 GPU 验证）","低资源候选（建议轻量配置）","浏览器无法获取","约 "," GB（浏览器估算）","安装时由 Windows 本机确认","Windows","非 Windows / 未确认","尚未通过版本验证，暂停下载。","请使用支持 HTML Dialog 的新版浏览器。"],"en":["Unknown","Unavailable","General compatibility mode","High-resource candidate (local GPU check required)","Standard candidate (local GPU check required)","Low-resource candidate (lightweight profile recommended)","Unavailable in browser","About "," GB (browser estimate)","Verified locally by Windows during setup","Windows","Non-Windows / unconfirmed","Version verification has not passed. Download is paused.","Please use a modern browser that supports HTML dialogs."],"ja":["不明","確認できません","汎用互換モード","高リソース候補（GPU のローカル確認が必要）","標準候補（GPU のローカル確認が必要）","低リソース候補（軽量構成を推奨）","ブラウザーから取得できません","約 "," GB（ブラウザーによる推定）","インストール時に Windows がローカルで確認","Windows","Windows 以外 / 未確認","バージョン検証に合格していません。ダウンロードを停止しました。","HTML Dialog に対応した最新のブラウザーを使用してください。"],"ko":["알 수 없음","확인할 수 없음","일반 호환 모드","고사양 후보(로컬 GPU 확인 필요)","표준 후보(로컬 GPU 확인 필요)","저사양 후보(경량 구성 권장)","브라우저에서 가져올 수 없음","약 "," GB(브라우저 추정)","설치 중 Windows에서 로컬 확인","Windows","Windows 이외 / 미확인","버전 검증을 통과하지 못했습니다. 다운로드가 중지되었습니다.","HTML Dialog를 지원하는 최신 브라우저를 사용하세요."],"fr":["Inconnu","Indisponible","Mode de compatibilité général","Profil haute performance candidat (vérification GPU locale requise)","Profil standard candidat (vérification GPU locale requise)","Profil léger candidat (configuration légère recommandée)","Indisponible dans le navigateur","Environ "," Go (estimation du navigateur)","Vérifié localement par Windows pendant l’installation","Windows","Non-Windows / non confirmé","La vérification de version a échoué. Téléchargement suspendu.","Veuillez utiliser un navigateur récent prenant en charge HTML Dialog."],"de":["Unbekannt","Nicht verfügbar","Allgemeiner Kompatibilitätsmodus","Kandidat für hohe Ressourcen (lokale GPU-Prüfung erforderlich)","Standardkandidat (lokale GPU-Prüfung erforderlich)","Kandidat für geringe Ressourcen (leichtes Profil empfohlen)","Im Browser nicht verfügbar","Etwa "," GB (Browserschätzung)","Wird während der Installation lokal von Windows geprüft","Windows","Nicht-Windows / unbestätigt","Versionsprüfung nicht bestanden. Download angehalten.","Bitte verwenden Sie einen aktuellen Browser mit Unterstützung für HTML Dialog."],"es":["Desconocido","No disponible","Modo de compatibilidad general","Candidato de alto rendimiento (requiere verificación local de GPU)","Candidato estándar (requiere verificación local de GPU)","Candidato de bajo consumo (se recomienda un perfil ligero)","No disponible en el navegador","Aprox. "," GB (estimación del navegador)","Verificado localmente por Windows durante la instalación","Windows","No Windows / sin confirmar","La verificación de versión no se ha superado. Descarga pausada.","Utiliza un navegador moderno compatible con HTML Dialog."],"pt-BR":["Desconhecido","Indisponível","Modo de compatibilidade geral","Candidato de alto desempenho (requer verificação local da GPU)","Candidato padrão (requer verificação local da GPU)","Candidato de baixo desempenho (perfil leve recomendado)","Indisponível no navegador","Aprox. "," GB (estimativa do navegador)","Verificado localmente pelo Windows durante a instalação","Windows","Não Windows / não confirmado","A verificação da versão não foi aprovada. Download pausado.","Use um navegador moderno compatível com HTML Dialog."],"it":["Sconosciuto","Non disponibile","Modalità di compatibilità generale","Profilo ad alte risorse candidato (richiede verifica GPU locale)","Profilo standard candidato (richiede verifica GPU locale)","Profilo a basse risorse candidato (profilo leggero consigliato)","Non disponibile nel browser","Circa "," GB (stima del browser)","Verificato localmente da Windows durante l’installazione","Windows","Non-Windows / non confermato","Verifica della versione non superata. Download sospeso.","Usa un browser moderno che supporti HTML Dialog."],"ru":["Неизвестно","Не удалось определить","Общий режим совместимости","Кандидат для мощного оборудования (требуется локальная проверка GPU)","Стандартный вариант (требуется локальная проверка GPU)","Вариант для слабого оборудования (рекомендуется облегчённая конфигурация)","Недоступно в браузере","Около "," ГБ (оценка браузера)","Проверяется локально Windows во время установки","Windows","Не Windows / не подтверждено","Проверка версии не пройдена. Загрузка приостановлена.","Используйте современный браузер с поддержкой HTML Dialog."],"ar":["غير معروف","غير متاح","وضع التوافق العام","مرشح للأجهزة عالية الموارد (يلزم فحص GPU محلياً)","مرشح قياسي (يلزم فحص GPU محلياً)","مرشح للأجهزة محدودة الموارد (يوصى بإعداد خفيف)","غير متاح في المتصفح","حوالي "," جيجابايت (تقدير المتصفح)","يتحقق Windows محلياً أثناء التثبيت","Windows","ليس Windows / غير مؤكد","لم ينجح التحقق من الإصدار. تم إيقاف التنزيل.","يرجى استخدام متصفح حديث يدعم HTML Dialog."],"th":["ไม่ทราบ","ไม่สามารถยืนยันได้","โหมดความเข้ากันได้ทั่วไป","ตัวเลือกสำหรับทรัพยากรสูง (ต้องตรวจสอบ GPU ในเครื่อง)","ตัวเลือกมาตรฐาน (ต้องตรวจสอบ GPU ในเครื่อง)","ตัวเลือกสำหรับทรัพยากรต่ำ (แนะนำการตั้งค่าแบบเบา)","เบราว์เซอร์ไม่สามารถอ่านได้","ประมาณ "," GB (ค่าประมาณจากเบราว์เซอร์)","Windows จะตรวจสอบในเครื่องระหว่างติดตั้ง","Windows","ไม่ใช่ Windows / ยังไม่ยืนยัน","ยังไม่ผ่านการตรวจสอบเวอร์ชัน จึงหยุดดาวน์โหลด","โปรดใช้เบราว์เซอร์รุ่นใหม่ที่รองรับ HTML Dialog"],"vi":["Không xác định","Không thể xác nhận","Chế độ tương thích chung","Ứng viên cấu hình cao (cần kiểm tra GPU tại máy)","Ứng viên tiêu chuẩn (cần kiểm tra GPU tại máy)","Ứng viên cấu hình thấp (khuyến nghị cấu hình nhẹ)","Trình duyệt không thể truy xuất","Khoảng "," GB (ước tính từ trình duyệt)","Windows sẽ xác minh trực tiếp trên máy khi cài đặt","Windows","Không phải Windows / chưa xác nhận","Chưa vượt qua xác minh phiên bản. Đã tạm dừng tải xuống.","Vui lòng sử dụng trình duyệt hiện đại hỗ trợ HTML Dialog."],"id":["Tidak diketahui","Tidak dapat dipastikan","Mode kompatibilitas umum","Kandidat sumber daya tinggi (perlu pemeriksaan GPU lokal)","Kandidat standar (perlu pemeriksaan GPU lokal)","Kandidat sumber daya rendah (profil ringan disarankan)","Tidak tersedia dari browser","Sekitar "," GB (perkiraan browser)","Diverifikasi secara lokal oleh Windows saat instalasi","Windows","Non-Windows / belum dikonfirmasi","Verifikasi versi belum lulus. Unduhan dijeda.","Gunakan browser modern yang mendukung HTML Dialog."]};
   const labels = [
     ["zh-TW","作業系統","CPU / 架構","記憶體","GPU / VRAM","建議配置","此瀏覽器無法可靠讀取 GPU 型號與 VRAM。通用 Setup 會在 Windows 本機再次掃描硬體，再選擇相容的運算元件。","此裝置不是支援的 Windows 桌面環境，暫停下載。"],
     ["zh-CN","操作系统","CPU / 架构","内存","GPU / VRAM","建议配置","此浏览器无法可靠读取 GPU 型号与 VRAM。通用 Setup 会在 Windows 本机再次扫描硬件，再选择兼容的计算组件。","此设备不是受支持的 Windows 桌面环境，已暂停下载。"],
@@ -547,7 +572,8 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     const ua = navigator.userAgent || "";
     const platform = navigator.userAgentData?.platform || navigator.platform || "";
     const isWindows = /Windows/i.test(platform) || /Windows NT/i.test(ua);
-    let architecture = "未知";
+    const H=hardwareStatus[language.value]||hardwareStatus.en;
+    let architecture = H[0];
     let bitness = "";
     try {
       if (navigator.userAgentData?.getHighEntropyValues) {
@@ -559,20 +585,20 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     const cpuCores = Number(navigator.hardwareConcurrency) || 0;
     const ramGB = Number(navigator.deviceMemory) || 0;
     const archLabel = architecture === "x86" ? "x86" : architecture === "arm" ? "ARM" : architecture;
-    const archText = (archLabel === "未知" ? "無法確認" : archLabel) + (bitness ? " / "+bitness+" bit" : "");
-    let profile = "通用相容模式";
-    if (ramGB >= 24 && cpuCores >= 8) profile = "高資源候選（仍需本機 GPU 驗證）";
-    else if (ramGB >= 12 && cpuCores >= 4) profile = "標準候選（仍需本機 GPU 驗證）";
-    else if (ramGB > 0 || cpuCores > 0) profile = "低資源候選（建議輕量配置）";
-    const memoryText = ramGB ? "約 "+ramGB+" GB（瀏覽器估計）" : "無法由瀏覽器取得";
-    hardware.innerHTML = row(L[1],isWindows?"Windows":"非 Windows / 未確認")
+    const archText = (archLabel === H[0] ? H[1] : archLabel) + (bitness ? " / "+bitness+" bit" : "");
+    let profile = H[2];
+    if (ramGB >= 24 && cpuCores >= 8) profile = H[3];
+    else if (ramGB >= 12 && cpuCores >= 4) profile = H[4];
+    else if (ramGB > 0 || cpuCores > 0) profile = H[5];
+    const memoryText = ramGB ? H[7]+ramGB+H[8] : H[6];
+    hardware.innerHTML = row(L[1],isWindows?H[10]:H[11])
       + row(L[2],archText+(cpuCores?" · "+cpuCores+" logical cores":""))
       + row(L[3],memoryText)
-      + row(L[4],"安裝時由 Windows 本機確認")
+      + row(L[4],H[9])
       + row(L[5],profile);
     const supportedPlatform = installerReady && isWindows && (architecture === "x86" || architecture === "x86_64" || architecture === "amd64" || architecture === "未知");
     confirm.disabled = !supportedPlatform;
-    warning.textContent = !installerReady ? "尚未通過版本驗證，暫停下載。" : (supportedPlatform ? L[6] : L[7]);
+    warning.textContent = !installerReady ? H[12] : (supportedPlatform ? L[6] : L[7]);
     warning.dataset.supported = String(supportedPlatform);
   }
   applyLanguage();
@@ -580,7 +606,7 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
   function openDialog(){
     inspect();
     if (typeof dialog.showModal === "function") dialog.showModal();
-    else alert("請使用支援 HTML Dialog 的新版瀏覽器。");
+    else alert((hardwareStatus[language.value]||hardwareStatus.en)[13]);
   }
   document.querySelectorAll("[data-setup-open]").forEach(el=>el.addEventListener("click",openDialog));
   document.getElementById("setupCancel").addEventListener("click",()=>dialog.close());
