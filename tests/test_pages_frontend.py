@@ -138,6 +138,7 @@ class PagesFrontendTests(unittest.TestCase):
             ("localeLabels", "const cardIndexCopy="),
             ("hardwareStatus", "const labels ="),
             ("cardIndexCopy", "function applySiteLanguage"),
+            ("releaseCopy", "const currentLocale="),
         )
         for name, end_marker in dictionaries:
             start = self.html.index(f"const {name}=") + len(f"const {name}=")
@@ -173,6 +174,11 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn('setAttribute("aria-label",labels[8])', self.html)
         self.assertIn("releaseText(9)", self.html)
         self.assertIn("releaseText(10)", self.html)
+        self.assertIn('release.notes_by_locale[currentLocale()]', self.html)
+        self.assertIn('releaseText(15)', self.html)
+        self.assertIn('document.title = "Kaptia — "+labels[6]', self.html)
+        self.assertIn('setupLabel.textContent = "Kaptia · "+labels[9]', self.html)
+        self.assertNotIn("release.body.trim().slice", self.html)
 
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
         self.assertIn('navigator.serviceWorker.register("./sw.js"', self.html)
