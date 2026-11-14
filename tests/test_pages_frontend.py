@@ -116,6 +116,9 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("navigator.hardwareConcurrency", self.html)
         self.assertIn('url.searchParams.set("lang",lang)', self.html)
         self.assertIn("VRAM", self.html)
+        self.assertIn('architecture === H[0]', self.html)
+        self.assertIn('"+H[14]', self.html)
+        self.assertIn('"+H[15]', self.html)
         self.assertIn("通用 Setup", self.html)
 
     def test_all_supported_locales_have_complete_visible_ui_dictionaries(self) -> None:
@@ -131,6 +134,7 @@ class PagesFrontendTests(unittest.TestCase):
             ("siteDetails", "const siteDetailSelectors="),
             ("localeLabels", "function applySiteLanguage"),
             ("hardwareStatus", "const labels ="),
+            ("cardIndexCopy", "function applySiteLanguage"),
         )
         for name, end_marker in dictionaries:
             start = self.html.index(f"const {name}=") + len(f"const {name}=")
