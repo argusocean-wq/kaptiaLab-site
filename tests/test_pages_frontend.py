@@ -132,7 +132,7 @@ class PagesFrontendTests(unittest.TestCase):
             ("siteCopy", "const heroLeadCopy="),
             ("heroLeadCopy", "const siteSelectors="),
             ("siteDetails", "const siteDetailSelectors="),
-            ("localeLabels", "function applySiteLanguage"),
+            ("localeLabels", "const cardIndexCopy="),
             ("hardwareStatus", "const labels ="),
             ("cardIndexCopy", "function applySiteLanguage"),
         )
