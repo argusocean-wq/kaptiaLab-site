@@ -120,6 +120,9 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn('"+H[14]', self.html)
         self.assertIn('"+H[15]', self.html)
         self.assertIn("通用 Setup", self.html)
+        self.assertIn("const browserLanguage = (navigator.languages", self.html)
+        self.assertNotIn('localStorage.getItem("kaptia.setup.language")', self.html)
+        self.assertNotIn('localStorage.setItem("kaptia.setup.language"', self.html)
 
     def test_all_supported_locales_have_complete_visible_ui_dictionaries(self) -> None:
         import json
