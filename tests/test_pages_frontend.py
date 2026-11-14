@@ -11,6 +11,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 HTML_PATH = ROOT / "index.html"
 SW_PATH = ROOT / "sw.js"
+RELEASE_NOTES_PATH = ROOT / "release-notes.json"
+PAGES_WORKFLOW_PATH = ROOT / ".github" / "workflows" / "pages.yml"
 
 
 class PageParser(HTMLParser):
@@ -45,6 +47,9 @@ class PagesFrontendTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.html = HTML_PATH.read_text(encoding="utf-8")
         cls.sw = SW_PATH.read_text(encoding="utf-8")
+        import json
+        cls.release_notes = json.loads(RELEASE_NOTES_PATH.read_text(encoding="utf-8"))
+        cls.pages_workflow = PAGES_WORKFLOW_PATH.read_text(encoding="utf-8")
         cls.parser = PageParser()
         cls.parser.feed(cls.html)
         cls.parser.close()
@@ -180,6 +185,23 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn('setupLabel.textContent = "Kaptia · "+labels[9]', self.html)
         self.assertIn('releaseEyebrow.textContent=labels[10]', self.html)
         self.assertNotIn("release.body.trim().slice", self.html)
+
+    def test_published_release_notes_cover_all_locales_and_are_injected(self) -> None:
+        expected = {
+            "zh-TW", "zh-CN", "en", "ja", "ko", "fr", "de", "es",
+            "pt-BR", "it", "ru", "ar", "th", "vi", "id",
+        }
+        self.assertGreaterEqual(len(self.release_notes), 5)
+        for tag, translations in self.release_notes.items():
+            self.assertTrue(tag)
+            self.assertEqual(set(translations), expected, f"{tag} must cover all supported locales")
+            for locale, text in translations.items():
+                self.assertIsInstance(text, str)
+                self.assertTrue(text.strip(), f"{tag}/{locale} is empty")
+                self.assertNotIn("{sha}", text)
+        self.assertIn('release-notes.json', self.pages_workflow)
+        self.assertIn('notes_by_locale:', self.pages_workflow)
+        self.assertIn('release.notes_by_locale[currentLocale()]', self.html)
 
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
         self.assertIn('navigator.serviceWorker.register("./sw.js"', self.html)
