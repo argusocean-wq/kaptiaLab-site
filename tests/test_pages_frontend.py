@@ -178,6 +178,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn('releaseText(15)', self.html)
         self.assertIn('document.title = "Kaptia — "+labels[6]', self.html)
         self.assertIn('setupLabel.textContent = "Kaptia · "+labels[9]', self.html)
+        self.assertIn('releaseEyebrow.textContent=labels[10]', self.html)
         self.assertNotIn("release.body.trim().slice", self.html)
 
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
