@@ -96,7 +96,8 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("installer.size_bytes", self.html)
         gate = self.html.split("const versionReady =", 1)[1].split("const checkedInstaller =", 1)[0]
         self.assertIn('installer.tag_name || "") === latestTag', gate)
-        self.assertNotIn("sha256", gate.lower())
+        self.assertIn("installer.sha256", gate)
+        self.assertIn("/^[a-f0-9]{64}$/i.test(installer.sha256)", gate)
         self.assertIn("為避免提供未驗證檔案，下載已暫停", self.html)
         self.assertNotIn("GitHub Releases 查看", self.html)
 
