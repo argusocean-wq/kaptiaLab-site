@@ -79,7 +79,7 @@ jobs:
 
           # Publish version information as same-origin JSON; never expose GitHub release URLs to visitors.
           all_releases="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=10")"
-          published="$(jq '[.[] | select(.draft == false and .published_at != null) | {name: (.name // .tag_name), tag_name, published_at, body: (.body // "")}]' <<< "$all_releases")"
+          published="$(jq '[.[] | select(.draft == false and .published_at != null) | {name: (.name // .tag_name), tag_name, published_at, body: (.body // "")}] | sort_by(.published_at) | reverse' <<< "$all_releases")"
           release_translations='{}'
           if [[ -f release-notes.json ]]; then
             release_translations="$(cat release-notes.json)"
