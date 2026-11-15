@@ -327,7 +327,9 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
         && latestTag.length > 0
         && String(installer.tag_name || "") === latestTag
         && Number.isSafeInteger(installer.size_bytes)
-        && installer.size_bytes > 1024;
+        && installer.size_bytes > 1024
+        && typeof installer.sha256 === "string"
+        && /^[a-f0-9]{64}$/i.test(installer.sha256);
       const checkedInstaller = versionReady ? installer : null;
       const fragment = document.createDocumentFragment();
       data.releases.slice(0, 5).forEach((release, index) => {
