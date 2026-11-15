@@ -26,6 +26,8 @@ on:
       - "manifest.webmanifest"
       - "sw.js"
       - "tests/test_pages_frontend.py"
+      - "scripts/test_published_site.py"
+      - "scripts/check_published_site.py"
       - ".nojekyll"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
