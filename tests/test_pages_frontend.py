@@ -11,6 +11,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 HTML_PATH = ROOT / "index.html"
 SW_PATH = ROOT / "sw.js"
+RELEASE_NOTES_PATH = ROOT / "release-notes.json"
+PAGES_WORKFLOW_PATH = ROOT / ".github" / "workflows" / "pages.yml"
 
 
 class PageParser(HTMLParser):
@@ -45,6 +47,9 @@ class PagesFrontendTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.html = HTML_PATH.read_text(encoding="utf-8")
         cls.sw = SW_PATH.read_text(encoding="utf-8")
+        import json
+        cls.release_notes = json.loads(RELEASE_NOTES_PATH.read_text(encoding="utf-8"))
+        cls.pages_workflow = PAGES_WORKFLOW_PATH.read_text(encoding="utf-8")
         cls.parser = PageParser()
         cls.parser.feed(cls.html)
         cls.parser.close()
@@ -76,7 +81,6 @@ class PagesFrontendTests(unittest.TestCase):
                     f"{filename} has a JavaScript syntax error:\\n{result.stderr}",
                 )
 
-
     def test_removed_background_interactions_stay_disabled(self) -> None:
         self.assertNotIn('id="interactiveBackground"', self.html)
         self.assertNotIn("pointermove", self.html)
@@ -92,10 +96,10 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("installer.size_bytes", self.html)
         gate = self.html.split("const versionReady =", 1)[1].split("const checkedInstaller =", 1)[0]
         self.assertIn('installer.tag_name || "") === latestTag', gate)
-        self.assertNotIn("sha256", gate.lower())
+        self.assertIn("installer.sha256", gate)
+        self.assertIn("/^[a-f0-9]{64}$/i.test(installer.sha256)", gate)
         self.assertIn("為避免提供未驗證檔案，下載已暫停", self.html)
         self.assertNotIn("GitHub Releases 查看", self.html)
-
 
     def test_release_copy_initialization_does_not_call_later_helpers(self) -> None:
         start = self.html.index("  const releaseCopy=")
@@ -112,13 +116,95 @@ class PagesFrontendTests(unittest.TestCase):
         for locale in ("zh-TW", "zh-CN", "en", "ja", "ko"):
             self.assertIn(f'value="{locale}"', self.html)
         self.assertIn('id="setupDialog"', self.html)
-        self.assertIn('data-setup-open', self.html)
-        self.assertIn('navigator.userAgentData.getHighEntropyValues', self.html)
-        self.assertIn('navigator.deviceMemory', self.html)
-        self.assertIn('navigator.hardwareConcurrency', self.html)
+        self.assertIn("data-setup-open", self.html)
+        self.assertIn("navigator.userAgentData.getHighEntropyValues", self.html)
+        self.assertIn("navigator.deviceMemory", self.html)
+        self.assertIn("navigator.hardwareConcurrency", self.html)
         self.assertIn('url.searchParams.set("lang",lang)', self.html)
         self.assertIn("VRAM", self.html)
+        self.assertIn('architecture === H[0]', self.html)
+        self.assertIn('"+H[14]', self.html)
+        self.assertIn('"+H[15]', self.html)
         self.assertIn("通用 Setup", self.html)
+        self.assertIn('languageTag.addEventListener("change"', self.html)
+        self.assertIn("language.value=languageTag.value", self.html)
+        self.assertIn("const browserLanguage = (navigator.languages", self.html)
+        self.assertNotIn('localStorage.getItem("kaptia.setup.language")', self.html)
+        self.assertNotIn('localStorage.setItem("kaptia.setup.language"', self.html)
+
+    def test_all_supported_locales_have_complete_visible_ui_dictionaries(self) -> None:
+        import json
+
+        expected = {
+            "zh-TW", "zh-CN", "en", "ja", "ko", "fr", "de", "es",
+            "pt-BR", "it", "ru", "ar", "th", "vi", "id",
+        }
+        dictionaries = (
+            ("siteCopy", "const heroLeadCopy="),
+            ("heroLeadCopy", "const siteSelectors="),
+            ("siteDetails", "const siteDetailSelectors="),
+            ("localeLabels", "const cardIndexCopy="),
+            ("hardwareStatus", "const labels ="),
+            ("cardIndexCopy", "function applySiteLanguage"),
+            ("releaseCopy", "const currentLocale="),
+        )
+        for name, end_marker in dictionaries:
+            start = self.html.index(f"const {name}=") + len(f"const {name}=")
+            end = self.html.index(end_marker, start)
+            raw = self.html[start:end].strip().rstrip(";")
+            data = json.loads(raw)
+            self.assertEqual(set(data), expected, f"{name} must cover all 15 supported locales")
+
+            # heroLeadCopy is intentionally a locale -> string map. The other
+            # dictionaries are locale -> positional translation arrays.
+            if name == "heroLeadCopy":
+                self.assertTrue(
+                    all(isinstance(value, str) and value.strip() for value in data.values()),
+                    f"{name} must contain non-empty translated strings",
+                )
+            else:
+                self.assertTrue(
+                    all(isinstance(value, list) and value for value in data.values()),
+                    f"{name} must contain non-empty translation arrays",
+                )
+                lengths = {len(value) for value in data.values()}
+                self.assertEqual(len(lengths), 1, f"{name} has inconsistent translation-key counts")
+                self.assertTrue(
+                    all(all(isinstance(item, str) and item.strip() for item in value) for value in data.values()),
+                    f"{name} contains an empty or non-string translation",
+                )
+
+    def test_runtime_visible_statuses_and_accessibility_labels_are_localized(self) -> None:
+        self.assertIn('button.textContent = ready ? (id === "topDownload" ? pageCopy[4] : pageCopy[6])', self.html)
+        self.assertIn("warning.textContent = !installerReady ? H[12]", self.html)
+        self.assertIn('alert((hardwareStatus[language.value]||hardwareStatus.en)[13])', self.html)
+        self.assertIn('setAttribute("aria-label",labels[7])', self.html)
+        self.assertIn('setAttribute("aria-label",labels[8])', self.html)
+        self.assertIn("releaseText(9)", self.html)
+        self.assertIn("releaseText(10)", self.html)
+        self.assertIn('release.notes_by_locale[currentLocale()]', self.html)
+        self.assertIn('releaseText(15)', self.html)
+        self.assertIn('document.title = "Kaptia — "+labels[6]', self.html)
+        self.assertIn('setupLabel.textContent = "Kaptia · "+labels[9]', self.html)
+        self.assertIn('releaseEyebrow.textContent=labels[10]', self.html)
+        self.assertNotIn("release.body.trim().slice", self.html)
+
+    def test_published_release_notes_cover_all_locales_and_are_injected(self) -> None:
+        expected = {
+            "zh-TW", "zh-CN", "en", "ja", "ko", "fr", "de", "es",
+            "pt-BR", "it", "ru", "ar", "th", "vi", "id",
+        }
+        self.assertGreaterEqual(len(self.release_notes), 5)
+        for tag, translations in self.release_notes.items():
+            self.assertTrue(tag)
+            self.assertEqual(set(translations), expected, f"{tag} must cover all supported locales")
+            for locale, text in translations.items():
+                self.assertIsInstance(text, str)
+                self.assertTrue(text.strip(), f"{tag}/{locale} is empty")
+                self.assertNotIn("{sha}", text)
+        self.assertIn('release-notes.json', self.pages_workflow)
+        self.assertIn('notes_by_locale:', self.pages_workflow)
+        self.assertIn('release.notes_by_locale[currentLocale()]', self.html)
 
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
         self.assertIn('navigator.serviceWorker.register("./sw.js"', self.html)
@@ -129,7 +215,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("new AbortController()", self.sw)
         self.assertIn("if (response.status >= 500)", self.sw)
         self.assertIn("A storage/quota failure must not discard a good network response", self.sw)
-        self.assertIn("const CACHE = \"kaptia-pages-v18\"", self.sw)
+        self.assertIn('const CACHE = "kaptia-pages-v18"', self.sw)
 
 
 if __name__ == "__main__":
