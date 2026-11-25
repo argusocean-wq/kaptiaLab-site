@@ -132,5 +132,27 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn("const CACHE = \"kaptia-pages-v18\"", self.sw)
 
 
+    def test_local_multimodal_ecosystem_has_complete_locale_copy(self) -> None:
+        start = self.html.index("  function applyEcosystemLanguage")
+        end = self.html.index("  function applyLanguage()", start)
+        source = self.html[start:end]
+        locales = ("zh-TW", "zh-CN", "en", "ja", "ko", "fr", "de", "es", "pt-BR", "it", "ru", "ar", "th", "vi", "id")
+        for locale in locales:
+            self.assertIn(f'"{locale}":{{', source, f"Missing ecosystem translation: {locale}")
+        self.assertIn("const extra=", source)
+        self.assertIn('document.documentElement.dir=lang==="ar"?"rtl":"ltr"', source)
+        self.assertIn('LOCAL MULTIMODAL AI ECOSYSTEM', source)
+        self.assertGreaterEqual(self.html.count('class="card"'), 6)
+
+    def test_mobile_layout_keeps_navigation_and_prevents_common_overflow(self) -> None:
+        self.assertIn("@media(max-width:800px)", self.html)
+        self.assertIn(".nav{display:flex!important", self.html)
+        self.assertIn("overflow-x:auto", self.html)
+        self.assertIn("overflow-wrap:anywhere", self.html)
+        self.assertIn("@media(max-width:420px)", self.html)
+        self.assertIn("grid-template-columns:minmax(0,1fr)", self.html)
+        self.assertIn("@media(max-width:800px) and (orientation:landscape)", self.html)
+
+
 if __name__ == "__main__":
     unittest.main()
