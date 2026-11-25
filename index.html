@@ -143,6 +143,40 @@ html[dir="rtl"] .setup-dialog-actions{flex-direction:row-reverse}
 html[dir="rtl"] .release-links{flex-direction:row-reverse;justify-content:flex-start}
 html[dir="rtl"] .setup-hardware-row{gap:12px}
 @media(max-width:760px){html[dir="rtl"] .top{flex-wrap:wrap}html[dir="rtl"] .nav{justify-content:flex-start;flex-wrap:wrap}html[dir="rtl"] .top-actions{flex-wrap:wrap}html[dir="rtl"] .setup-dialog-actions{display:grid;grid-template-columns:1fr}html[dir="rtl"] .release-head{align-items:flex-start;flex-wrap:wrap}}
+
+/* Mobile navigation and overflow guardrails for the local multimodal ecosystem. */
+@media(max-width:800px){
+  .top{height:auto;min-height:64px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 0}
+  .top .brand{flex:1 1 auto;min-width:0}
+  .top-actions{flex:0 1 auto;max-width:100%;gap:7px}
+  .top-actions #topDownload{min-height:36px!important;padding:0 11px!important;font-size:12px!important}
+  .top-actions .tag{max-width:132px;min-width:0}
+  .nav{display:flex!important;order:3;flex:1 0 100%;width:100%;min-width:0;gap:18px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none;padding:7px 0 3px}
+  .nav::-webkit-scrollbar{display:none}
+  .nav a{flex:0 0 auto;font-size:12px}
+  .hero{padding:64px 0 58px}
+  .hero h1{font-size:clamp(38px,10.5vw,58px);line-height:1.08;overflow-wrap:anywhere}
+  .hero .lead{font-size:16px;line-height:1.75}
+  .actions{display:flex;flex-wrap:wrap;gap:10px}
+  .actions .btn{max-width:100%;white-space:normal}
+  .grid,.steps,.requirements{grid-template-columns:minmax(0,1fr)}
+  .card,.req,.step,.release-card{min-width:0;overflow-wrap:anywhere}
+  .card p,.req p,.step p,.copy{overflow-wrap:anywhere;word-break:normal}
+  .release-list,.release-integrity{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  .integrity-hash,.integrity-command{word-break:break-all}
+  section{padding:48px 0}
+}
+@media(max-width:420px){
+  .top-actions{gap:5px}
+  .top-actions #topDownload{padding:0 8px!important;font-size:11px!important}
+  .top-actions .tag{max-width:112px;padding:6px 8px}
+  .hero h1{font-size:clamp(35px,10vw,44px)}
+  .setup-dialog{width:calc(100% - 18px);max-height:92vh}
+}
+@media(max-width:800px) and (orientation:landscape){
+  .hero{padding-top:42px}
+}
+
 </style>
 </head>
 <body>
