@@ -653,6 +653,7 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
   document.querySelectorAll("[data-setup-open]").forEach(el=>el.addEventListener("click",openDialog));
   document.getElementById("setupCancel").addEventListener("click",()=>dialog.close());
   language.addEventListener("change",()=>{ applyLanguage(); inspect(); });
+  languageTag.addEventListener("change",()=>{ language.value=languageTag.value; applyLanguage(); inspect(); });
   applyLanguage();
   confirm.addEventListener("click",()=>{
     if(confirm.disabled) return;
