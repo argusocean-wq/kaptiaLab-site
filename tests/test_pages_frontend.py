@@ -118,6 +118,7 @@ class PagesFrontendTests(unittest.TestCase):
         self.assertIn('navigator.hardwareConcurrency', self.html)
         self.assertIn('url.searchParams.set("lang",lang)', self.html)
         self.assertIn("VRAM", self.html)
+        self.assertIn('languageTag.addEventListener("change"', self.html)
         self.assertIn("通用 Setup", self.html)
 
     def test_optional_service_worker_cannot_block_page_render(self) -> None:
