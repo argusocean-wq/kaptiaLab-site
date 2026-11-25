@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ffffff">
-<meta name="description" content="KaptiaLab 是以本機運算為核心、模型無關且可擴充的多模態 AI DEI 生態系統，整合模型、工具、工作流程與使用者掌控的運算資源。">
+<meta name="description" content="KaptiaLab 是以本機運算為核心、模型無關且可擴充的本地端多模態 AI 生態系統，整合模型、工具、工作流程與使用者掌控的運算資源。">
 <title>KaptiaLab — Local Multimodal AI Ecosystem</title>
 <style>
 :root{color-scheme:light;--bg:#fff;--panel:#fff;--line:#e9e9ef;--muted:#686875;--fg:#111116;--blue:#111116;--purple:#777780;--pink:#bcbcc4}
@@ -590,27 +590,6 @@ html[dir="rtl"] .setup-hardware-row{gap:12px}
     applySiteLanguage(language.value);
     applyEcosystemLanguage(language.value);
     if (window.kaptiaReloadReleases) window.kaptiaReloadReleases();
-  const metaDescription=document.querySelector('meta[name="description"]');
-  if(metaDescription){
-    const descriptions={
-      "zh-TW":"Kaptia 是安裝於個人電腦的 AI 助手，提供本機對話記憶、工作流程與可選工具。",
-      "zh-CN":"Kaptia 是安装在个人电脑上的 AI 助手，提供本地对话记忆、工作流程与可选工具。",
-      "en":"Kaptia is a desktop AI assistant with local conversation memory, personal workflows and optional tools.",
-      "ja":"Kaptiaはローカル会話メモリ、個人ワークフロー、選択可能なツールを備えたデスクトップAIアシスタントです。",
-      "ko":"Kaptia는 로컬 대화 메모리, 개인 워크플로 및 선택형 도구를 제공하는 데스크톱 AI 비서입니다.",
-      "fr":"Kaptia est un assistant IA de bureau doté d’une mémoire locale, de flux personnels et d’outils facultatifs.",
-      "de":"Kaptia ist ein Desktop-KI-Assistent mit lokalem Gesprächsspeicher, persönlichen Abläufen und optionalen Werkzeugen.",
-      "es":"Kaptia es un asistente de IA de escritorio con memoria local, flujos personales y herramientas opcionales.",
-      "pt-BR":"Kaptia é um assistente de IA para desktop com memória local, fluxos pessoais e ferramentas opcionais.",
-      "it":"Kaptia è un assistente IA desktop con memoria locale, flussi personali e strumenti opzionali.",
-      "ru":"Kaptia — настольный ИИ-ассистент с локальной памятью диалогов, личными рабочими процессами и дополнительными инструментами.",
-      "ar":"Kaptia هو مساعد ذكاء اصطناعي لسطح المكتب بذاكرة محادثات محلية وسير عمل شخصي وأدوات اختيارية.",
-      "th":"Kaptia คือผู้ช่วย AI บนเดสก์ท็อปที่มีความจำบทสนทนาในเครื่อง เวิร์กโฟลว์ส่วนตัว และเครื่องมือเสริม",
-      "vi":"Kaptia là trợ lý AI trên máy tính với bộ nhớ hội thoại cục bộ, quy trình cá nhân và công cụ tùy chọn.",
-      "id":"Kaptia adalah asisten AI desktop dengan memori percakapan lokal, alur kerja pribadi, dan alat opsional."
-    };
-    metaDescription.content=descriptions[language.value]||descriptions.en;
-  }
     try { localStorage.setItem("kaptia.setup.language", language.value); } catch (_) {}
   }
   const labels = [
